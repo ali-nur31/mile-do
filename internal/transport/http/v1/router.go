@@ -3,17 +3,22 @@ package v1
 import "github.com/labstack/echo/v4"
 
 type Router struct {
-	userHandler UserHandler
+	authHandler AuthHandler
 }
 
 func NewRouter(
-	userHandler UserHandler,
+	authHandler AuthHandler,
 ) *Router {
 	return &Router{
-		userHandler: userHandler,
+		authHandler: authHandler,
 	}
 }
 
 func (r Router) InitRoutes(api *echo.Group) {
-	api.GET("/me", r.userHandler.GetUserByEmail)
+	auth := api.Group("/auth")
+
+	{
+		auth.POST("/register", r.authHandler.RegisterUser)
+		auth.GET("/me", r.authHandler.GetUserByEmail)
+	}
 }
