@@ -12,7 +12,8 @@ type Config struct {
 }
 
 type Api struct {
-	Port string `env:"API_PORT" env-default:":8080"`
+	Port         string `env:"API_PORT" env-default:":8080"`
+	JWTSecretKey string `env:"JWT_SECRET_KEY" env-default:"sUp3r_k3y$123"`
 }
 
 type Database struct {

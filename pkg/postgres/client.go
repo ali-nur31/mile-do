@@ -10,7 +10,11 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func InitializeDatabaseConnection(ctx context.Context, cfg *config.Database) *pgx.Conn {
+type Postgres struct {
+	Pool *pgx.Conn
+}
+
+func InitializeDatabaseConnection(ctx context.Context, cfg *config.Database) (*Postgres, error) {
 	conn, err := pgx.Connect(ctx,
 		fmt.Sprintf(
 			"postgres://%s:%s@%s:%s/%s",
@@ -28,7 +32,5 @@ func InitializeDatabaseConnection(ctx context.Context, cfg *config.Database) *pg
 
 	fmt.Println("Connection to database is established")
 
-	defer conn.Close(ctx)
-
-	return conn
+	return &Postgres{Pool: conn}, nil
 }
