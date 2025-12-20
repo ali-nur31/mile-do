@@ -6,22 +6,53 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
+type Config struct {
+	DB  Database
+	Api Api
+}
+
+type Api struct {
+	Port string `env:"API_PORT" env-default:":8080"`
+}
+
 type Database struct {
 	Port     string `env:"DB_PORT" env-default:"5432"`
 	Host     string `env:"DB_HOST" env-default:"localhost"`
 	Username string `env:"DB_USERNAME" env-default:"postgres"`
 	Password string `env:"DB_PASSWORD" env-default:"postgres"`
-	Name     string `env:"DB_NAME" env-default:"taskee_db"`
+	Name     string `env:"DB_NAME" env-default:"mile_do_db"`
 }
 
-func MustLoad() (Database, error) {
-	var cfg Database
+func MustLoad() *Config {
+	var cfg Config
 
-	err := cleanenv.ReadEnv(&cfg)
+	db := databaseLoad()
+	api := apiLoad()
+
+	cfg.DB = db
+	cfg.Api = api
+
+	return &cfg
+}
+
+func apiLoad() Api {
+	var api Api
+
+	err := cleanenv.ReadEnv(&api)
 	if err != nil {
-		slog.Error("failed to load .env file, using default values", "error", err)
-		return cfg, err
+		slog.Error("failed to load .env vars for API, using default values", "error", err)
 	}
 
-	return cfg, nil
+	return api
+}
+
+func databaseLoad() Database {
+	var db Database
+
+	err := cleanenv.ReadEnv(&db)
+	if err != nil {
+		slog.Error("failed to load .env vars for DB, using default values", "error", err)
+	}
+
+	return db
 }
