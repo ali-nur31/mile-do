@@ -6,17 +6,11 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/ali-nur31/taskee/config"
+	"github.com/ali-nur31/mile-do/config"
 	"github.com/jackc/pgx/v5"
 )
 
-func InitializeDatabaseConnection(ctx context.Context) {
-	cfg, err := config.MustLoad()
-	if err != nil {
-		slog.Error("couldn't get environment variables", "error", err)
-		os.Exit(1)
-	}
-
+func InitializeDatabaseConnection(ctx context.Context, cfg *config.Database) *pgx.Conn {
 	conn, err := pgx.Connect(ctx,
 		fmt.Sprintf(
 			"postgres://%s:%s@%s:%s/%s",
@@ -35,4 +29,6 @@ func InitializeDatabaseConnection(ctx context.Context) {
 	fmt.Println("Connection to database is established")
 
 	defer conn.Close(ctx)
+
+	return conn
 }
