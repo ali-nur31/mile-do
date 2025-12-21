@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	repo "github.com/ali-nur31/mile-do/internal/db"
@@ -73,17 +74,17 @@ func (s *AuthService) CreateUser(ctx context.Context, user UserInput) (UserOutpu
 }
 
 func (s *AuthService) LoginUser(ctx context.Context, user UserInput) (UserOutput, error) {
-	//dbUser, err := s.GetUser(ctx, user.Email)
-	//if err != nil {
-	//	slog.Error("cannot find user", "error", err)
-	//	return UserOutput{}, err
-	//}
+	dbUser, err := s.GetUser(ctx, user.Email)
+	if err != nil {
+		slog.Error("cannot find user", "error", err)
+		return UserOutput{}, err
+	}
 
-	//passwordIsCorrect := bcrypt.CheckPasswordHash(user.Password, dbUser.PasswordHash.String)
-	//if !passwordIsCorrect {
-	//	slog.Error("password is not correct")
-	//	return UserOutput{}, fmt.Errorf("password is not correct")
-	//}
+	passwordIsCorrect := bcrypt.CheckPasswordHash(user.Password, dbUser.PasswordHash.String)
+	if !passwordIsCorrect {
+		slog.Error("password is not correct")
+		return UserOutput{}, fmt.Errorf("password is not correct")
+	}
 
 	token, _ := s.tokenManager.CreateToken(user.Email)
 
