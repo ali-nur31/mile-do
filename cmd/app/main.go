@@ -12,11 +12,17 @@ import (
 	"github.com/ali-nur31/mile-do/pkg/auth"
 	"github.com/ali-nur31/mile-do/pkg/logger"
 	"github.com/ali-nur31/mile-do/pkg/postgres"
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 )
 
 func main() {
 	ctx := context.Background()
+
+	err := godotenv.Load()
+	if err != nil {
+		slog.Error("Error loading .env file")
+	}
 
 	logger.InitializeLogger()
 
