@@ -8,6 +8,7 @@ import (
 	"github.com/ali-nur31/mile-do/config"
 	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/service"
+	"github.com/ali-nur31/mile-do/internal/transport/http/middleware"
 	v1 "github.com/ali-nur31/mile-do/internal/transport/http/v1"
 	"github.com/ali-nur31/mile-do/pkg/auth"
 	"github.com/ali-nur31/mile-do/pkg/logger"
@@ -43,11 +44,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	authMiddleware := middleware.NewAuthMiddleware(*jwtTokenManager)
+
 	authService := service.NewUserService(queries, *jwtTokenManager)
 	authHandler := v1.NewAuthHandler(authService)
 
 	router := v1.NewRouter(
 		*authHandler,
+		*authMiddleware,
 	)
 
 	e := echo.New()

@@ -1,25 +1,35 @@
 package v1
 
-import "github.com/labstack/echo/v4"
+import (
+	"github.com/ali-nur31/mile-do/internal/transport/http/middleware"
+	"github.com/labstack/echo/v4"
+)
 
 type Router struct {
-	authHandler AuthHandler
+	authHandler    AuthHandler
+	authMiddleware middleware.AuthMiddleware
 }
 
 func NewRouter(
 	authHandler AuthHandler,
+	authMiddleware middleware.AuthMiddleware,
 ) *Router {
 	return &Router{
-		authHandler: authHandler,
+		authHandler:    authHandler,
+		authMiddleware: authMiddleware,
 	}
 }
 
 func (r Router) InitRoutes(api *echo.Group) {
-	auth := api.Group("/auth")
-
+	authPublic := api.Group("/auth")
 	{
-		auth.POST("/register", r.authHandler.RegisterUser)
-		auth.POST("/login", r.authHandler.LoginUser)
-		auth.GET("/me", r.authHandler.GetUserByEmail)
+		authPublic.POST("/register", r.authHandler.RegisterUser)
+		authPublic.POST("/login", r.authHandler.LoginUser)
+	}
+
+	authPrivate := api.Group("/auth")
+	authPrivate.Use(r.authMiddleware.TokenCheckMiddleware())
+	{
+		authPrivate.GET("/me", r.authHandler.GetUserByEmail)
 	}
 }

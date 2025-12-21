@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -28,13 +29,8 @@ type loginUserOutput struct {
 	Token string `json:"token"`
 }
 
-type getUserInput struct {
-	Email string `json:"email"`
-}
-
 type GetUserOutput struct {
 	Email     string           `json:"email"`
-	Password  pgtype.Text      `json:"password"`
 	CreatedAt pgtype.Timestamp `json:"created_at"`
 }
 
@@ -49,25 +45,30 @@ func NewAuthHandler(service service.UserService) *AuthHandler {
 }
 
 func (h *AuthHandler) GetUserByEmail(c echo.Context) error {
-	var input getUserInput
+	emailFromCtx := c.Get("email")
 
-	err := c.Bind(&input)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, "bad request")
+	if emailFromCtx == nil {
+		slog.Error("email not found in context")
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 	}
 
-	if !strings.Contains(input.Email, "@") {
+	email, ok := emailFromCtx.(string)
+	if !ok {
+		slog.Error("email in context is not a string", "value", emailFromCtx)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+	}
+
+	if !strings.Contains(email, "@") {
 		return c.JSON(http.StatusBadRequest, "email is invalid")
 	}
 
-	user, err := h.service.GetUser(c.Request().Context(), input.Email)
+	user, err := h.service.GetUser(c.Request().Context(), email)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, err)
 	}
 
 	output := GetUserOutput{
 		Email:     user.Email,
-		Password:  user.PasswordHash,
 		CreatedAt: user.CreatedAt,
 	}
 
