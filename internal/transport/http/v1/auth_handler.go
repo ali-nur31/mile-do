@@ -19,6 +19,15 @@ type RegisterUserOutput struct {
 	Token string `json:"token"`
 }
 
+type loginUserInput struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type loginUserOutput struct {
+	Token string `json:"token"`
+}
+
 type getUserInput struct {
 	Email string `json:"email"`
 }
@@ -76,7 +85,7 @@ func (h *AuthHandler) RegisterUser(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "passwords do not match")
 	}
 
-	input := service.CreateUserInput{
+	input := service.UserInput{
 		Email:    request.Email,
 		Password: request.Password,
 	}
@@ -87,4 +96,24 @@ func (h *AuthHandler) RegisterUser(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusCreated, RegisterUserOutput{data.Token})
+}
+
+func (h *AuthHandler) LoginUser(c echo.Context) error {
+	var request loginUserInput
+
+	if err := c.Bind(&request); err != nil {
+		return c.JSON(http.StatusBadRequest, "bad request")
+	}
+
+	input := service.UserInput{
+		Email:    request.Email,
+		Password: request.Password,
+	}
+
+	data, err := h.service.LoginUser(c.Request().Context(), input)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusAccepted, loginUserOutput{data.Token})
 }

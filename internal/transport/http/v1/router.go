@@ -19,6 +19,7 @@ func (r Router) InitRoutes(api *echo.Group) {
 
 	{
 		auth.POST("/register", r.authHandler.RegisterUser)
+		auth.POST("/login", r.authHandler.LoginUser)
 		auth.GET("/me", r.authHandler.GetUserByEmail)
 	}
 }
