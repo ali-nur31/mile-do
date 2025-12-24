@@ -9,8 +9,14 @@ import (
 )
 
 type Querier interface {
+	CreateGoal(ctx context.Context, arg CreateGoalParams) (Goal, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteGoalByID(ctx context.Context, id int64) error
+	GetGoalByID(ctx context.Context, id int64) (Goal, error)
 	GetUser(ctx context.Context, email string) (User, error)
+	ListGoals(ctx context.Context) ([]Goal, error)
+	ListGoalsByIsArchived(ctx context.Context, isArchived bool) ([]Goal, error)
+	UpdateGoalByID(ctx context.Context, arg UpdateGoalByIDParams) error
 }
 
 var _ Querier = (*Queries)(nil)
