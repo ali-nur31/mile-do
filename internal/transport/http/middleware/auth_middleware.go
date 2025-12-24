@@ -38,6 +38,7 @@ func (m *AuthMiddleware) TokenCheckMiddleware() echo.MiddlewareFunc {
 				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid or expired token"})
 			}
 
+			c.Set("userId", claims.ID)
 			c.Set("email", claims.Email)
 
 			return next(c)
