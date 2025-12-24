@@ -14,6 +14,7 @@ type JwtManager struct {
 }
 
 type AuthClaims struct {
+	ID    int64  `json:"id"`
 	Email string `json:"email"`
 	jwt.RegisteredClaims
 }
@@ -28,8 +29,9 @@ func NewJwtManager(secretKey string) (*JwtManager, error) {
 	}, nil
 }
 
-func (m *JwtManager) CreateToken(email string) (string, error) {
+func (m *JwtManager) CreateToken(id int64, email string) (string, error) {
 	claims := AuthClaims{
+		ID:    id,
 		Email: email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),

@@ -58,13 +58,13 @@ func (s *AuthService) CreateUser(ctx context.Context, user UserInput) (UserOutpu
 		PasswordHash: convertedPasswordHash,
 	}
 
-	_, err = s.repo.CreateUser(ctx, newUser)
+	savedUser, err := s.repo.CreateUser(ctx, newUser)
 	if err != nil {
 		slog.Error("failed to create user", "error", err)
 		return UserOutput{}, err
 	}
 
-	token, err := s.tokenManager.CreateToken(user.Email)
+	token, err := s.tokenManager.CreateToken(savedUser.ID, user.Email)
 
 	output := UserOutput{
 		Token: token,
@@ -86,7 +86,7 @@ func (s *AuthService) LoginUser(ctx context.Context, user UserInput) (UserOutput
 		return UserOutput{}, fmt.Errorf("password is not correct")
 	}
 
-	token, _ := s.tokenManager.CreateToken(user.Email)
+	token, _ := s.tokenManager.CreateToken(dbUser.ID, user.Email)
 
 	output := UserOutput{
 		Token: token,

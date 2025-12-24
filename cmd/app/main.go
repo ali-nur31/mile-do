@@ -49,9 +49,13 @@ func main() {
 	authService := service.NewUserService(queries, *jwtTokenManager)
 	authHandler := v1.NewAuthHandler(authService)
 
+	goalService := service.NewGoalService(queries)
+	goalHandler := v1.NewGoalHandler(goalService)
+
 	router := v1.NewRouter(
-		*authHandler,
 		*authMiddleware,
+		*authHandler,
+		*goalHandler,
 	)
 
 	e := echo.New()

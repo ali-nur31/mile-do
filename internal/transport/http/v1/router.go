@@ -6,17 +6,20 @@ import (
 )
 
 type Router struct {
-	authHandler    AuthHandler
 	authMiddleware middleware.AuthMiddleware
+	authHandler    AuthHandler
+	goalHandler    GoalHandler
 }
 
 func NewRouter(
-	authHandler AuthHandler,
 	authMiddleware middleware.AuthMiddleware,
+	authHandler AuthHandler,
+	goalHandler GoalHandler,
 ) *Router {
 	return &Router{
-		authHandler:    authHandler,
 		authMiddleware: authMiddleware,
+		authHandler:    authHandler,
+		goalHandler:    goalHandler,
 	}
 }
 
@@ -31,5 +34,15 @@ func (r Router) InitRoutes(api *echo.Group) {
 	authPrivate.Use(r.authMiddleware.TokenCheckMiddleware())
 	{
 		authPrivate.GET("/me", r.authHandler.GetUserByEmail)
+	}
+
+	goals := api.Group("/goals")
+	goals.Use(r.authMiddleware.TokenCheckMiddleware())
+	{
+		goals.GET("/", r.goalHandler.GetGoals)
+		goals.GET("/:id", r.goalHandler.GetGoalByID)
+		goals.POST("/", r.goalHandler.CreateGoal)
+		goals.PUT("/", r.goalHandler.UpdateGoal)
+		goals.DELETE("/:id", r.goalHandler.DeleteGoalByID)
 	}
 }
