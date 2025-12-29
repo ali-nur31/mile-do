@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ali-nur31/mile-do/internal/domain"
 	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/labstack/echo/v4"
 )
@@ -103,7 +104,7 @@ func (h *GoalHandler) CreateGoal(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	goal := service.CreateGoalInput{
+	goal := domain.CreateGoalInput{
 		UserID:       userId,
 		Title:        request.Title,
 		Color:        request.Color,
@@ -131,7 +132,7 @@ func (h *GoalHandler) UpdateGoal(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	outGoal, err := h.service.UpdateGoal(c.Request().Context(), service.UpdateGoalInput{
+	outGoal, err := h.service.UpdateGoal(c.Request().Context(), domain.UpdateGoalInput{
 		ID:           request.ID,
 		UserID:       userId,
 		Title:        request.Title,

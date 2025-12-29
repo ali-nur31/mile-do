@@ -3,52 +3,17 @@ package service
 import (
 	"context"
 	"fmt"
-	"time"
 
 	repo "github.com/ali-nur31/mile-do/internal/db"
+	"github.com/ali-nur31/mile-do/internal/domain"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type CreateGoalInput struct {
-	UserID       int32  `json:"user_id"`
-	Title        string `json:"title"`
-	Color        string `json:"color"`
-	CategoryType string `json:"category_type"`
-}
-
-type UpdateGoalInput struct {
-	ID           int64  `json:"id"`
-	UserID       int32  `json:"user_id"`
-	Title        string `json:"title"`
-	Color        string `json:"color"`
-	CategoryType string `json:"category_type"`
-	IsArchived   bool   `json:"is_archived"`
-}
-
-type GoalOutput struct {
-	ID           int64     `json:"id"`
-	UserID       int32     `json:"user_id"`
-	Title        string    `json:"title"`
-	Color        string    `json:"color"`
-	CategoryType string    `json:"category_type"`
-	IsArchived   bool      `json:"is_archived"`
-	CreatedAt    time.Time `json:"created_at"`
-}
-
-type UpdateGoalOutput struct {
-	ID           int64  `json:"id"`
-	UserID       int32  `json:"user_id"`
-	Title        string `json:"title"`
-	Color        string `json:"color"`
-	CategoryType string `json:"category_type"`
-	IsArchived   bool   `json:"is_archived"`
-}
-
 type GoalService interface {
-	ListGoals(ctx context.Context, filter string) (*[]GoalOutput, error)
-	GetGoalByID(ctx context.Context, id int64) (*GoalOutput, error)
-	CreateGoal(ctx context.Context, input CreateGoalInput) (*GoalOutput, error)
-	UpdateGoal(ctx context.Context, input UpdateGoalInput) (*UpdateGoalOutput, error)
+	ListGoals(ctx context.Context, filter string) (*[]domain.GoalOutput, error)
+	GetGoalByID(ctx context.Context, id int64) (*domain.GoalOutput, error)
+	CreateGoal(ctx context.Context, input domain.CreateGoalInput) (*domain.GoalOutput, error)
+	UpdateGoal(ctx context.Context, input domain.UpdateGoalInput) (*domain.UpdateGoalOutput, error)
 	DeleteGoalByID(ctx context.Context, id int64) error
 }
 
@@ -62,8 +27,8 @@ func NewGoalService(repo repo.Querier) GoalService {
 	}
 }
 
-func (s goalService) ListGoals(ctx context.Context, filter string) (*[]GoalOutput, error) {
-	var output []GoalOutput
+func (s goalService) ListGoals(ctx context.Context, filter string) (*[]domain.GoalOutput, error) {
+	var output []domain.GoalOutput
 	var goals []repo.Goal
 	var err error
 
@@ -83,7 +48,7 @@ func (s goalService) ListGoals(ctx context.Context, filter string) (*[]GoalOutpu
 	}
 
 	for _, goal := range goals {
-		output = append(output, GoalOutput{
+		output = append(output, domain.GoalOutput{
 			ID:           goal.ID,
 			UserID:       goal.UserID,
 			Title:        goal.Title,
@@ -97,13 +62,13 @@ func (s goalService) ListGoals(ctx context.Context, filter string) (*[]GoalOutpu
 	return &output, nil
 }
 
-func (s goalService) GetGoalByID(ctx context.Context, id int64) (*GoalOutput, error) {
+func (s goalService) GetGoalByID(ctx context.Context, id int64) (*domain.GoalOutput, error) {
 	goal, err := s.repo.GetGoalByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	outGoal := GoalOutput{
+	outGoal := domain.GoalOutput{
 		ID:           goal.ID,
 		UserID:       goal.UserID,
 		Title:        goal.Title,
@@ -116,7 +81,7 @@ func (s goalService) GetGoalByID(ctx context.Context, id int64) (*GoalOutput, er
 	return &outGoal, nil
 }
 
-func (s goalService) CreateGoal(ctx context.Context, input CreateGoalInput) (*GoalOutput, error) {
+func (s goalService) CreateGoal(ctx context.Context, input domain.CreateGoalInput) (*domain.GoalOutput, error) {
 	goal, err := s.repo.CreateGoal(ctx, repo.CreateGoalParams{
 		UserID: input.UserID,
 		Title:  input.Title,
@@ -130,7 +95,7 @@ func (s goalService) CreateGoal(ctx context.Context, input CreateGoalInput) (*Go
 		return nil, err
 	}
 
-	return &GoalOutput{
+	return &domain.GoalOutput{
 		ID:           goal.ID,
 		UserID:       goal.UserID,
 		Title:        goal.Title,
@@ -141,7 +106,7 @@ func (s goalService) CreateGoal(ctx context.Context, input CreateGoalInput) (*Go
 	}, nil
 }
 
-func (s goalService) UpdateGoal(ctx context.Context, input UpdateGoalInput) (*UpdateGoalOutput, error) {
+func (s goalService) UpdateGoal(ctx context.Context, input domain.UpdateGoalInput) (*domain.UpdateGoalOutput, error) {
 	goalUpdatingParams := repo.UpdateGoalByIDParams{
 		ID:    input.ID,
 		Title: input.Title,
@@ -158,7 +123,7 @@ func (s goalService) UpdateGoal(ctx context.Context, input UpdateGoalInput) (*Up
 		return nil, err
 	}
 
-	return &UpdateGoalOutput{
+	return &domain.UpdateGoalOutput{
 		ID:           input.ID,
 		UserID:       input.UserID,
 		Title:        input.Title,

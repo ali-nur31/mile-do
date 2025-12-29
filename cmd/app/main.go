@@ -48,8 +48,9 @@ func main() {
 
 	authMiddleware := middleware.NewAuthMiddleware(jwtTokenManager)
 
-	authService := service.NewUserService(queries, jwtTokenManager, passwordManager)
-	authHandler := v1.NewAuthHandler(authService)
+	userService := service.NewUserService(queries, jwtTokenManager, passwordManager)
+	authHandler := v1.NewAuthHandler(userService)
+	userHandler := v1.NewUserHandler(userService)
 
 	goalService := service.NewGoalService(queries)
 	goalHandler := v1.NewGoalHandler(goalService)
@@ -57,6 +58,7 @@ func main() {
 	router := v1.NewRouter(
 		*authMiddleware,
 		*authHandler,
+		*userHandler,
 		*goalHandler,
 	)
 
