@@ -39,14 +39,16 @@ func main() {
 
 	queries := repo.New(pg.Pool)
 
+	passwordManager := auth.NewBcryptPasswordManager()
+
 	jwtTokenManager, err := auth.NewJwtManager(cfg.Api.JWTSecretKey)
 	if err != nil {
 		os.Exit(1)
 	}
 
-	authMiddleware := middleware.NewAuthMiddleware(*jwtTokenManager)
+	authMiddleware := middleware.NewAuthMiddleware(jwtTokenManager)
 
-	authService := service.NewUserService(queries, *jwtTokenManager)
+	authService := service.NewUserService(queries, jwtTokenManager, passwordManager)
 	authHandler := v1.NewAuthHandler(authService)
 
 	goalService := service.NewGoalService(queries)

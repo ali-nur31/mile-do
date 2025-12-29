@@ -6,8 +6,6 @@ import (
 	"log/slog"
 
 	repo "github.com/ali-nur31/mile-do/internal/db"
-	"github.com/ali-nur31/mile-do/pkg/auth"
-	"github.com/ali-nur31/mile-do/pkg/bcrypt"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -20,6 +18,15 @@ type UserOutput struct {
 	Token string
 }
 
+type AuthTokenManager interface {
+	CreateToken(id int64, email string) (string, error)
+}
+
+type AuthPasswordManager interface {
+	HashPassword(password string) (string, error)
+	CheckPasswordHash(password, hash string) bool
+}
+
 type UserService interface {
 	GetUser(ctx context.Context, email string) (repo.User, error)
 	CreateUser(ctx context.Context, user UserInput) (UserOutput, error)
@@ -27,14 +34,16 @@ type UserService interface {
 }
 
 type AuthService struct {
-	repo         repo.Querier
-	tokenManager auth.JwtManager
+	repo            repo.Querier
+	tokenManager    AuthTokenManager
+	passwordManager AuthPasswordManager
 }
 
-func NewUserService(repo repo.Querier, tokenManager auth.JwtManager) UserService {
+func NewUserService(repo repo.Querier, tokenManager AuthTokenManager, passwordManager AuthPasswordManager) UserService {
 	return &AuthService{
-		repo:         repo,
-		tokenManager: tokenManager,
+		repo:            repo,
+		tokenManager:    tokenManager,
+		passwordManager: passwordManager,
 	}
 }
 
@@ -43,7 +52,7 @@ func (s *AuthService) GetUser(ctx context.Context, email string) (repo.User, err
 }
 
 func (s *AuthService) CreateUser(ctx context.Context, user UserInput) (UserOutput, error) {
-	passwordHash, err := bcrypt.HashPassword(user.Password)
+	passwordHash, err := s.passwordManager.HashPassword(user.Password)
 	if err != nil {
 		slog.Error("failed to hash password", "error", err)
 		return UserOutput{}, err
@@ -80,7 +89,7 @@ func (s *AuthService) LoginUser(ctx context.Context, user UserInput) (UserOutput
 		return UserOutput{}, err
 	}
 
-	passwordIsCorrect := bcrypt.CheckPasswordHash(user.Password, dbUser.PasswordHash.String)
+	passwordIsCorrect := s.passwordManager.CheckPasswordHash(user.Password, dbUser.PasswordHash.String)
 	if !passwordIsCorrect {
 		slog.Error("password is not correct")
 		return UserOutput{}, fmt.Errorf("password is not correct")

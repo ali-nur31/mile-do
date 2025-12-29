@@ -8,11 +8,15 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type AuthMiddleware struct {
-	tokenManager auth.JwtManager
+type AuthTokenManager interface {
+	VerifyToken(tokenString string) (*auth.AuthClaims, error)
 }
 
-func NewAuthMiddleware(tokenManager auth.JwtManager) *AuthMiddleware {
+type AuthMiddleware struct {
+	tokenManager AuthTokenManager
+}
+
+func NewAuthMiddleware(tokenManager AuthTokenManager) *AuthMiddleware {
 	return &AuthMiddleware{
 		tokenManager: tokenManager,
 	}

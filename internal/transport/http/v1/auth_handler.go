@@ -16,7 +16,7 @@ type registerUserInput struct {
 	ConfirmPassword string `json:"confirm_password"`
 }
 
-type RegisterUserOutput struct {
+type registerUserOutput struct {
 	Token string `json:"token"`
 }
 
@@ -29,7 +29,7 @@ type loginUserOutput struct {
 	Token string `json:"token"`
 }
 
-type GetUserOutput struct {
+type getUserOutput struct {
 	Email     string           `json:"email"`
 	CreatedAt pgtype.Timestamp `json:"created_at"`
 }
@@ -67,7 +67,7 @@ func (h *AuthHandler) GetUserByEmail(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, err)
 	}
 
-	output := GetUserOutput{
+	output := getUserOutput{
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
 	}
@@ -96,7 +96,7 @@ func (h *AuthHandler) RegisterUser(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(http.StatusCreated, RegisterUserOutput{data.Token})
+	return c.JSON(http.StatusCreated, registerUserOutput{data.Token})
 }
 
 func (h *AuthHandler) LoginUser(c echo.Context) error {

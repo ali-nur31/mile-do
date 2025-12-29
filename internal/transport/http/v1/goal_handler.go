@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type ListGoalsOutput struct {
+type listGoalsOutput struct {
 	UserID int32 `json:"user_id"`
 	Data   struct {
 		ID           int64     `json:"id"`
@@ -28,7 +28,7 @@ type createGoalInput struct {
 	CategoryType string `json:"category_type"`
 }
 
-type UpdateGoalInput struct {
+type updateGoalInput struct {
 	ID           int64  `json:"id"`
 	Title        string `json:"title"`
 	Color        string `json:"color"`
@@ -61,7 +61,7 @@ func (h *GoalHandler) GetGoals(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, err)
 	}
 
-	var outGoals ListGoalsOutput
+	var outGoals listGoalsOutput
 	outGoals.UserID = userId
 
 	for _, goal := range *goals {
@@ -126,7 +126,7 @@ func (h *GoalHandler) UpdateGoal(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
 	}
 
-	var request UpdateGoalInput
+	var request updateGoalInput
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
