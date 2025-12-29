@@ -25,6 +25,19 @@ func NewUserHandler(service service.UserService) *UserHandler {
 	}
 }
 
+// GetUserByEmail godoc
+// @Summary      get user info
+// @Description  get user account by bearer token
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      302  {object}  getUserResponse
+// @Failure      400  {object}  map[string]string "Bad Request"
+// @Failure      401  {object}  map[string]string "Unauthorized"
+// @Failure      404  {object}  map[string]string "Not Found"
+// @Failure      500  {object}  map[string]string "Internal Server Error"
+// @Router       /users/me [get]
 func (h *UserHandler) GetUserByEmail(c echo.Context) error {
 	emailFromCtx := c.Get("email")
 

@@ -72,6 +72,17 @@ func (h *AuthHandler) RegisterUser(c echo.Context) error {
 	return c.JSON(http.StatusCreated, registerUserResponse{data.Token})
 }
 
+// LoginUser godoc
+// @Summary      login user
+// @Description  login to existing user account
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        input body loginUserRequest true "Account Info"
+// @Success      202  {object}  loginUserResponse
+// @Failure      400  {object}  map[string]string "Bad Request"
+// @Failure      500  {object}  map[string]string "Internal Server Error"
+// @Router       /auth/login [post]
 func (h *AuthHandler) LoginUser(c echo.Context) error {
 	var request loginUserRequest
 

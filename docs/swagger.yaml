@@ -1,5 +1,24 @@
 basePath: /api/v1
 definitions:
+  internal_transport_http_v1.getUserResponse:
+    properties:
+      created_at:
+        $ref: '#/definitions/pgtype.Timestamp'
+      email:
+        type: string
+    type: object
+  internal_transport_http_v1.loginUserRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  internal_transport_http_v1.loginUserResponse:
+    properties:
+      token:
+        type: string
+    type: object
   internal_transport_http_v1.registerUserRequest:
     properties:
       confirm_password:
@@ -14,6 +33,27 @@ definitions:
       token:
         type: string
     type: object
+  pgtype.InfinityModifier:
+    enum:
+    - 1
+    - 0
+    - -1
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - Infinity
+    - Finite
+    - NegativeInfinity
+  pgtype.Timestamp:
+    properties:
+      infinityModifier:
+        $ref: '#/definitions/pgtype.InfinityModifier'
+      time:
+        description: Time zone will be ignored when encoding to PostgreSQL.
+        type: string
+      valid:
+        type: boolean
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -24,6 +64,40 @@ info:
   title: Mile-Do API
   version: "1.0"
 paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: login to existing user account
+      parameters:
+      - description: Account Info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/internal_transport_http_v1.loginUserRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/internal_transport_http_v1.loginUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: login user
+      tags:
+      - auth
   /auth/register:
     post:
       consumes:
@@ -52,12 +126,56 @@ paths:
         "500":
           description: Internal Server Error
           schema:
-            type: error
+            additionalProperties:
+              type: string
+            type: object
       summary: register new user
       tags:
       - auth
+  /users/me:
+    get:
+      consumes:
+      - application/json
+      description: get user account by bearer token
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Found
+          schema:
+            $ref: '#/definitions/internal_transport_http_v1.getUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get user info
+      tags:
+      - users
 securityDefinitions:
   BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token
     in: header
     name: Authorization
     type: apiKey
