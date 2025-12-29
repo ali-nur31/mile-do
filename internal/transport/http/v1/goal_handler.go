@@ -47,6 +47,18 @@ func NewGoalHandler(service service.GoalService) *GoalHandler {
 	}
 }
 
+// GetGoals godoc
+// @Summary      get goals
+// @Description  get list of goals
+// @Tags         goals
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        type query string false "get goals by type"
+// @Success      302  {object}  listGoalsResponse
+// @Failure      404  {object}  map[string]string "Not Found"
+// @Failure      500  {object}  map[string]string "Internal Server Error"
+// @Router       /goals [get]
 func (h *GoalHandler) GetGoals(c echo.Context) error {
 	param := c.QueryParam("type")
 
@@ -77,6 +89,18 @@ func (h *GoalHandler) GetGoals(c echo.Context) error {
 	return c.JSON(http.StatusFound, outGoals)
 }
 
+// GetGoalByID godoc
+// @Summary      get goal by :id
+// @Description  get goal by :id
+// @Tags         goals
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int64 true "Goal ID"
+// @Success      302  {object}  domain.GoalOutput
+// @Failure      404  {object}  map[string]string "Not Found"
+// @Failure      400  {object}  map[string]string "Bad Request"
+// @Router       /goals/{id} [get]
 func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -91,6 +115,19 @@ func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 	return c.JSON(http.StatusFound, goal)
 }
 
+// CreateGoal godoc
+// @Summary      create new goal
+// @Description  create new unique goal
+// @Tags         goals
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        input body createGoalRequest true "Goal Info"
+// @Success      201  {object}  domain.GoalOutput
+// @Failure      404  {object}  map[string]string "Not Found"
+// @Failure      400  {object}  map[string]string "Bad Request"
+// @Failure      500  {object}  map[string]string "Internal Server Error"
+// @Router       /goals [post]
 func (h *GoalHandler) CreateGoal(c echo.Context) error {
 	userIdFromCtx := c.Get("userId")
 	userId, ok := userIdFromCtx.(int32)
@@ -119,6 +156,19 @@ func (h *GoalHandler) CreateGoal(c echo.Context) error {
 	return c.JSON(http.StatusCreated, &outGoal)
 }
 
+// UpdateGoal godoc
+// @Summary      update goal
+// @Description  update existing goal
+// @Tags         goals
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        input body updateGoalRequest true "New Goal Info"
+// @Success      200  {object}  domain.UpdateGoalOutput
+// @Failure      404  {object}  map[string]string "Not Found"
+// @Failure      400  {object}  map[string]string "Bad Request"
+// @Failure      500  {object}  map[string]string "Internal Server Error"
+// @Router       /goals [patch]
 func (h *GoalHandler) UpdateGoal(c echo.Context) error {
 	userIdFromCtx := c.Get("userId")
 	userId, ok := userIdFromCtx.(int32)
@@ -144,9 +194,21 @@ func (h *GoalHandler) UpdateGoal(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusCreated, &outGoal)
+	return c.JSON(http.StatusOK, &outGoal)
 }
 
+// DeleteGoalByID godoc
+// @Summary      delete goal by :id
+// @Description  delete goal by :id
+// @Tags         goals
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int64 true "Goal ID"
+// @Success      201  {string}  map[string]string "goal has been removed
+// @Failure      404  {object}  map[string]string "Not Found"
+// @Failure      400  {object}  map[string]string "Bad Request"
+// @Router       /goals/{id} [delete]
 func (h *GoalHandler) DeleteGoalByID(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -158,5 +220,5 @@ func (h *GoalHandler) DeleteGoalByID(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, err)
 	}
 
-	return c.JSON(http.StatusOK, "goal has been removed")
+	return c.JSON(http.StatusOK, map[string]string{"message": "goal has been removed"})
 }

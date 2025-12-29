@@ -48,7 +48,7 @@ func (r Router) InitRoutes(api *echo.Group) {
 		goals.GET("/", r.goalHandler.GetGoals)
 		goals.GET("/:id", r.goalHandler.GetGoalByID)
 		goals.POST("/", r.goalHandler.CreateGoal)
-		goals.PUT("/", r.goalHandler.UpdateGoal)
+		goals.PATCH("/", r.goalHandler.UpdateGoal)
 		goals.DELETE("/:id", r.goalHandler.DeleteGoalByID)
 	}
 }

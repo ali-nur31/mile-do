@@ -1,11 +1,72 @@
 basePath: /api/v1
 definitions:
+  github_com_ali-nur31_mile-do_internal_domain.GoalOutput:
+    properties:
+      category_type:
+        type: string
+      color:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_archived:
+        type: boolean
+      title:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  github_com_ali-nur31_mile-do_internal_domain.UpdateGoalOutput:
+    properties:
+      category_type:
+        type: string
+      color:
+        type: string
+      id:
+        type: integer
+      is_archived:
+        type: boolean
+      title:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  internal_transport_http_v1.createGoalRequest:
+    properties:
+      category_type:
+        type: string
+      color:
+        type: string
+      title:
+        type: string
+    type: object
   internal_transport_http_v1.getUserResponse:
     properties:
       created_at:
         $ref: '#/definitions/pgtype.Timestamp'
       email:
         type: string
+    type: object
+  internal_transport_http_v1.listGoalsResponse:
+    properties:
+      data:
+        properties:
+          category_type:
+            type: string
+          color:
+            type: string
+          created_at:
+            type: string
+          id:
+            type: integer
+          is_archived:
+            type: boolean
+          title:
+            type: string
+        type: object
+      user_id:
+        type: integer
     type: object
   internal_transport_http_v1.loginUserRequest:
     properties:
@@ -31,6 +92,19 @@ definitions:
   internal_transport_http_v1.registerUserResponse:
     properties:
       token:
+        type: string
+    type: object
+  internal_transport_http_v1.updateGoalRequest:
+    properties:
+      category_type:
+        type: string
+      color:
+        type: string
+      id:
+        type: integer
+      is_archived:
+        type: boolean
+      title:
         type: string
     type: object
   pgtype.InfinityModifier:
@@ -132,6 +206,193 @@ paths:
       summary: register new user
       tags:
       - auth
+  /goals:
+    get:
+      consumes:
+      - application/json
+      description: get list of goals
+      parameters:
+      - description: get goals by type
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Found
+          schema:
+            $ref: '#/definitions/internal_transport_http_v1.listGoalsResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get goals
+      tags:
+      - goals
+    patch:
+      consumes:
+      - application/json
+      description: update existing goal
+      parameters:
+      - description: New Goal Info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/internal_transport_http_v1.updateGoalRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_domain.UpdateGoalOutput'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: update goal
+      tags:
+      - goals
+    post:
+      consumes:
+      - application/json
+      description: create new unique goal
+      parameters:
+      - description: Goal Info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/internal_transport_http_v1.createGoalRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_domain.GoalOutput'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: create new goal
+      tags:
+      - goals
+  /goals/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete goal by :id
+      parameters:
+      - description: Goal ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: goal has been removed
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: delete goal by :id
+      tags:
+      - goals
+    get:
+      consumes:
+      - application/json
+      description: get goal by :id
+      parameters:
+      - description: Goal ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Found
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_domain.GoalOutput'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get goal by :id
+      tags:
+      - goals
   /users/me:
     get:
       consumes:
