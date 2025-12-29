@@ -8,22 +8,22 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type registerUserInput struct {
+type registerUserRequest struct {
 	Email           string `json:"email"`
 	Password        string `json:"password"`
 	ConfirmPassword string `json:"confirm_password"`
 }
 
-type registerUserOutput struct {
+type registerUserResponse struct {
 	Token string `json:"token"`
 }
 
-type loginUserInput struct {
+type loginUserRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-type loginUserOutput struct {
+type loginUserResponse struct {
 	Token string `json:"token"`
 }
 
@@ -37,15 +37,26 @@ func NewAuthHandler(service service.UserService) *AuthHandler {
 	}
 }
 
+// RegisterUser godoc
+// @Summary      register new user
+// @Description  create new user account
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        input body registerUserRequest true "Account Info"
+// @Success      201  {object}  registerUserResponse
+// @Failure      400  {object}  map[string]string "Bad Request"
+// @Failure      500  {object}   map[string]string "Internal Server Error"
+// @Router       /auth/register [post]
 func (h *AuthHandler) RegisterUser(c echo.Context) error {
-	var request registerUserInput
+	var request registerUserRequest
 
 	if err := c.Bind(&request); err != nil {
-		return c.JSON(http.StatusBadRequest, "bad request")
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "bad request"})
 	}
 
 	if request.Password != request.ConfirmPassword {
-		return c.JSON(http.StatusBadRequest, "passwords do not match")
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "passwords do not match"})
 	}
 
 	input := domain.UserInput{
@@ -55,17 +66,17 @@ func (h *AuthHandler) RegisterUser(c echo.Context) error {
 
 	data, err := h.service.CreateUser(c.Request().Context(), input)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	return c.JSON(http.StatusCreated, registerUserOutput{data.Token})
+	return c.JSON(http.StatusCreated, registerUserResponse{data.Token})
 }
 
 func (h *AuthHandler) LoginUser(c echo.Context) error {
-	var request loginUserInput
+	var request loginUserRequest
 
 	if err := c.Bind(&request); err != nil {
-		return c.JSON(http.StatusBadRequest, "bad request")
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "bad request"})
 	}
 
 	input := domain.UserInput{
@@ -75,8 +86,8 @@ func (h *AuthHandler) LoginUser(c echo.Context) error {
 
 	data, err := h.service.LoginUser(c.Request().Context(), input)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	return c.JSON(http.StatusAccepted, loginUserOutput{data.Token})
+	return c.JSON(http.StatusAccepted, loginUserResponse{data.Token})
 }

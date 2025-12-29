@@ -3,6 +3,7 @@ package v1
 import (
 	"github.com/ali-nur31/mile-do/internal/transport/http/middleware"
 	"github.com/labstack/echo/v4"
+	"github.com/swaggo/echo-swagger"
 )
 
 type Router struct {
@@ -27,6 +28,8 @@ func NewRouter(
 }
 
 func (r Router) InitRoutes(api *echo.Group) {
+	api.GET("/swagger/*", echoSwagger.WrapHandler)
+
 	auth := api.Group("/auth")
 	{
 		auth.POST("/register", r.authHandler.RegisterUser)

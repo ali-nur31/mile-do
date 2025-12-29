@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type listGoalsOutput struct {
+type listGoalsResponse struct {
 	UserID int32 `json:"user_id"`
 	Data   struct {
 		ID           int64     `json:"id"`
@@ -23,13 +23,13 @@ type listGoalsOutput struct {
 	} `json:"data"`
 }
 
-type createGoalInput struct {
+type createGoalRequest struct {
 	Title        string `json:"title"`
 	Color        string `json:"color"`
 	CategoryType string `json:"category_type"`
 }
 
-type updateGoalInput struct {
+type updateGoalRequest struct {
 	ID           int64  `json:"id"`
 	Title        string `json:"title"`
 	Color        string `json:"color"`
@@ -62,7 +62,7 @@ func (h *GoalHandler) GetGoals(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, err)
 	}
 
-	var outGoals listGoalsOutput
+	var outGoals listGoalsResponse
 	outGoals.UserID = userId
 
 	for _, goal := range *goals {
@@ -99,7 +99,7 @@ func (h *GoalHandler) CreateGoal(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
 	}
 
-	var request createGoalInput
+	var request createGoalRequest
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
@@ -127,7 +127,7 @@ func (h *GoalHandler) UpdateGoal(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
 	}
 
-	var request updateGoalInput
+	var request updateGoalRequest
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}

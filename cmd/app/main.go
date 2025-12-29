@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/ali-nur31/mile-do/config"
+	_ "github.com/ali-nur31/mile-do/docs"
 	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/ali-nur31/mile-do/internal/transport/http/middleware"
@@ -17,6 +18,20 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// @title           Mile-Do API
+// @version         1.0
+// @description     API for Mile-Do, simple clone of TickTick.
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name    API Support
+// @contact.email   support@swagger.io
+
+// @host            localhost:8080
+// @BasePath        /api/v1
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	ctx := context.Background()
 

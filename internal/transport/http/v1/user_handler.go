@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type getUserOutput struct {
+type getUserResponse struct {
 	Email     string           `json:"email"`
 	CreatedAt pgtype.Timestamp `json:"created_at"`
 }
@@ -48,7 +48,7 @@ func (h *UserHandler) GetUserByEmail(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, err)
 	}
 
-	output := getUserOutput{
+	output := getUserResponse{
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
 	}
