@@ -11,6 +11,7 @@ type Router struct {
 	authHandler    AuthHandler
 	userHandler    UserHandler
 	goalHandler    GoalHandler
+	taskHandler    TaskHandler
 }
 
 func NewRouter(
@@ -18,12 +19,14 @@ func NewRouter(
 	authHandler AuthHandler,
 	userHandler UserHandler,
 	goalHandler GoalHandler,
+	taskHandler TaskHandler,
 ) *Router {
 	return &Router{
 		authMiddleware: authMiddleware,
 		authHandler:    authHandler,
 		userHandler:    userHandler,
 		goalHandler:    goalHandler,
+		taskHandler:    taskHandler,
 	}
 }
 
@@ -50,5 +53,15 @@ func (r Router) InitRoutes(api *echo.Group) {
 		goals.POST("/", r.goalHandler.CreateGoal)
 		goals.PATCH("/", r.goalHandler.UpdateGoal)
 		goals.DELETE("/:id", r.goalHandler.DeleteGoalByID)
+	}
+
+	tasks := api.Group("/tasks")
+	tasks.Use(r.authMiddleware.TokenCheckMiddleware())
+	{
+		tasks.GET("/", r.taskHandler.GetTasks)
+		tasks.GET("/:id", r.taskHandler.GetTaskByID)
+		tasks.POST("/", r.taskHandler.CreateTask)
+		tasks.PATCH("/", r.taskHandler.UpdateTask)
+		tasks.DELETE("/:id", r.taskHandler.DeleteTaskByID)
 	}
 }

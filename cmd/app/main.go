@@ -71,11 +71,15 @@ func main() {
 	goalService := service.NewGoalService(queries)
 	goalHandler := v1.NewGoalHandler(goalService)
 
+	taskService := service.NewTaskService(queries)
+	taskHandler := v1.NewTaskHandler(taskService)
+
 	router := v1.NewRouter(
 		*authMiddleware,
 		*authHandler,
 		*userHandler,
 		*goalHandler,
+		*taskHandler,
 	)
 
 	e := echo.New()

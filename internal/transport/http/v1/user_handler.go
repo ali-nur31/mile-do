@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -67,4 +68,14 @@ func (h *UserHandler) GetUserByEmail(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusFound, output)
+}
+
+func getCurrentUserIDFromToken(c echo.Context) (int32, error) {
+	switch t := c.Get("userId").(type) {
+	case int64:
+		return int32(t), nil
+	default:
+		slog.Error("userId in context is not an integer", "value", t)
+		return -1, fmt.Errorf("failed to convert userId from string to integer")
+	}
 }
