@@ -65,7 +65,7 @@ func (h *GoalHandler) GetGoals(c echo.Context) error {
 
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		slog.Error("userId in context is not a string", "value", userId)
+		slog.Error(err.Error(), "value", userId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
 	}
 
@@ -109,7 +109,7 @@ func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		slog.Error("userId in context is not a string", "value", userId)
+		slog.Error(err.Error(), "value", userId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
 	}
 
@@ -137,7 +137,7 @@ func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 func (h *GoalHandler) CreateGoal(c echo.Context) error {
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		slog.Error("userId in context is not a string", "value", userId)
+		slog.Error(err.Error(), "value", userId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
 	}
 
@@ -175,10 +175,9 @@ func (h *GoalHandler) CreateGoal(c echo.Context) error {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /goals [patch]
 func (h *GoalHandler) UpdateGoal(c echo.Context) error {
-	userIdFromCtx := c.Get("userId")
-	userId, ok := userIdFromCtx.(int32)
-	if !ok {
-		slog.Error("userId in context is not an int", "value", userIdFromCtx)
+	userId, err := getCurrentUserIDFromToken(c)
+	if err != nil {
+		slog.Error(err.Error(), "value", userId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
 	}
 
@@ -222,7 +221,7 @@ func (h *GoalHandler) DeleteGoalByID(c echo.Context) error {
 
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		slog.Error("userId in context is not a string", "value", userId)
+		slog.Error(err.Error(), "value", userId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
 	}
 
@@ -238,7 +237,7 @@ func getCurrentUserIDFromToken(c echo.Context) (int32, error) {
 	currentUser := c.Get("userId")
 	userId, ok := currentUser.(int32)
 	if !ok {
-		slog.Error("email in context is not a string", "value", currentUser)
+		slog.Error("userId in context is not an integer", "value", currentUser)
 		return userId, fmt.Errorf("failed to convert userId from string to integer")
 	}
 
