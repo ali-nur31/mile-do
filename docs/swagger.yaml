@@ -409,6 +409,41 @@ paths:
       summary: create new goal
       tags:
       - goals
+  /goals/:id/tasks:
+    get:
+      consumes:
+      - application/json
+      description: get tasks by :goal_id
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Found
+          schema:
+            $ref: '#/definitions/internal_transport_http_v1.listTasksResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get tasks by :goal_id
+      tags:
+      - tasks
   /goals/{id}:
     delete:
       consumes:
@@ -485,11 +520,6 @@ paths:
       consumes:
       - application/json
       description: get list of tasks
-      parameters:
-      - description: get goals by type
-        in: query
-        name: type
-        type: string
       produces:
       - application/json
       responses:
@@ -612,7 +642,7 @@ paths:
       - application/json
       responses:
         "201":
-          description: goal has been removed
+          description: task has been removed
           schema:
             type: string
         "400":
@@ -665,6 +695,108 @@ paths:
       security:
       - BearerAuth: []
       summary: get task by :id
+      tags:
+      - tasks
+  /tasks/analyze:
+    get:
+      consumes:
+      - application/json
+      description: get count of completed tasks over total tasks for today
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get stats for today
+      tags:
+      - tasks
+  /tasks/inbox:
+    get:
+      consumes:
+      - application/json
+      description: get tasks without date
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Found
+          schema:
+            $ref: '#/definitions/internal_transport_http_v1.listTasksResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get inbox tasks
+      tags:
+      - tasks
+  /tasks/period:
+    get:
+      consumes:
+      - application/json
+      description: get tasks by period
+      parameters:
+      - description: tasks after specific date
+        in: query
+        name: after_date
+        type: string
+      - description: tasks before specific date
+        in: query
+        name: before_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Found
+          schema:
+            $ref: '#/definitions/internal_transport_http_v1.listTasksResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get tasks by period
       tags:
       - tasks
   /users/me:
