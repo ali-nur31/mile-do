@@ -117,7 +117,7 @@
                 }
             }
         },
-        "/goals": {
+        "/goals/": {
             "get": {
                 "security": [
                     {

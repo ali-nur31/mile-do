@@ -206,7 +206,7 @@ paths:
       summary: register new user
       tags:
       - auth
-  /goals:
+  /goals/:
     get:
       consumes:
       - application/json

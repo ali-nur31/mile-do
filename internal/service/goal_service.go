@@ -27,7 +27,7 @@ func NewGoalService(repo repo.Querier) GoalService {
 	}
 }
 
-func (s goalService) ListGoals(ctx context.Context, filter string, userId int32) (*[]domain.GoalOutput, error) {
+func (s *goalService) ListGoals(ctx context.Context, filter string, userId int32) (*[]domain.GoalOutput, error) {
 	var output []domain.GoalOutput
 	var goals []repo.Goal
 	var err error
@@ -68,7 +68,7 @@ func (s goalService) ListGoals(ctx context.Context, filter string, userId int32)
 	return &output, nil
 }
 
-func (s goalService) GetGoalByID(ctx context.Context, id int64, userId int32) (*domain.GoalOutput, error) {
+func (s *goalService) GetGoalByID(ctx context.Context, id int64, userId int32) (*domain.GoalOutput, error) {
 	goal, err := s.repo.GetGoalByID(ctx, repo.GetGoalByIDParams{
 		ID:     id,
 		UserID: userId,
@@ -90,7 +90,7 @@ func (s goalService) GetGoalByID(ctx context.Context, id int64, userId int32) (*
 	return &outGoal, nil
 }
 
-func (s goalService) CreateGoal(ctx context.Context, input domain.CreateGoalInput) (*domain.GoalOutput, error) {
+func (s *goalService) CreateGoal(ctx context.Context, input domain.CreateGoalInput) (*domain.GoalOutput, error) {
 	goal, err := s.repo.CreateGoal(ctx, repo.CreateGoalParams{
 		UserID: input.UserID,
 		Title:  input.Title,
@@ -115,7 +115,7 @@ func (s goalService) CreateGoal(ctx context.Context, input domain.CreateGoalInpu
 	}, nil
 }
 
-func (s goalService) UpdateGoal(ctx context.Context, input domain.UpdateGoalInput) (*domain.UpdateGoalOutput, error) {
+func (s *goalService) UpdateGoal(ctx context.Context, input domain.UpdateGoalInput) (*domain.UpdateGoalOutput, error) {
 	goalUpdatingParams := repo.UpdateGoalByIDParams{
 		ID:     input.ID,
 		UserID: input.UserID,
@@ -143,6 +143,9 @@ func (s goalService) UpdateGoal(ctx context.Context, input domain.UpdateGoalInpu
 	}, nil
 }
 
-func (s goalService) DeleteGoalByID(ctx context.Context, id int64, userId int32) error {
-	return s.DeleteGoalByID(ctx, id, userId)
+func (s *goalService) DeleteGoalByID(ctx context.Context, id int64, userId int32) error {
+	return s.repo.DeleteGoalByID(ctx, repo.DeleteGoalByIDParams{
+		ID:     id,
+		UserID: userId,
+	})
 }

@@ -12,16 +12,18 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+type goalData struct {
+	ID           int64     `json:"id"`
+	Title        string    `json:"title"`
+	Color        string    `json:"color"`
+	CategoryType string    `json:"category_type"`
+	IsArchived   bool      `json:"is_archived"`
+	CreatedAt    time.Time `json:"created_at"`
+}
+
 type listGoalsResponse struct {
-	UserID int32 `json:"user_id"`
-	Data   struct {
-		ID           int64     `json:"id"`
-		Title        string    `json:"title"`
-		Color        string    `json:"color"`
-		CategoryType string    `json:"category_type"`
-		IsArchived   bool      `json:"is_archived"`
-		CreatedAt    time.Time `json:"created_at"`
-	} `json:"data"`
+	UserID int32      `json:"user_id"`
+	Data   []goalData `json:"data"`
 }
 
 type createGoalRequest struct {
@@ -59,13 +61,12 @@ func NewGoalHandler(service service.GoalService) *GoalHandler {
 // @Success      302  {object}  listGoalsResponse
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
-// @Router       /goals [get]
+// @Router       /goals/ [get]
 func (h *GoalHandler) GetGoals(c echo.Context) error {
 	param := c.QueryParam("type")
 
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		slog.Error(err.Error(), "value", userId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
 	}
 
@@ -76,14 +77,15 @@ func (h *GoalHandler) GetGoals(c echo.Context) error {
 
 	var outGoals listGoalsResponse
 	outGoals.UserID = userId
+	outGoals.Data = make([]goalData, len(*goals))
 
-	for _, goal := range *goals {
-		outGoals.Data.ID = goal.ID
-		outGoals.Data.Title = goal.Title
-		outGoals.Data.Color = goal.Color
-		outGoals.Data.CategoryType = goal.CategoryType
-		outGoals.Data.IsArchived = goal.IsArchived
-		outGoals.Data.CreatedAt = goal.CreatedAt
+	for index, goal := range *goals {
+		outGoals.Data[index].ID = goal.ID
+		outGoals.Data[index].Title = goal.Title
+		outGoals.Data[index].Color = goal.Color
+		outGoals.Data[index].CategoryType = goal.CategoryType
+		outGoals.Data[index].IsArchived = goal.IsArchived
+		outGoals.Data[index].CreatedAt = goal.CreatedAt
 	}
 
 	return c.JSON(http.StatusFound, outGoals)
@@ -109,7 +111,6 @@ func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		slog.Error(err.Error(), "value", userId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
 	}
 
@@ -133,11 +134,10 @@ func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
-// @Router       /goals [post]
+// @Router       /goals/ [post]
 func (h *GoalHandler) CreateGoal(c echo.Context) error {
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		slog.Error(err.Error(), "value", userId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
 	}
 
@@ -173,11 +173,10 @@ func (h *GoalHandler) CreateGoal(c echo.Context) error {
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
-// @Router       /goals [patch]
+// @Router       /goals/ [patch]
 func (h *GoalHandler) UpdateGoal(c echo.Context) error {
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		slog.Error(err.Error(), "value", userId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
 	}
 
@@ -221,7 +220,6 @@ func (h *GoalHandler) DeleteGoalByID(c echo.Context) error {
 
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		slog.Error(err.Error(), "value", userId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
 	}
 
@@ -234,12 +232,11 @@ func (h *GoalHandler) DeleteGoalByID(c echo.Context) error {
 }
 
 func getCurrentUserIDFromToken(c echo.Context) (int32, error) {
-	currentUser := c.Get("userId")
-	userId, ok := currentUser.(int32)
-	if !ok {
-		slog.Error("userId in context is not an integer", "value", currentUser)
-		return userId, fmt.Errorf("failed to convert userId from string to integer")
+	switch t := c.Get("userId").(type) {
+	case int64:
+		return int32(t), nil
+	default:
+		slog.Error("userId in context is not an integer", "value", t)
+		return -1, fmt.Errorf("failed to convert userId from string to integer")
 	}
-
-	return userId, nil
 }

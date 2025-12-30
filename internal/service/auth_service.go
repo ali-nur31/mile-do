@@ -52,6 +52,7 @@ func (s *AuthService) CreateUser(ctx context.Context, user domain.UserInput) (do
 
 	convertedPasswordHash := pgtype.Text{
 		String: passwordHash,
+		Valid:  true,
 	}
 
 	newUser := repo.CreateUserParams{

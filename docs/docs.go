@@ -123,7 +123,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/goals": {
+        "/goals/": {
             "get": {
                 "security": [
                     {
