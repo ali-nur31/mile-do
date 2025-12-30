@@ -68,6 +68,158 @@ func NewTaskHandler(service service.TaskService) *TaskHandler {
 	}
 }
 
+// GetTasksByGoalID godoc
+// @Summary      get tasks by :goal_id
+// @Description  get tasks by :goal_id
+// @Tags         tasks
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      302  {object}  listTasksResponse
+// @Failure      400  {object}  map[string]string "Bad Request"
+// @Failure      404  {object}  map[string]string "Not Found"
+// @Failure      500  {object}  map[string]string "Internal Server Error"
+// @Router       /goals/:id/tasks [get]
+func (h *TaskHandler) GetTasksByGoalID(c echo.Context) error {
+	goalId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
+	}
+
+	userId, err := getCurrentUserIDFromToken(c)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+	}
+
+	tasks, err := h.service.ListTasksByGoalID(c.Request().Context(), userId, int32(goalId))
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"message": "internal server error", "error": err.Error()})
+	}
+
+	var outTasks listTasksResponse
+	outTasks.UserID = userId
+	outTasks.TaskData = make([]taskData, len(*tasks))
+
+	for index, task := range *tasks {
+		outTasks.TaskData[index].ID = task.ID
+		outTasks.TaskData[index].GoalID = task.GoalID
+		outTasks.TaskData[index].Title = task.Title
+		outTasks.TaskData[index].IsDone = task.IsDone
+		outTasks.TaskData[index].ScheduledDate = task.ScheduledDate.Format("2025-31-12")
+		outTasks.TaskData[index].ScheduledTime = task.ScheduledTime.Format("15:10")
+		outTasks.TaskData[index].DurationMinutes = task.DurationMinutes
+		outTasks.TaskData[index].RescheduleCount = task.RescheduleCount
+		outTasks.TaskData[index].CreatedAt = task.CreatedAt
+	}
+
+	return c.JSON(http.StatusFound, outTasks)
+}
+
+// GetInboxTasks godoc
+// @Summary      get inbox tasks
+// @Description  get tasks without date
+// @Tags         tasks
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      302  {object}  listTasksResponse
+// @Failure      404  {object}  map[string]string "Not Found"
+// @Failure      500  {object}  map[string]string "Internal Server Error"
+// @Router       /tasks/inbox [get]
+func (h *TaskHandler) GetInboxTasks(c echo.Context) error {
+	userId, err := getCurrentUserIDFromToken(c)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+	}
+
+	tasks, err := h.service.ListInboxTasks(c.Request().Context(), userId)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, err)
+	}
+
+	var outTasks listTasksResponse
+	outTasks.UserID = userId
+	outTasks.TaskData = make([]taskData, len(*tasks))
+
+	for index, task := range *tasks {
+		outTasks.TaskData[index].ID = task.ID
+		outTasks.TaskData[index].GoalID = task.GoalID
+		outTasks.TaskData[index].Title = task.Title
+		outTasks.TaskData[index].IsDone = task.IsDone
+		outTasks.TaskData[index].ScheduledDate = task.ScheduledDate.Format("2025-31-12")
+		outTasks.TaskData[index].ScheduledTime = task.ScheduledTime.Format("15:10")
+		outTasks.TaskData[index].DurationMinutes = task.DurationMinutes
+		outTasks.TaskData[index].RescheduleCount = task.RescheduleCount
+		outTasks.TaskData[index].CreatedAt = task.CreatedAt
+	}
+
+	return c.JSON(http.StatusFound, outTasks)
+}
+
+// GetTasksByPeriod godoc
+// @Summary      get tasks by period
+// @Description  get tasks by period
+// @Tags         tasks
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        after_date query string false "tasks after specific date"
+// @Param        before_date query string false "tasks before specific date"
+// @Success      302  {object}  listTasksResponse
+// @Failure      404  {object}  map[string]string "Not Found"
+// @Failure      400  {object}  map[string]string "Bad Request"
+// @Failure      500  {object}  map[string]string "Internal Server Error"
+// @Router       /tasks/period [get]
+func (h *TaskHandler) GetTasksByPeriod(c echo.Context) error {
+	afterDateParam := c.QueryParam("after_date")
+	beforeDateParam := c.QueryParam("before_date")
+	if afterDateParam == "" || beforeDateParam == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": "at least after_date or before_date must be present"})
+	}
+
+	afterDate, err := time.Parse("2025-31-12", afterDateParam)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request, after_date must be in 2025-31-12 format", "error": err.Error()})
+	}
+
+	beforeDate, err := time.Parse("2025-31-12", beforeDateParam)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request, before_date must be in 2025-31-12 format", "error": err.Error()})
+	}
+
+	userId, err := getCurrentUserIDFromToken(c)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+	}
+
+	tasks, err := h.service.ListTasksByPeriod(c.Request().Context(), domain.GetTasksByPeriodInput{
+		UserID:     userId,
+		AfterDate:  afterDate,
+		BeforeDate: beforeDate,
+	})
+	if err != nil {
+		return c.JSON(http.StatusNotFound, err)
+	}
+
+	var outTasks listTasksResponse
+	outTasks.UserID = userId
+	outTasks.TaskData = make([]taskData, len(*tasks))
+
+	for index, task := range *tasks {
+		outTasks.TaskData[index].ID = task.ID
+		outTasks.TaskData[index].GoalID = task.GoalID
+		outTasks.TaskData[index].Title = task.Title
+		outTasks.TaskData[index].IsDone = task.IsDone
+		outTasks.TaskData[index].ScheduledDate = task.ScheduledDate.Format("2025-31-12")
+		outTasks.TaskData[index].ScheduledTime = task.ScheduledTime.Format("15:10")
+		outTasks.TaskData[index].DurationMinutes = task.DurationMinutes
+		outTasks.TaskData[index].RescheduleCount = task.RescheduleCount
+		outTasks.TaskData[index].CreatedAt = task.CreatedAt
+	}
+
+	return c.JSON(http.StatusFound, outTasks)
+}
+
 // GetTasks godoc
 // @Summary      get tasks
 // @Description  get list of tasks
@@ -75,7 +227,6 @@ func NewTaskHandler(service service.TaskService) *TaskHandler {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        type query string false "get goals by type"
 // @Success      302  {object}  listTasksResponse
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
@@ -176,7 +327,7 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	scheduledDate, scheduledTime, duration, err := convertDates(request.ScheduledDateTime, request.ScheduledEndDateTime)
+	scheduledDate, scheduledTime, duration, err := convertDateTimes(request.ScheduledDateTime, request.ScheduledEndDateTime)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
@@ -227,7 +378,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "cannot find task with provided id", "error": err.Error()})
 	}
 
-	scheduledDate, scheduledTime, duration, err := convertDates(request.ScheduledDateTime, request.ScheduledEndDateTime)
+	scheduledDate, scheduledTime, duration, err := convertDateTimes(request.ScheduledDateTime, request.ScheduledEndDateTime)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
@@ -250,6 +401,31 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 	return c.JSON(http.StatusOK, &outTask)
 }
 
+// AnalyzeForToday godoc
+// @Summary      get stats for today
+// @Description  get count of completed tasks over total tasks for today
+// @Tags         tasks
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      201  {string}  repo.CountCompletedTasksForTodayRow
+// @Failure      404  {object}  map[string]string "Not Found"
+// @Failure      400  {object}  map[string]string "Bad Request"
+// @Router       /tasks/analyze [get]
+func (h *TaskHandler) AnalyzeForToday(c echo.Context) error {
+	userId, err := getCurrentUserIDFromToken(c)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+	}
+
+	stats, err := h.service.AnalyzeForToday(c.Request().Context(), userId)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, err)
+	}
+
+	return c.JSON(http.StatusOK, stats)
+}
+
 // DeleteTaskByID godoc
 // @Summary      delete task by :id
 // @Description  delete task by :id
@@ -258,7 +434,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id path int64 true "Task ID"
-// @Success      201  {string}  map[string]string "goal has been removed"
+// @Success      201  {string}  map[string]string "task has been removed"
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Router       /tasks/{id} [delete]
@@ -281,7 +457,7 @@ func (h *TaskHandler) DeleteTaskByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"message": "task has been removed"})
 }
 
-func convertDates(scheduledDateTimeString, scheduledEndDateTimeString string) (time.Time, time.Time, time.Duration, error) {
+func convertDateTimes(scheduledDateTimeString, scheduledEndDateTimeString string) (time.Time, time.Time, time.Duration, error) {
 	var scheduledDateTime, scheduledDate, scheduledTime time.Time
 	duration := 15 * time.Minute
 

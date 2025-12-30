@@ -50,6 +50,7 @@ func (r Router) InitRoutes(api *echo.Group) {
 	{
 		goals.GET("/", r.goalHandler.GetGoals)
 		goals.GET("/:id", r.goalHandler.GetGoalByID)
+		goals.GET("/:id/tasks", r.taskHandler.GetTasksByGoalID)
 		goals.POST("/", r.goalHandler.CreateGoal)
 		goals.PATCH("/", r.goalHandler.UpdateGoal)
 		goals.DELETE("/:id", r.goalHandler.DeleteGoalByID)
@@ -59,6 +60,9 @@ func (r Router) InitRoutes(api *echo.Group) {
 	tasks.Use(r.authMiddleware.TokenCheckMiddleware())
 	{
 		tasks.GET("/", r.taskHandler.GetTasks)
+		tasks.GET("/inbox", r.taskHandler.GetInboxTasks)
+		tasks.GET("/period", r.taskHandler.GetTasksByPeriod)
+		tasks.GET("/analyze", r.taskHandler.AnalyzeForToday)
 		tasks.GET("/:id", r.taskHandler.GetTaskByID)
 		tasks.POST("/", r.taskHandler.CreateTask)
 		tasks.PATCH("/", r.taskHandler.UpdateTask)
