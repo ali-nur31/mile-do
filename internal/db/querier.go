@@ -9,14 +9,23 @@ import (
 )
 
 type Querier interface {
+	CountCompletedTasksForToday(ctx context.Context, userID int32) (CountCompletedTasksForTodayRow, error)
 	CreateGoal(ctx context.Context, arg CreateGoalParams) (Goal, error)
+	CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteGoalByID(ctx context.Context, arg DeleteGoalByIDParams) error
+	DeleteTaskByID(ctx context.Context, arg DeleteTaskByIDParams) error
 	GetGoalByID(ctx context.Context, arg GetGoalByIDParams) (Goal, error)
+	GetTaskByID(ctx context.Context, arg GetTaskByIDParams) (Task, error)
 	GetUser(ctx context.Context, email string) (User, error)
 	ListGoals(ctx context.Context, userID int32) ([]Goal, error)
 	ListGoalsByIsArchived(ctx context.Context, arg ListGoalsByIsArchivedParams) ([]Goal, error)
+	ListInboxTasks(ctx context.Context, userID int32) ([]Task, error)
+	ListTasks(ctx context.Context, userID int32) ([]Task, error)
+	ListTasksByDateRange(ctx context.Context, arg ListTasksByDateRangeParams) ([]Task, error)
+	ListTasksByGoalID(ctx context.Context, arg ListTasksByGoalIDParams) ([]Task, error)
 	UpdateGoalByID(ctx context.Context, arg UpdateGoalByIDParams) error
+	UpdateTaskByID(ctx context.Context, arg UpdateTaskByIDParams) error
 }
 
 var _ Querier = (*Queries)(nil)
