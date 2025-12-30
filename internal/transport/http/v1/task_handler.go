@@ -37,8 +37,6 @@ type createTaskRequest struct {
 }
 
 type updateTaskRequest struct {
-	ID                   int64  `json:"id"`
-	UserID               int32  `json:"user_id"`
 	GoalID               int32  `json:"goal_id"`
 	Title                string `json:"title"`
 	IsDone               bool   `json:"is_done"`
@@ -77,7 +75,7 @@ func NewTaskHandler(service service.TaskService) *TaskHandler {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id path int64 true "Goal ID"
-// @Success      200t of range",  {object}  listTasksResponse
+// @Success      200  {object}  listTasksResponse
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
@@ -90,7 +88,7 @@ func (h *TaskHandler) GetTasksByGoalID(c echo.Context) error {
 
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	tasks, err := h.service.ListTasksByGoalID(c.Request().Context(), userId, int32(goalId))
@@ -111,18 +109,17 @@ func (h *TaskHandler) GetTasksByGoalID(c echo.Context) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Success      200  {object}  listTasksResponse
-// @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/inbox [get]
 func (h *TaskHandler) GetInboxTasks(c echo.Context) error {
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	tasks, err := h.service.ListInboxTasks(c.Request().Context(), userId)
 	if err != nil {
-		return c.JSON(http.StatusNotFound, err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	outTasks := h.mapTasksToResponse(tasks, userId)
@@ -140,7 +137,6 @@ func (h *TaskHandler) GetInboxTasks(c echo.Context) error {
 // @Param        after_date query string false "tasks after specific date"
 // @Param        before_date query string false "tasks before specific date"
 // @Success      200  {object}  listTasksResponse
-// @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/period [get]
@@ -163,7 +159,7 @@ func (h *TaskHandler) GetTasksByPeriod(c echo.Context) error {
 
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	tasks, err := h.service.ListTasksByPeriod(c.Request().Context(), domain.GetTasksByPeriodInput{
@@ -172,7 +168,7 @@ func (h *TaskHandler) GetTasksByPeriod(c echo.Context) error {
 		BeforeDate: beforeDate,
 	})
 	if err != nil {
-		return c.JSON(http.StatusNotFound, err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	outTasks := h.mapTasksToResponse(tasks, userId)
@@ -188,18 +184,17 @@ func (h *TaskHandler) GetTasksByPeriod(c echo.Context) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Success      200  {object}  listTasksResponse
-// @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/ [get]
 func (h *TaskHandler) GetTasks(c echo.Context) error {
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	tasks, err := h.service.ListTasks(c.Request().Context(), userId)
 	if err != nil {
-		return c.JSON(http.StatusNotFound, err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	outTasks := h.mapTasksToResponse(tasks, userId)
@@ -214,9 +209,8 @@ func (h *TaskHandler) GetTasks(c echo.Context) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id path int64 true "Goal ID"
+// @Param        id path int64 true "Task ID"
 // @Success      200  {object}  taskResponse
-// @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Router       /tasks/{id} [get]
 func (h *TaskHandler) GetTaskByID(c echo.Context) error {
@@ -227,12 +221,12 @@ func (h *TaskHandler) GetTaskByID(c echo.Context) error {
 
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	task, err := h.service.GetTaskByID(c.Request().Context(), int64(id), userId)
 	if err != nil {
-		return c.JSON(http.StatusNotFound, err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, taskResponse{
@@ -258,14 +252,13 @@ func (h *TaskHandler) GetTaskByID(c echo.Context) error {
 // @Security     BearerAuth
 // @Param        input body createTaskRequest true "Task Info"
 // @Success      201  {object}  taskResponse
-// @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/ [post]
 func (h *TaskHandler) CreateTask(c echo.Context) error {
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	var request createTaskRequest
@@ -293,37 +286,54 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 
 	outTask, err := h.service.CreateTask(c.Request().Context(), task)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	return c.JSON(http.StatusCreated, &outTask)
+	return c.JSON(http.StatusCreated, taskResponse{
+		ID:              outTask.ID,
+		UserID:          userId,
+		GoalID:          outTask.GoalID,
+		Title:           outTask.Title,
+		IsDone:          outTask.IsDone,
+		ScheduledDate:   outTask.ScheduledDate.String(),
+		ScheduledTime:   outTask.ScheduledTime.String(),
+		DurationMinutes: outTask.DurationMinutes,
+		RescheduleCount: outTask.RescheduleCount,
+		CreatedAt:       outTask.CreatedAt,
+	})
 }
 
 // UpdateTask godoc
-// @Summary      update task
-// @Description  update existing task
+// @Summary      update task by id
+// @Description  update existing task by id
 // @Tags         tasks
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
+// @Param        id path int64 true "Task ID"
 // @Param        input body updateTaskRequest true "New Task Info"
 // @Success      200  {object}  taskResponse
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
-// @Router       /tasks/ [patch]
+// @Router       /tasks/{id} [patch]
 func (h *TaskHandler) UpdateTask(c echo.Context) error {
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
+	}
+
+	task_id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
 	var request updateTaskRequest
 	if err = c.Bind(&request); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	dbTask, err := h.service.GetTaskByID(c.Request().Context(), request.ID, userId)
+	dbTask, err := h.service.GetTaskByID(c.Request().Context(), int64(task_id), userId)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "cannot find task with provided id", "error": err.Error()})
 	}
@@ -334,7 +344,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 	}
 
 	outTask, err := h.service.UpdateTask(c.Request().Context(), *dbTask, domain.UpdateTask{
-		ID:              request.ID,
+		ID:              int64(task_id),
 		UserID:          userId,
 		GoalID:          request.GoalID,
 		Title:           request.Title,
@@ -345,10 +355,10 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 		RescheduleCount: dbTask.RescheduleCount,
 	})
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, &outTask)
+	return c.JSON(http.StatusOK, outTask)
 }
 
 // AnalyzeForToday godoc
@@ -359,18 +369,17 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Success      201  {string}  repo.CountCompletedTasksForTodayRow
-// @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Router       /tasks/analyze [get]
 func (h *TaskHandler) AnalyzeForToday(c echo.Context) error {
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	stats, err := h.service.AnalyzeForToday(c.Request().Context(), userId)
 	if err != nil {
-		return c.JSON(http.StatusNotFound, err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, stats)
@@ -391,17 +400,17 @@ func (h *TaskHandler) AnalyzeForToday(c echo.Context) error {
 func (h *TaskHandler) DeleteTaskByID(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	err = h.service.DeleteTaskByID(c.Request().Context(), int64(id), userId)
 	if err != nil {
-		return c.JSON(http.StatusNotFound, err)
+		return c.JSON(http.StatusNotFound, map[string]string{"message": "task not found", "error": err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{"message": "task has been removed"})

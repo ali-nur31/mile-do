@@ -181,8 +181,6 @@ definitions:
     properties:
       goal_id:
         type: integer
-      id:
-        type: integer
       is_done:
         type: boolean
       scheduled_date_time:
@@ -191,8 +189,6 @@ definitions:
         type: string
       title:
         type: string
-      user_id:
-        type: integer
     type: object
   pgtype.InfinityModifier:
     enum:
@@ -534,12 +530,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/internal_transport_http_v1.listTasksResponse'
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
         "500":
           description: Internal Server Error
           schema:
@@ -549,47 +539,6 @@ paths:
       security:
       - BearerAuth: []
       summary: get tasks
-      tags:
-      - tasks
-    patch:
-      consumes:
-      - application/json
-      description: update existing task
-      parameters:
-      - description: New Task Info
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/internal_transport_http_v1.updateTaskRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/internal_transport_http_v1.taskResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: update task
       tags:
       - tasks
     post:
@@ -612,12 +561,6 @@ paths:
             $ref: '#/definitions/internal_transport_http_v1.taskResponse'
         "400":
           description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
           schema:
             additionalProperties:
               type: string
@@ -674,12 +617,47 @@ paths:
       - application/json
       description: get task by :id
       parameters:
-      - description: Goal ID
+      - description: Task ID
         format: int64
         in: path
         name: id
         required: true
         type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_transport_http_v1.taskResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get task by :id
+      tags:
+      - tasks
+    patch:
+      consumes:
+      - application/json
+      description: update existing task by id
+      parameters:
+      - description: Task ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: New Task Info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/internal_transport_http_v1.updateTaskRequest'
       produces:
       - application/json
       responses:
@@ -699,9 +677,15 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: get task by :id
+      summary: update task by id
       tags:
       - tasks
   /tasks/analyze:
@@ -718,12 +702,6 @@ paths:
             type: string
         "400":
           description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
           schema:
             additionalProperties:
               type: string
@@ -745,12 +723,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/internal_transport_http_v1.listTasksResponse'
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
         "500":
           description: Internal Server Error
           schema:
@@ -785,12 +757,6 @@ paths:
             $ref: '#/definitions/internal_transport_http_v1.listTasksResponse'
         "400":
           description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
           schema:
             additionalProperties:
               type: string
