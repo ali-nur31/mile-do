@@ -41,6 +41,19 @@ definitions:
       title:
         type: string
     type: object
+  internal_transport_http_v1.createTaskRequest:
+    properties:
+      goal_id:
+        type: integer
+      scheduled_date_time:
+        type: string
+      scheduled_end_date_time:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: integer
+    type: object
   internal_transport_http_v1.getUserResponse:
     properties:
       created_at:
@@ -48,23 +61,36 @@ definitions:
       email:
         type: string
     type: object
+  internal_transport_http_v1.goalData:
+    properties:
+      category_type:
+        type: string
+      color:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_archived:
+        type: boolean
+      title:
+        type: string
+    type: object
   internal_transport_http_v1.listGoalsResponse:
     properties:
       data:
-        properties:
-          category_type:
-            type: string
-          color:
-            type: string
-          created_at:
-            type: string
-          id:
-            type: integer
-          is_archived:
-            type: boolean
-          title:
-            type: string
-        type: object
+        items:
+          $ref: '#/definitions/internal_transport_http_v1.goalData'
+        type: array
+      user_id:
+        type: integer
+    type: object
+  internal_transport_http_v1.listTasksResponse:
+    properties:
+      task_data:
+        items:
+          $ref: '#/definitions/internal_transport_http_v1.taskData'
+        type: array
       user_id:
         type: integer
     type: object
@@ -94,6 +120,50 @@ definitions:
       token:
         type: string
     type: object
+  internal_transport_http_v1.taskData:
+    properties:
+      created_at:
+        type: string
+      duration_minutes:
+        type: integer
+      goal_id:
+        type: integer
+      id:
+        type: integer
+      is_done:
+        type: boolean
+      reschedule_count:
+        type: integer
+      scheduled_date:
+        type: string
+      scheduled_time:
+        type: string
+      title:
+        type: string
+    type: object
+  internal_transport_http_v1.taskResponse:
+    properties:
+      created_at:
+        type: string
+      duration_minutes:
+        type: integer
+      goal_id:
+        type: integer
+      id:
+        type: integer
+      is_done:
+        type: boolean
+      reschedule_count:
+        type: integer
+      scheduled_date:
+        type: string
+      scheduled_time:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: integer
+    type: object
   internal_transport_http_v1.updateGoalRequest:
     properties:
       category_type:
@@ -106,6 +176,23 @@ definitions:
         type: boolean
       title:
         type: string
+    type: object
+  internal_transport_http_v1.updateTaskRequest:
+    properties:
+      goal_id:
+        type: integer
+      id:
+        type: integer
+      is_done:
+        type: boolean
+      scheduled_date_time:
+        type: string
+      scheduled_end_date_time:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: integer
     type: object
   pgtype.InfinityModifier:
     enum:
@@ -393,6 +480,193 @@ paths:
       summary: get goal by :id
       tags:
       - goals
+  /tasks/:
+    get:
+      consumes:
+      - application/json
+      description: get list of tasks
+      parameters:
+      - description: get goals by type
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Found
+          schema:
+            $ref: '#/definitions/internal_transport_http_v1.listTasksResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get tasks
+      tags:
+      - tasks
+    patch:
+      consumes:
+      - application/json
+      description: update existing task
+      parameters:
+      - description: New Task Info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/internal_transport_http_v1.updateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_transport_http_v1.taskResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: update task
+      tags:
+      - tasks
+    post:
+      consumes:
+      - application/json
+      description: create new task
+      parameters:
+      - description: Task Info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/internal_transport_http_v1.createTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_transport_http_v1.taskResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: create new task
+      tags:
+      - tasks
+  /tasks/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete task by :id
+      parameters:
+      - description: Task ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: goal has been removed
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: delete task by :id
+      tags:
+      - tasks
+    get:
+      consumes:
+      - application/json
+      description: get task by :id
+      parameters:
+      - description: Goal ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Found
+          schema:
+            $ref: '#/definitions/internal_transport_http_v1.taskResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get task by :id
+      tags:
+      - tasks
   /users/me:
     get:
       consumes:
