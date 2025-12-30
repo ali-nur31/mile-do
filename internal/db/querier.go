@@ -11,11 +11,11 @@ import (
 type Querier interface {
 	CreateGoal(ctx context.Context, arg CreateGoalParams) (Goal, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
-	DeleteGoalByID(ctx context.Context, id int64) error
-	GetGoalByID(ctx context.Context, id int64) (Goal, error)
+	DeleteGoalByID(ctx context.Context, arg DeleteGoalByIDParams) error
+	GetGoalByID(ctx context.Context, arg GetGoalByIDParams) (Goal, error)
 	GetUser(ctx context.Context, email string) (User, error)
-	ListGoals(ctx context.Context) ([]Goal, error)
-	ListGoalsByIsArchived(ctx context.Context, isArchived bool) ([]Goal, error)
+	ListGoals(ctx context.Context, userID int32) ([]Goal, error)
+	ListGoalsByIsArchived(ctx context.Context, arg ListGoalsByIsArchivedParams) ([]Goal, error)
 	UpdateGoalByID(ctx context.Context, arg UpdateGoalByIDParams) error
 }
 

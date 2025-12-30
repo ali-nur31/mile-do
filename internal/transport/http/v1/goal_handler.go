@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -62,14 +63,13 @@ func NewGoalHandler(service service.GoalService) *GoalHandler {
 func (h *GoalHandler) GetGoals(c echo.Context) error {
 	param := c.QueryParam("type")
 
-	userIdFromCtx := c.Get("userId")
-	userId, ok := userIdFromCtx.(int32)
-	if !ok {
-		slog.Error("email in context is not a string", "value", userIdFromCtx)
+	userId, err := getCurrentUserIDFromToken(c)
+	if err != nil {
+		slog.Error("userId in context is not a string", "value", userId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
 	}
 
-	goals, err := h.service.ListGoals(c.Request().Context(), param)
+	goals, err := h.service.ListGoals(c.Request().Context(), param, userId)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, err)
 	}
@@ -107,7 +107,13 @@ func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	goal, err := h.service.GetGoalByID(c.Request().Context(), int64(id))
+	userId, err := getCurrentUserIDFromToken(c)
+	if err != nil {
+		slog.Error("userId in context is not a string", "value", userId)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+	}
+
+	goal, err := h.service.GetGoalByID(c.Request().Context(), int64(id), userId)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, err)
 	}
@@ -129,10 +135,9 @@ func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /goals [post]
 func (h *GoalHandler) CreateGoal(c echo.Context) error {
-	userIdFromCtx := c.Get("userId")
-	userId, ok := userIdFromCtx.(int32)
-	if !ok {
-		slog.Error("email in context is not a string", "value", userIdFromCtx)
+	userId, err := getCurrentUserIDFromToken(c)
+	if err != nil {
+		slog.Error("userId in context is not a string", "value", userId)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
 	}
 
@@ -215,10 +220,27 @@ func (h *GoalHandler) DeleteGoalByID(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	err = h.service.DeleteGoalByID(c.Request().Context(), int64(id))
+	userId, err := getCurrentUserIDFromToken(c)
+	if err != nil {
+		slog.Error("userId in context is not a string", "value", userId)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+	}
+
+	err = h.service.DeleteGoalByID(c.Request().Context(), int64(id), userId)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, err)
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{"message": "goal has been removed"})
+}
+
+func getCurrentUserIDFromToken(c echo.Context) (int32, error) {
+	currentUser := c.Get("userId")
+	userId, ok := currentUser.(int32)
+	if !ok {
+		slog.Error("email in context is not a string", "value", currentUser)
+		return userId, fmt.Errorf("failed to convert userId from string to integer")
+	}
+
+	return userId, nil
 }

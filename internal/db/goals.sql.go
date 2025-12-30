@@ -49,21 +49,31 @@ func (q *Queries) CreateGoal(ctx context.Context, arg CreateGoalParams) (Goal, e
 
 const deleteGoalByID = `-- name: DeleteGoalByID :exec
 DELETE FROM goals
-WHERE id = $1
+WHERE id = $1 AND user_id = $2
 `
 
-func (q *Queries) DeleteGoalByID(ctx context.Context, id int64) error {
-	_, err := q.db.Exec(ctx, deleteGoalByID, id)
+type DeleteGoalByIDParams struct {
+	ID     int64 `json:"id"`
+	UserID int32 `json:"user_id"`
+}
+
+func (q *Queries) DeleteGoalByID(ctx context.Context, arg DeleteGoalByIDParams) error {
+	_, err := q.db.Exec(ctx, deleteGoalByID, arg.ID, arg.UserID)
 	return err
 }
 
 const getGoalByID = `-- name: GetGoalByID :one
 SELECT id, user_id, title, color, category_type, is_archived, created_at FROM goals
-WHERE id = $1 LIMIT 1
+WHERE id = $1 AND user_id = $2 LIMIT 1
 `
 
-func (q *Queries) GetGoalByID(ctx context.Context, id int64) (Goal, error) {
-	row := q.db.QueryRow(ctx, getGoalByID, id)
+type GetGoalByIDParams struct {
+	ID     int64 `json:"id"`
+	UserID int32 `json:"user_id"`
+}
+
+func (q *Queries) GetGoalByID(ctx context.Context, arg GetGoalByIDParams) (Goal, error) {
+	row := q.db.QueryRow(ctx, getGoalByID, arg.ID, arg.UserID)
 	var i Goal
 	err := row.Scan(
 		&i.ID,
@@ -79,11 +89,12 @@ func (q *Queries) GetGoalByID(ctx context.Context, id int64) (Goal, error) {
 
 const listGoals = `-- name: ListGoals :many
 SELECT id, user_id, title, color, category_type, is_archived, created_at FROM goals
+WHERE user_id = $1
 ORDER BY id
 `
 
-func (q *Queries) ListGoals(ctx context.Context) ([]Goal, error) {
-	rows, err := q.db.Query(ctx, listGoals)
+func (q *Queries) ListGoals(ctx context.Context, userID int32) ([]Goal, error) {
+	rows, err := q.db.Query(ctx, listGoals, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -112,12 +123,17 @@ func (q *Queries) ListGoals(ctx context.Context) ([]Goal, error) {
 
 const listGoalsByIsArchived = `-- name: ListGoalsByIsArchived :many
 SELECT id, user_id, title, color, category_type, is_archived, created_at FROM goals
-WHERE is_archived = $1
+WHERE is_archived = $1 AND user_id = $2
 ORDER BY id
 `
 
-func (q *Queries) ListGoalsByIsArchived(ctx context.Context, isArchived bool) ([]Goal, error) {
-	rows, err := q.db.Query(ctx, listGoalsByIsArchived, isArchived)
+type ListGoalsByIsArchivedParams struct {
+	IsArchived bool  `json:"is_archived"`
+	UserID     int32 `json:"user_id"`
+}
+
+func (q *Queries) ListGoalsByIsArchived(ctx context.Context, arg ListGoalsByIsArchivedParams) ([]Goal, error) {
+	rows, err := q.db.Query(ctx, listGoalsByIsArchived, arg.IsArchived, arg.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -146,12 +162,13 @@ func (q *Queries) ListGoalsByIsArchived(ctx context.Context, isArchived bool) ([
 
 const updateGoalByID = `-- name: UpdateGoalByID :exec
 UPDATE goals
-SET title = $2, color = $3, category_type = $4, is_archived = $5
-WHERE id = $1
+SET title = $3, color = $4, category_type = $5, is_archived = $6
+WHERE id = $1 AND user_id = $2
 `
 
 type UpdateGoalByIDParams struct {
 	ID           int64             `json:"id"`
+	UserID       int32             `json:"user_id"`
 	Title        string            `json:"title"`
 	Color        pgtype.Text       `json:"color"`
 	CategoryType GoalsCategoryType `json:"category_type"`
@@ -161,6 +178,7 @@ type UpdateGoalByIDParams struct {
 func (q *Queries) UpdateGoalByID(ctx context.Context, arg UpdateGoalByIDParams) error {
 	_, err := q.db.Exec(ctx, updateGoalByID,
 		arg.ID,
+		arg.UserID,
 		arg.Title,
 		arg.Color,
 		arg.CategoryType,
