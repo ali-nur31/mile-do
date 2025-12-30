@@ -75,11 +75,11 @@ func NewTaskHandler(service service.TaskService) *TaskHandler {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      302  {object}  listTasksResponse
+// @Success      200  {object}  listTasksResponse
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
-// @Router       /goals/:id/tasks [get]
+// @Router       /goals/{id}/tasks [get]
 func (h *TaskHandler) GetTasksByGoalID(c echo.Context) error {
 	goalId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -96,23 +96,9 @@ func (h *TaskHandler) GetTasksByGoalID(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	var outTasks listTasksResponse
-	outTasks.UserID = userId
-	outTasks.TaskData = make([]taskData, len(*tasks))
+	outTasks := h.mapTasksToResponse(tasks, userId)
 
-	for index, task := range *tasks {
-		outTasks.TaskData[index].ID = task.ID
-		outTasks.TaskData[index].GoalID = task.GoalID
-		outTasks.TaskData[index].Title = task.Title
-		outTasks.TaskData[index].IsDone = task.IsDone
-		outTasks.TaskData[index].ScheduledDate = task.ScheduledDate.Format("2025-31-12")
-		outTasks.TaskData[index].ScheduledTime = task.ScheduledTime.Format("15:10")
-		outTasks.TaskData[index].DurationMinutes = task.DurationMinutes
-		outTasks.TaskData[index].RescheduleCount = task.RescheduleCount
-		outTasks.TaskData[index].CreatedAt = task.CreatedAt
-	}
-
-	return c.JSON(http.StatusFound, outTasks)
+	return c.JSON(http.StatusOK, outTasks)
 }
 
 // GetInboxTasks godoc
@@ -122,7 +108,7 @@ func (h *TaskHandler) GetTasksByGoalID(c echo.Context) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      302  {object}  listTasksResponse
+// @Success      200  {object}  listTasksResponse
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/inbox [get]
@@ -137,23 +123,9 @@ func (h *TaskHandler) GetInboxTasks(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, err)
 	}
 
-	var outTasks listTasksResponse
-	outTasks.UserID = userId
-	outTasks.TaskData = make([]taskData, len(*tasks))
+	outTasks := h.mapTasksToResponse(tasks, userId)
 
-	for index, task := range *tasks {
-		outTasks.TaskData[index].ID = task.ID
-		outTasks.TaskData[index].GoalID = task.GoalID
-		outTasks.TaskData[index].Title = task.Title
-		outTasks.TaskData[index].IsDone = task.IsDone
-		outTasks.TaskData[index].ScheduledDate = task.ScheduledDate.Format("2025-31-12")
-		outTasks.TaskData[index].ScheduledTime = task.ScheduledTime.Format("15:10")
-		outTasks.TaskData[index].DurationMinutes = task.DurationMinutes
-		outTasks.TaskData[index].RescheduleCount = task.RescheduleCount
-		outTasks.TaskData[index].CreatedAt = task.CreatedAt
-	}
-
-	return c.JSON(http.StatusFound, outTasks)
+	return c.JSON(http.StatusOK, outTasks)
 }
 
 // GetTasksByPeriod godoc
@@ -165,7 +137,7 @@ func (h *TaskHandler) GetInboxTasks(c echo.Context) error {
 // @Security     BearerAuth
 // @Param        after_date query string false "tasks after specific date"
 // @Param        before_date query string false "tasks before specific date"
-// @Success      302  {object}  listTasksResponse
+// @Success      200  {object}  listTasksResponse
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
@@ -177,12 +149,12 @@ func (h *TaskHandler) GetTasksByPeriod(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": "at least after_date or before_date must be present"})
 	}
 
-	afterDate, err := time.Parse("2025-31-12", afterDateParam)
+	afterDate, err := time.Parse("2006-02-01", afterDateParam)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request, after_date must be in 2025-31-12 format", "error": err.Error()})
 	}
 
-	beforeDate, err := time.Parse("2025-31-12", beforeDateParam)
+	beforeDate, err := time.Parse("2006-02-01", beforeDateParam)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request, before_date must be in 2025-31-12 format", "error": err.Error()})
 	}
@@ -201,23 +173,9 @@ func (h *TaskHandler) GetTasksByPeriod(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, err)
 	}
 
-	var outTasks listTasksResponse
-	outTasks.UserID = userId
-	outTasks.TaskData = make([]taskData, len(*tasks))
+	outTasks := h.mapTasksToResponse(tasks, userId)
 
-	for index, task := range *tasks {
-		outTasks.TaskData[index].ID = task.ID
-		outTasks.TaskData[index].GoalID = task.GoalID
-		outTasks.TaskData[index].Title = task.Title
-		outTasks.TaskData[index].IsDone = task.IsDone
-		outTasks.TaskData[index].ScheduledDate = task.ScheduledDate.Format("2025-31-12")
-		outTasks.TaskData[index].ScheduledTime = task.ScheduledTime.Format("15:10")
-		outTasks.TaskData[index].DurationMinutes = task.DurationMinutes
-		outTasks.TaskData[index].RescheduleCount = task.RescheduleCount
-		outTasks.TaskData[index].CreatedAt = task.CreatedAt
-	}
-
-	return c.JSON(http.StatusFound, outTasks)
+	return c.JSON(http.StatusOK, outTasks)
 }
 
 // GetTasks godoc
@@ -227,7 +185,7 @@ func (h *TaskHandler) GetTasksByPeriod(c echo.Context) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      302  {object}  listTasksResponse
+// @Success      200  {object}  listTasksResponse
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/ [get]
@@ -242,23 +200,9 @@ func (h *TaskHandler) GetTasks(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, err)
 	}
 
-	var outTasks listTasksResponse
-	outTasks.UserID = userId
-	outTasks.TaskData = make([]taskData, len(*tasks))
+	outTasks := h.mapTasksToResponse(tasks, userId)
 
-	for index, task := range *tasks {
-		outTasks.TaskData[index].ID = task.ID
-		outTasks.TaskData[index].GoalID = task.GoalID
-		outTasks.TaskData[index].Title = task.Title
-		outTasks.TaskData[index].IsDone = task.IsDone
-		outTasks.TaskData[index].ScheduledDate = task.ScheduledDate.Format("2025-31-12")
-		outTasks.TaskData[index].ScheduledTime = task.ScheduledTime.Format("15:10")
-		outTasks.TaskData[index].DurationMinutes = task.DurationMinutes
-		outTasks.TaskData[index].RescheduleCount = task.RescheduleCount
-		outTasks.TaskData[index].CreatedAt = task.CreatedAt
-	}
-
-	return c.JSON(http.StatusFound, outTasks)
+	return c.JSON(http.StatusOK, outTasks)
 }
 
 // GetTaskByID godoc
@@ -269,7 +213,7 @@ func (h *TaskHandler) GetTasks(c echo.Context) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id path int64 true "Goal ID"
-// @Success      302  {object}  taskResponse
+// @Success      200  {object}  taskResponse
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Router       /tasks/{id} [get]
@@ -289,14 +233,14 @@ func (h *TaskHandler) GetTaskByID(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, err)
 	}
 
-	return c.JSON(http.StatusFound, taskResponse{
+	return c.JSON(http.StatusOK, taskResponse{
 		ID:              task.ID,
 		UserID:          task.UserID,
 		GoalID:          task.GoalID,
 		Title:           task.Title,
 		IsDone:          task.IsDone,
-		ScheduledDate:   task.ScheduledDate.Format("2025-31-12"),
-		ScheduledTime:   task.ScheduledTime.Format("15:10"),
+		ScheduledDate:   task.ScheduledDate.Format("2006-02-01"),
+		ScheduledTime:   task.ScheduledTime.Format("15:04"),
 		DurationMinutes: task.DurationMinutes,
 		RescheduleCount: task.RescheduleCount,
 		CreatedAt:       task.CreatedAt,
@@ -327,9 +271,13 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	scheduledDate, scheduledTime, duration, err := convertDateTimes(request.ScheduledDateTime, request.ScheduledEndDateTime)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
+	var scheduledDate, scheduledTime time.Time
+	var duration time.Duration
+	if request.ScheduledDateTime != "" || (request.ScheduledDateTime != "" && request.ScheduledEndDateTime != "") {
+		scheduledDate, scheduledTime, duration, err = convertDateTimes(request.ScheduledDateTime, request.ScheduledEndDateTime)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
+		}
 	}
 
 	task := domain.CreateTaskInput{
@@ -338,7 +286,7 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 		Title:           request.Title,
 		ScheduledDate:   scheduledDate,
 		ScheduledTime:   scheduledTime,
-		DurationMinutes: int16(duration),
+		DurationMinutes: int16(duration.Minutes()),
 	}
 
 	outTask, err := h.service.CreateTask(c.Request().Context(), task)
@@ -391,7 +339,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 		IsDone:          request.IsDone,
 		ScheduledDate:   scheduledDate,
 		ScheduledTime:   scheduledTime,
-		DurationMinutes: int16(duration),
+		DurationMinutes: int16(duration.Minutes()),
 		RescheduleCount: dbTask.RescheduleCount,
 	})
 	if err != nil {
@@ -457,34 +405,58 @@ func (h *TaskHandler) DeleteTaskByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"message": "task has been removed"})
 }
 
+func (h *TaskHandler) mapTasksToResponse(tasks []domain.TaskOutput, userId int32) listTasksResponse {
+	outTasks := listTasksResponse{
+		UserID:   userId,
+		TaskData: make([]taskData, len(tasks)),
+	}
+
+	for index, task := range tasks {
+		outTasks.TaskData[index] = taskData{
+			ID:              task.ID,
+			GoalID:          task.GoalID,
+			Title:           task.Title,
+			IsDone:          task.IsDone,
+			ScheduledDate:   task.ScheduledDate.Format("2006-02-01"),
+			ScheduledTime:   task.ScheduledTime.Format("15:04"),
+			DurationMinutes: task.DurationMinutes,
+			RescheduleCount: task.RescheduleCount,
+			CreatedAt:       task.CreatedAt,
+		}
+	}
+
+	return outTasks
+}
+
 func convertDateTimes(scheduledDateTimeString, scheduledEndDateTimeString string) (time.Time, time.Time, time.Duration, error) {
-	var scheduledDateTime, scheduledDate, scheduledTime time.Time
+	const dateTimeLayout = "2006-01-02 15:04"
+	const dateLayout = "2006-01-02"
+	const timeLayout = "15:04"
+
+	var scheduledDate, scheduledTime time.Time
 	duration := 15 * time.Minute
 
-	scheduledDateTime, err := time.Parse("2025-31-12 15:10", scheduledDateTimeString)
+	if scheduledDateTimeString == "" {
+		return time.Time{}, time.Time{}, duration, nil
+	}
+
+	scheduledDateTime, err := time.Parse(dateTimeLayout, scheduledDateTimeString)
 	if err != nil {
 		return time.Time{}, time.Time{}, duration, err
 	}
 
-	if !scheduledDateTime.IsZero() {
-		scheduledDate, err = time.Parse("2025-31-12", scheduledDateTimeString)
+	scheduledDate, _ = time.Parse(dateLayout, scheduledDateTime.Format(dateTimeLayout))
+	scheduledTime, _ = time.Parse(timeLayout, scheduledDateTime.Format(dateTimeLayout))
+
+	if scheduledEndDateTimeString != "" {
+		scheduledEndDateTime, err := time.Parse(dateTimeLayout, scheduledEndDateTimeString)
 		if err != nil {
 			return time.Time{}, time.Time{}, duration, err
 		}
 
-		scheduledTime, err = time.Parse("15:10", scheduledDateTimeString)
-		if err != nil {
-			return time.Time{}, time.Time{}, duration, err
+		if scheduledEndDateTime.After(scheduledDateTime) {
+			duration = scheduledEndDateTime.Sub(scheduledDateTime)
 		}
-	}
-
-	scheduledEndDateTime, err := time.Parse("2025-31-12 15:10", scheduledEndDateTimeString)
-	if err != nil {
-		return time.Time{}, time.Time{}, duration, err
-	}
-
-	if !scheduledEndDateTime.IsZero() && scheduledEndDateTime.Hour() != 0 && scheduledEndDateTime.Minute() != 0 {
-		duration = scheduledEndDateTime.Sub(scheduledDateTime)
 	}
 
 	return scheduledDate, scheduledTime, duration, nil

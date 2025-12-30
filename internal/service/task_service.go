@@ -10,10 +10,10 @@ import (
 )
 
 type TaskService interface {
-	ListTasksByGoalID(ctx context.Context, userId int32, goalId int32) (*[]domain.TaskOutput, error)
-	ListInboxTasks(ctx context.Context, userId int32) (*[]domain.TaskOutput, error)
-	ListTasksByPeriod(ctx context.Context, period domain.GetTasksByPeriodInput) (*[]domain.TaskOutput, error)
-	ListTasks(ctx context.Context, userId int32) (*[]domain.TaskOutput, error)
+	ListTasksByGoalID(ctx context.Context, userId int32, goalId int32) ([]domain.TaskOutput, error)
+	ListInboxTasks(ctx context.Context, userId int32) ([]domain.TaskOutput, error)
+	ListTasksByPeriod(ctx context.Context, period domain.GetTasksByPeriodInput) ([]domain.TaskOutput, error)
+	ListTasks(ctx context.Context, userId int32) ([]domain.TaskOutput, error)
 	GetTaskByID(ctx context.Context, id int64, userId int32) (*domain.TaskOutput, error)
 	CreateTask(ctx context.Context, input domain.CreateTaskInput) (*domain.TaskOutput, error)
 	UpdateTask(ctx context.Context, dbTask domain.TaskOutput, updatingTask domain.UpdateTask) (*domain.UpdateTask, error)
@@ -31,9 +31,7 @@ func NewTaskService(repo repo.Querier) TaskService {
 	}
 }
 
-func (s *taskService) ListTasksByGoalID(ctx context.Context, userId int32, goalId int32) (*[]domain.TaskOutput, error) {
-	var output []domain.TaskOutput
-
+func (s *taskService) ListTasksByGoalID(ctx context.Context, userId int32, goalId int32) ([]domain.TaskOutput, error) {
 	tasks, err := s.repo.ListTasksByGoalID(ctx, repo.ListTasksByGoalIDParams{
 		UserID: userId,
 		GoalID: goalId,
@@ -42,6 +40,8 @@ func (s *taskService) ListTasksByGoalID(ctx context.Context, userId int32, goalI
 		return nil, err
 	}
 
+	output := make([]domain.TaskOutput, 0, len(tasks))
+
 	for _, task := range tasks {
 		output = append(output, domain.TaskOutput{
 			ID:              task.ID,
@@ -56,17 +56,17 @@ func (s *taskService) ListTasksByGoalID(ctx context.Context, userId int32, goalI
 		})
 	}
 
-	return &output, nil
+	return output, nil
 }
 
-func (s *taskService) ListInboxTasks(ctx context.Context, userId int32) (*[]domain.TaskOutput, error) {
-	var output []domain.TaskOutput
-
+func (s *taskService) ListInboxTasks(ctx context.Context, userId int32) ([]domain.TaskOutput, error) {
 	tasks, err := s.repo.ListInboxTasks(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
 
+	output := make([]domain.TaskOutput, 0, len(tasks))
+
 	for _, task := range tasks {
 		output = append(output, domain.TaskOutput{
 			ID:              task.ID,
@@ -81,12 +81,10 @@ func (s *taskService) ListInboxTasks(ctx context.Context, userId int32) (*[]doma
 		})
 	}
 
-	return &output, nil
+	return output, nil
 }
 
-func (s *taskService) ListTasksByPeriod(ctx context.Context, period domain.GetTasksByPeriodInput) (*[]domain.TaskOutput, error) {
-	var output []domain.TaskOutput
-
+func (s *taskService) ListTasksByPeriod(ctx context.Context, period domain.GetTasksByPeriodInput) ([]domain.TaskOutput, error) {
 	tasks, err := s.repo.ListTasksByDateRange(ctx, repo.ListTasksByDateRangeParams{
 		UserID: period.UserID,
 		ScheduledDate: pgtype.Date{
@@ -102,6 +100,8 @@ func (s *taskService) ListTasksByPeriod(ctx context.Context, period domain.GetTa
 		return nil, err
 	}
 
+	output := make([]domain.TaskOutput, 0, len(tasks))
+
 	for _, task := range tasks {
 		output = append(output, domain.TaskOutput{
 			ID:              task.ID,
@@ -116,17 +116,17 @@ func (s *taskService) ListTasksByPeriod(ctx context.Context, period domain.GetTa
 		})
 	}
 
-	return &output, nil
+	return output, nil
 }
 
-func (s *taskService) ListTasks(ctx context.Context, userId int32) (*[]domain.TaskOutput, error) {
-	var output []domain.TaskOutput
-
+func (s *taskService) ListTasks(ctx context.Context, userId int32) ([]domain.TaskOutput, error) {
 	tasks, err := s.repo.ListTasks(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
 
+	output := make([]domain.TaskOutput, 0, len(tasks))
+
 	for _, task := range tasks {
 		output = append(output, domain.TaskOutput{
 			ID:              task.ID,
@@ -141,7 +141,7 @@ func (s *taskService) ListTasks(ctx context.Context, userId int32) (*[]domain.Ta
 		})
 	}
 
-	return &output, nil
+	return output, nil
 }
 
 func (s *taskService) GetTaskByID(ctx context.Context, id int64, userId int32) (*domain.TaskOutput, error) {
@@ -175,11 +175,11 @@ func (s *taskService) CreateTask(ctx context.Context, input domain.CreateTaskInp
 		Title:  input.Title,
 		ScheduledDate: pgtype.Date{
 			Time:  input.ScheduledDate,
-			Valid: true,
+			Valid: !input.ScheduledDate.IsZero(),
 		},
 		ScheduledTime: pgtype.Time{
 			Microseconds: input.ScheduledTime.UnixMicro(),
-			Valid:        true,
+			Valid:        !input.ScheduledTime.IsZero(),
 		},
 		DurationMinutes: pgtype.Int4{
 			Int32: int32(input.DurationMinutes),
@@ -203,7 +203,7 @@ func (s *taskService) CreateTask(ctx context.Context, input domain.CreateTaskInp
 }
 
 func (s *taskService) UpdateTask(ctx context.Context, dbTask domain.TaskOutput, updatingTask domain.UpdateTask) (*domain.UpdateTask, error) {
-	if !dbTask.ScheduledDate.IsZero() {
+	if !dbTask.ScheduledDate.IsZero() && !dbTask.ScheduledDate.Equal(updatingTask.ScheduledDate) {
 		updatingTask.RescheduleCount += 1
 	}
 
@@ -215,11 +215,11 @@ func (s *taskService) UpdateTask(ctx context.Context, dbTask domain.TaskOutput, 
 		IsDone: updatingTask.IsDone,
 		ScheduledDate: pgtype.Date{
 			Time:  updatingTask.ScheduledDate,
-			Valid: true,
+			Valid: !updatingTask.ScheduledDate.IsZero(),
 		},
 		ScheduledTime: pgtype.Time{
 			Microseconds: updatingTask.ScheduledTime.UnixMicro(),
-			Valid:        true,
+			Valid:        !updatingTask.ScheduledTime.IsZero(),
 		},
 		DurationMinutes: pgtype.Int4{
 			Int32: int32(updatingTask.DurationMinutes),

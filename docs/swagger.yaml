@@ -409,41 +409,6 @@ paths:
       summary: create new goal
       tags:
       - goals
-  /goals/:id/tasks:
-    get:
-      consumes:
-      - application/json
-      description: get tasks by :goal_id
-      produces:
-      - application/json
-      responses:
-        "302":
-          description: Found
-          schema:
-            $ref: '#/definitions/internal_transport_http_v1.listTasksResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: get tasks by :goal_id
-      tags:
-      - tasks
   /goals/{id}:
     delete:
       consumes:
@@ -515,6 +480,41 @@ paths:
       summary: get goal by :id
       tags:
       - goals
+  /goals/{id}/tasks:
+    get:
+      consumes:
+      - application/json
+      description: get tasks by :goal_id
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_transport_http_v1.listTasksResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get tasks by :goal_id
+      tags:
+      - tasks
   /tasks/:
     get:
       consumes:
@@ -523,8 +523,8 @@ paths:
       produces:
       - application/json
       responses:
-        "302":
-          description: Found
+        "200":
+          description: OK
           schema:
             $ref: '#/definitions/internal_transport_http_v1.listTasksResponse'
         "404":
@@ -676,8 +676,8 @@ paths:
       produces:
       - application/json
       responses:
-        "302":
-          description: Found
+        "200":
+          description: OK
           schema:
             $ref: '#/definitions/internal_transport_http_v1.taskResponse'
         "400":
@@ -734,8 +734,8 @@ paths:
       produces:
       - application/json
       responses:
-        "302":
-          description: Found
+        "200":
+          description: OK
           schema:
             $ref: '#/definitions/internal_transport_http_v1.listTasksResponse'
         "404":
@@ -772,8 +772,8 @@ paths:
       produces:
       - application/json
       responses:
-        "302":
-          description: Found
+        "200":
+          description: OK
           schema:
             $ref: '#/definitions/internal_transport_http_v1.listTasksResponse'
         "400":
