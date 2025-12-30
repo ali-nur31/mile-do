@@ -433,6 +433,16 @@ const docTemplate = `{
                     "tasks"
                 ],
                 "summary": "get tasks by :goal_id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Goal ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",

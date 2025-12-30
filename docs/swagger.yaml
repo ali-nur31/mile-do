@@ -485,6 +485,13 @@ paths:
       consumes:
       - application/json
       description: get tasks by :goal_id
+      parameters:
+      - description: Goal ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
       produces:
       - application/json
       responses:

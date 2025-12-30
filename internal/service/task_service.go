@@ -40,23 +40,7 @@ func (s *taskService) ListTasksByGoalID(ctx context.Context, userId int32, goalI
 		return nil, err
 	}
 
-	output := make([]domain.TaskOutput, 0, len(tasks))
-
-	for _, task := range tasks {
-		output = append(output, domain.TaskOutput{
-			ID:              task.ID,
-			UserID:          task.UserID,
-			GoalID:          task.GoalID,
-			Title:           task.Title,
-			IsDone:          task.IsDone,
-			ScheduledDate:   task.ScheduledDate.Time,
-			ScheduledTime:   convertMcSecToTime(task.ScheduledTime.Microseconds),
-			RescheduleCount: task.RescheduleCount,
-			CreatedAt:       task.CreatedAt.Time,
-		})
-	}
-
-	return output, nil
+	return mapTasksToOutputList(tasks), nil
 }
 
 func (s *taskService) ListInboxTasks(ctx context.Context, userId int32) ([]domain.TaskOutput, error) {
@@ -65,23 +49,7 @@ func (s *taskService) ListInboxTasks(ctx context.Context, userId int32) ([]domai
 		return nil, err
 	}
 
-	output := make([]domain.TaskOutput, 0, len(tasks))
-
-	for _, task := range tasks {
-		output = append(output, domain.TaskOutput{
-			ID:              task.ID,
-			UserID:          task.UserID,
-			GoalID:          task.GoalID,
-			Title:           task.Title,
-			IsDone:          task.IsDone,
-			ScheduledDate:   task.ScheduledDate.Time,
-			ScheduledTime:   convertMcSecToTime(task.ScheduledTime.Microseconds),
-			RescheduleCount: task.RescheduleCount,
-			CreatedAt:       task.CreatedAt.Time,
-		})
-	}
-
-	return output, nil
+	return mapTasksToOutputList(tasks), nil
 }
 
 func (s *taskService) ListTasksByPeriod(ctx context.Context, period domain.GetTasksByPeriodInput) ([]domain.TaskOutput, error) {
@@ -100,23 +68,7 @@ func (s *taskService) ListTasksByPeriod(ctx context.Context, period domain.GetTa
 		return nil, err
 	}
 
-	output := make([]domain.TaskOutput, 0, len(tasks))
-
-	for _, task := range tasks {
-		output = append(output, domain.TaskOutput{
-			ID:              task.ID,
-			UserID:          task.UserID,
-			GoalID:          task.GoalID,
-			Title:           task.Title,
-			IsDone:          task.IsDone,
-			ScheduledDate:   task.ScheduledDate.Time,
-			ScheduledTime:   convertMcSecToTime(task.ScheduledTime.Microseconds),
-			RescheduleCount: task.RescheduleCount,
-			CreatedAt:       task.CreatedAt.Time,
-		})
-	}
-
-	return output, nil
+	return mapTasksToOutputList(tasks), nil
 }
 
 func (s *taskService) ListTasks(ctx context.Context, userId int32) ([]domain.TaskOutput, error) {
@@ -125,23 +77,7 @@ func (s *taskService) ListTasks(ctx context.Context, userId int32) ([]domain.Tas
 		return nil, err
 	}
 
-	output := make([]domain.TaskOutput, 0, len(tasks))
-
-	for _, task := range tasks {
-		output = append(output, domain.TaskOutput{
-			ID:              task.ID,
-			UserID:          task.UserID,
-			GoalID:          task.GoalID,
-			Title:           task.Title,
-			IsDone:          task.IsDone,
-			ScheduledDate:   task.ScheduledDate.Time,
-			ScheduledTime:   convertMcSecToTime(task.ScheduledTime.Microseconds),
-			RescheduleCount: task.RescheduleCount,
-			CreatedAt:       task.CreatedAt.Time,
-		})
-	}
-
-	return output, nil
+	return mapTasksToOutputList(tasks), nil
 }
 
 func (s *taskService) GetTaskByID(ctx context.Context, id int64, userId int32) (*domain.TaskOutput, error) {
@@ -252,6 +188,26 @@ func (s *taskService) DeleteTaskByID(ctx context.Context, id int64, userId int32
 		ID:     id,
 		UserID: userId,
 	})
+}
+
+func mapTasksToOutputList(tasks []repo.Task) []domain.TaskOutput {
+	output := make([]domain.TaskOutput, 0, len(tasks))
+
+	for _, task := range tasks {
+		output = append(output, domain.TaskOutput{
+			ID:              task.ID,
+			UserID:          task.UserID,
+			GoalID:          task.GoalID,
+			Title:           task.Title,
+			IsDone:          task.IsDone,
+			ScheduledDate:   task.ScheduledDate.Time,
+			ScheduledTime:   convertMcSecToTime(task.ScheduledTime.Microseconds),
+			RescheduleCount: task.RescheduleCount,
+			CreatedAt:       task.CreatedAt.Time,
+		})
+	}
+
+	return output
 }
 
 func convertMcSecToTime(msec int64) time.Time {

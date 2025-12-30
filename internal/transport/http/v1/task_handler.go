@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -75,7 +76,8 @@ func NewTaskHandler(service service.TaskService) *TaskHandler {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200  {object}  listTasksResponse
+// @Param        id path int64 true "Goal ID"
+// @Success      200t of range",  {object}  listTasksResponse
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
@@ -428,36 +430,44 @@ func (h *TaskHandler) mapTasksToResponse(tasks []domain.TaskOutput, userId int32
 	return outTasks
 }
 
-func convertDateTimes(scheduledDateTimeString, scheduledEndDateTimeString string) (time.Time, time.Time, time.Duration, error) {
+func convertDateTimes(startDateTimeString, endDateTimeString string) (time.Time, time.Time, time.Duration, error) {
 	const dateTimeLayout = "2006-01-02 15:04"
 	const dateLayout = "2006-01-02"
 	const timeLayout = "15:04"
 
-	var scheduledDate, scheduledTime time.Time
+	var startDate, startTime time.Time
 	duration := 15 * time.Minute
 
-	if scheduledDateTimeString == "" {
+	if startDateTimeString == "" {
 		return time.Time{}, time.Time{}, duration, nil
 	}
 
-	scheduledDateTime, err := time.Parse(dateTimeLayout, scheduledDateTimeString)
+	startDateTime, err := time.Parse(dateTimeLayout, startDateTimeString)
 	if err != nil {
-		return time.Time{}, time.Time{}, duration, err
-	}
-
-	scheduledDate, _ = time.Parse(dateLayout, scheduledDateTime.Format(dateTimeLayout))
-	scheduledTime, _ = time.Parse(timeLayout, scheduledDateTime.Format(dateTimeLayout))
-
-	if scheduledEndDateTimeString != "" {
-		scheduledEndDateTime, err := time.Parse(dateTimeLayout, scheduledEndDateTimeString)
+		startDateTime, err = time.Parse(dateLayout, startDateTimeString)
 		if err != nil {
-			return time.Time{}, time.Time{}, duration, err
-		}
-
-		if scheduledEndDateTime.After(scheduledDateTime) {
-			duration = scheduledEndDateTime.Sub(scheduledDateTime)
+			return time.Time{}, time.Time{}, duration, fmt.Errorf("invalid scheduled_date_time format: %v", err)
 		}
 	}
 
-	return scheduledDate, scheduledTime, duration, nil
+	startDate, _ = time.Parse(dateLayout, startDateTime.Format(dateTimeLayout))
+	startTime, _ = time.Parse(timeLayout, startDateTime.Format(dateTimeLayout))
+
+	if endDateTimeString != "" {
+		var endDateTime time.Time
+
+		endDateTime, err = time.Parse(dateTimeLayout, endDateTimeString)
+		if err != nil {
+			endDateTime, err = time.Parse(dateLayout, endDateTimeString)
+			if err != nil {
+				return time.Time{}, time.Time{}, duration, fmt.Errorf("invalid scheduled_end_date_time format: %v", err)
+			}
+		}
+
+		if !endDateTime.IsZero() && endDateTime.After(startDateTime) {
+			duration = endDateTime.Sub(startDateTime)
+		}
+	}
+
+	return startDate, startTime, duration, nil
 }
