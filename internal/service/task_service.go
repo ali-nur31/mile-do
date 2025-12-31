@@ -16,7 +16,7 @@ type TaskService interface {
 	ListTasks(ctx context.Context, userId int32) ([]domain.TaskOutput, error)
 	GetTaskByID(ctx context.Context, id int64, userId int32) (*domain.TaskOutput, error)
 	CreateTask(ctx context.Context, input domain.CreateTaskInput) (*domain.TaskOutput, error)
-	UpdateTask(ctx context.Context, dbTask domain.TaskOutput, updatingTask domain.UpdateTask) (*domain.UpdateTask, error)
+	UpdateTask(ctx context.Context, dbTask domain.TaskOutput, updatingTask domain.UpdateTask) (*domain.TaskOutput, error)
 	AnalyzeForToday(ctx context.Context, userId int32) (repo.CountCompletedTasksForTodayRow, error)
 	DeleteTaskByID(ctx context.Context, id int64, userId int32) error
 }
@@ -96,7 +96,7 @@ func (s *taskService) GetTaskByID(ctx context.Context, id int64, userId int32) (
 		Title:           task.Title,
 		IsDone:          task.IsDone,
 		ScheduledDate:   task.ScheduledDate.Time,
-		ScheduledTime:   convertMcSecToTime(task.ScheduledTime.Microseconds),
+		ScheduledTime:   microsecondsToTime(task.ScheduledTime.Microseconds),
 		RescheduleCount: task.RescheduleCount,
 		CreatedAt:       task.CreatedAt.Time,
 	}
@@ -114,11 +114,12 @@ func (s *taskService) CreateTask(ctx context.Context, input domain.CreateTaskInp
 			Valid: !input.ScheduledDate.IsZero(),
 		},
 		ScheduledTime: pgtype.Time{
-			Microseconds: input.ScheduledTime.UnixMicro(),
+			Microseconds: timeToMicroseconds(input.ScheduledTime),
 			Valid:        !input.ScheduledTime.IsZero(),
 		},
 		DurationMinutes: pgtype.Int4{
-			Int32: int32(input.DurationMinutes),
+			Int32: int32(input.DurationMinutes.Minutes()),
+			Valid: true,
 		},
 	})
 	if err != nil {
@@ -132,13 +133,14 @@ func (s *taskService) CreateTask(ctx context.Context, input domain.CreateTaskInp
 		Title:           task.Title,
 		IsDone:          task.IsDone,
 		ScheduledDate:   task.ScheduledDate.Time,
-		ScheduledTime:   convertMcSecToTime(task.ScheduledTime.Microseconds),
+		ScheduledTime:   microsecondsToTime(task.ScheduledTime.Microseconds),
+		DurationMinutes: task.DurationMinutes.Int32,
 		RescheduleCount: task.RescheduleCount,
 		CreatedAt:       task.CreatedAt.Time,
 	}, nil
 }
 
-func (s *taskService) UpdateTask(ctx context.Context, dbTask domain.TaskOutput, updatingTask domain.UpdateTask) (*domain.UpdateTask, error) {
+func (s *taskService) UpdateTask(ctx context.Context, dbTask domain.TaskOutput, updatingTask domain.UpdateTask) (*domain.TaskOutput, error) {
 	if !dbTask.ScheduledDate.IsZero() && !dbTask.ScheduledDate.Equal(updatingTask.ScheduledDate) {
 		updatingTask.RescheduleCount += 1
 	}
@@ -154,11 +156,12 @@ func (s *taskService) UpdateTask(ctx context.Context, dbTask domain.TaskOutput, 
 			Valid: !updatingTask.ScheduledDate.IsZero(),
 		},
 		ScheduledTime: pgtype.Time{
-			Microseconds: updatingTask.ScheduledTime.UnixMicro(),
+			Microseconds: timeToMicroseconds(updatingTask.ScheduledTime),
 			Valid:        !updatingTask.ScheduledTime.IsZero(),
 		},
 		DurationMinutes: pgtype.Int4{
-			Int32: int32(updatingTask.DurationMinutes),
+			Int32: int32(updatingTask.DurationMinutes.Minutes()),
+			Valid: true,
 		},
 	}
 
@@ -167,15 +170,17 @@ func (s *taskService) UpdateTask(ctx context.Context, dbTask domain.TaskOutput, 
 		return nil, err
 	}
 
-	return &domain.UpdateTask{
+	return &domain.TaskOutput{
 		ID:              taskUpdatingParams.ID,
 		UserID:          taskUpdatingParams.UserID,
 		GoalID:          taskUpdatingParams.GoalID,
 		Title:           taskUpdatingParams.Title,
 		IsDone:          taskUpdatingParams.IsDone,
 		ScheduledDate:   taskUpdatingParams.ScheduledDate.Time,
-		ScheduledTime:   convertMcSecToTime(taskUpdatingParams.ScheduledTime.Microseconds),
+		ScheduledTime:   microsecondsToTime(taskUpdatingParams.ScheduledTime.Microseconds),
+		DurationMinutes: taskUpdatingParams.DurationMinutes.Int32,
 		RescheduleCount: taskUpdatingParams.RescheduleCount,
+		CreatedAt:       dbTask.CreatedAt,
 	}, nil
 }
 
@@ -201,7 +206,7 @@ func mapTasksToOutputList(tasks []repo.Task) []domain.TaskOutput {
 			Title:           task.Title,
 			IsDone:          task.IsDone,
 			ScheduledDate:   task.ScheduledDate.Time,
-			ScheduledTime:   convertMcSecToTime(task.ScheduledTime.Microseconds),
+			ScheduledTime:   microsecondsToTime(task.ScheduledTime.Microseconds),
 			RescheduleCount: task.RescheduleCount,
 			CreatedAt:       task.CreatedAt.Time,
 		})
@@ -210,6 +215,13 @@ func mapTasksToOutputList(tasks []repo.Task) []domain.TaskOutput {
 	return output
 }
 
-func convertMcSecToTime(msec int64) time.Time {
+func microsecondsToTime(msec int64) time.Time {
 	return time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC).Add(time.Duration(msec) * time.Microsecond)
+}
+
+func timeToMicroseconds(t time.Time) int64 {
+	return int64(t.Hour())*3600000000 +
+		int64(t.Minute())*60000000 +
+		int64(t.Second())*1000000 +
+		int64(t.Nanosecond())/1000
 }

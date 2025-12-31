@@ -501,12 +501,6 @@ paths:
             additionalProperties:
               type: string
             type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
         "500":
           description: Internal Server Error
           schema:
@@ -522,7 +516,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: get list of tasks
+      description: get all tasks
       produces:
       - application/json
       responses:
@@ -592,7 +586,7 @@ paths:
       - application/json
       responses:
         "201":
-          description: task has been removed
+          description: Task has been removed
           schema:
             type: string
         "400":
@@ -603,6 +597,12 @@ paths:
             type: object
         "404":
           description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
           schema:
             additionalProperties:
               type: string
@@ -636,6 +636,12 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       security:
       - BearerAuth: []
       summary: get task by :id
@@ -644,7 +650,7 @@ paths:
     patch:
       consumes:
       - application/json
-      description: update existing task by id
+      description: update existing task by :id
       parameters:
       - description: Task ID
         format: int64
@@ -685,7 +691,7 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: update task by id
+      summary: update task by :id
       tags:
       - tasks
   /tasks/analyze:

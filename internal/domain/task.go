@@ -14,7 +14,7 @@ type CreateTaskInput struct {
 	Title           string
 	ScheduledDate   time.Time
 	ScheduledTime   time.Time
-	DurationMinutes int16
+	DurationMinutes time.Duration
 }
 
 type UpdateTask struct {
@@ -25,7 +25,7 @@ type UpdateTask struct {
 	IsDone          bool
 	ScheduledDate   time.Time
 	ScheduledTime   time.Time
-	DurationMinutes int16
+	DurationMinutes time.Duration
 	RescheduleCount int32
 }
 
@@ -37,7 +37,7 @@ type TaskOutput struct {
 	IsDone          bool
 	ScheduledDate   time.Time
 	ScheduledTime   time.Time
-	DurationMinutes int
+	DurationMinutes int32
 	RescheduleCount int32
 	CreatedAt       time.Time
 }

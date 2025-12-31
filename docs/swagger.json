@@ -453,15 +453,6 @@
                             }
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -481,7 +472,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "get list of tasks",
+                "description": "get all tasks",
                 "consumes": [
                     "application/json"
                 ],
@@ -743,6 +734,15 @@
                                 "type": "string"
                             }
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             },
@@ -775,7 +775,7 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "task has been removed",
+                        "description": "Task has been removed",
                         "schema": {
                             "type": "string"
                         }
@@ -797,6 +797,15 @@
                                 "type": "string"
                             }
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             },
@@ -806,7 +815,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "update existing task by id",
+                "description": "update existing task by :id",
                 "consumes": [
                     "application/json"
                 ],
@@ -816,7 +825,7 @@
                 "tags": [
                     "tasks"
                 ],
-                "summary": "update task by id",
+                "summary": "update task by :id",
                 "parameters": [
                     {
                         "type": "integer",

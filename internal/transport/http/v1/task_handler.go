@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -11,6 +12,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+const dateTimeLayout = "2006-01-02 15:04"
+const dateLayout = "2006-01-02"
+const timeLayout = "15:04"
+
 type taskData struct {
 	ID              int64     `json:"id"`
 	GoalID          int32     `json:"goal_id"`
@@ -18,7 +23,7 @@ type taskData struct {
 	IsDone          bool      `json:"is_done"`
 	ScheduledDate   string    `json:"scheduled_date"`
 	ScheduledTime   string    `json:"scheduled_time"`
-	DurationMinutes int       `json:"duration_minutes"`
+	DurationMinutes int32     `json:"duration_minutes"`
 	RescheduleCount int32     `json:"reschedule_count"`
 	CreatedAt       time.Time `json:"created_at"`
 }
@@ -44,6 +49,11 @@ type updateTaskRequest struct {
 	ScheduledEndDateTime string `json:"scheduled_end_date_time"`
 }
 
+type countCompletedTasksForTodayResponse struct {
+	TotalTasks int32 `json:"total_tasks"`
+	Completed  int32 `json:"completed"`
+}
+
 type taskResponse struct {
 	ID              int64     `json:"id"`
 	UserID          int32     `json:"user_id"`
@@ -52,7 +62,7 @@ type taskResponse struct {
 	IsDone          bool      `json:"is_done"`
 	ScheduledDate   string    `json:"scheduled_date"`
 	ScheduledTime   string    `json:"scheduled_time"`
-	DurationMinutes int       `json:"duration_minutes"`
+	DurationMinutes int32     `json:"duration_minutes"`
 	RescheduleCount int32     `json:"reschedule_count"`
 	CreatedAt       time.Time `json:"created_at"`
 }
@@ -77,7 +87,6 @@ func NewTaskHandler(service service.TaskService) *TaskHandler {
 // @Param        id path int64 true "Goal ID"
 // @Success      200  {object}  listTasksResponse
 // @Failure      400  {object}  map[string]string "Bad Request"
-// @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /goals/{id}/tasks [get]
 func (h *TaskHandler) GetTasksByGoalID(c echo.Context) error {
@@ -93,7 +102,7 @@ func (h *TaskHandler) GetTasksByGoalID(c echo.Context) error {
 
 	tasks, err := h.service.ListTasksByGoalID(c.Request().Context(), userId, int32(goalId))
 	if err != nil {
-		return c.JSON(http.StatusNotFound, map[string]string{"message": "internal server error", "error": err.Error()})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	outTasks := h.mapTasksToResponse(tasks, userId)
@@ -147,12 +156,12 @@ func (h *TaskHandler) GetTasksByPeriod(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": "at least after_date or before_date must be present"})
 	}
 
-	afterDate, err := time.Parse("2006-02-01", afterDateParam)
+	afterDate, err := time.Parse(dateLayout, afterDateParam)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request, after_date must be in 2025-31-12 format", "error": err.Error()})
 	}
 
-	beforeDate, err := time.Parse("2006-02-01", beforeDateParam)
+	beforeDate, err := time.Parse(dateLayout, beforeDateParam)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request, before_date must be in 2025-31-12 format", "error": err.Error()})
 	}
@@ -178,7 +187,7 @@ func (h *TaskHandler) GetTasksByPeriod(c echo.Context) error {
 
 // GetTasks godoc
 // @Summary      get tasks
-// @Description  get list of tasks
+// @Description  get all tasks
 // @Tags         tasks
 // @Accept       json
 // @Produce      json
@@ -212,11 +221,12 @@ func (h *TaskHandler) GetTasks(c echo.Context) error {
 // @Param        id path int64 true "Task ID"
 // @Success      200  {object}  taskResponse
 // @Failure      400  {object}  map[string]string "Bad Request"
+// @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/{id} [get]
 func (h *TaskHandler) GetTaskByID(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
 	userId, err := getCurrentUserIDFromToken(c)
@@ -235,8 +245,8 @@ func (h *TaskHandler) GetTaskByID(c echo.Context) error {
 		GoalID:          task.GoalID,
 		Title:           task.Title,
 		IsDone:          task.IsDone,
-		ScheduledDate:   task.ScheduledDate.Format("2006-02-01"),
-		ScheduledTime:   task.ScheduledTime.Format("15:04"),
+		ScheduledDate:   task.ScheduledDate.Format(dateLayout),
+		ScheduledTime:   task.ScheduledTime.Format(timeLayout),
 		DurationMinutes: task.DurationMinutes,
 		RescheduleCount: task.RescheduleCount,
 		CreatedAt:       task.CreatedAt,
@@ -281,7 +291,7 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 		Title:           request.Title,
 		ScheduledDate:   scheduledDate,
 		ScheduledTime:   scheduledTime,
-		DurationMinutes: int16(duration.Minutes()),
+		DurationMinutes: duration,
 	}
 
 	outTask, err := h.service.CreateTask(c.Request().Context(), task)
@@ -295,8 +305,8 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 		GoalID:          outTask.GoalID,
 		Title:           outTask.Title,
 		IsDone:          outTask.IsDone,
-		ScheduledDate:   outTask.ScheduledDate.String(),
-		ScheduledTime:   outTask.ScheduledTime.String(),
+		ScheduledDate:   outTask.ScheduledDate.Format(dateLayout),
+		ScheduledTime:   outTask.ScheduledTime.Format(timeLayout),
 		DurationMinutes: outTask.DurationMinutes,
 		RescheduleCount: outTask.RescheduleCount,
 		CreatedAt:       outTask.CreatedAt,
@@ -304,8 +314,8 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 }
 
 // UpdateTask godoc
-// @Summary      update task by id
-// @Description  update existing task by id
+// @Summary      update task by :id
+// @Description  update existing task by :id
 // @Tags         tasks
 // @Accept       json
 // @Produce      json
@@ -351,14 +361,25 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 		IsDone:          request.IsDone,
 		ScheduledDate:   scheduledDate,
 		ScheduledTime:   scheduledTime,
-		DurationMinutes: int16(duration.Minutes()),
+		DurationMinutes: duration,
 		RescheduleCount: dbTask.RescheduleCount,
 	})
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, outTask)
+	return c.JSON(http.StatusOK, taskResponse{
+		ID:              outTask.ID,
+		UserID:          userId,
+		GoalID:          outTask.GoalID,
+		Title:           outTask.Title,
+		IsDone:          outTask.IsDone,
+		ScheduledDate:   outTask.ScheduledDate.Format(dateLayout),
+		ScheduledTime:   outTask.ScheduledTime.Format(timeLayout),
+		DurationMinutes: outTask.DurationMinutes,
+		RescheduleCount: outTask.RescheduleCount,
+		CreatedAt:       dbTask.CreatedAt,
+	})
 }
 
 // AnalyzeForToday godoc
@@ -368,7 +389,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      201  {string}  repo.CountCompletedTasksForTodayRow
+// @Success      201  {string}  countCompletedTasksForTodayResponse
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Router       /tasks/analyze [get]
 func (h *TaskHandler) AnalyzeForToday(c echo.Context) error {
@@ -382,7 +403,10 @@ func (h *TaskHandler) AnalyzeForToday(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, stats)
+	return c.JSON(http.StatusOK, countCompletedTasksForTodayResponse{
+		TotalTasks: stats.TotalToday,
+		Completed:  stats.CompletedToday,
+	})
 }
 
 // DeleteTaskByID godoc
@@ -393,9 +417,10 @@ func (h *TaskHandler) AnalyzeForToday(c echo.Context) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id path int64 true "Task ID"
-// @Success      201  {string}  map[string]string "task has been removed"
+// @Success      201  {string}  map[string]string "Task has been removed"
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
+// @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/{id} [delete]
 func (h *TaskHandler) DeleteTaskByID(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
@@ -428,8 +453,8 @@ func (h *TaskHandler) mapTasksToResponse(tasks []domain.TaskOutput, userId int32
 			GoalID:          task.GoalID,
 			Title:           task.Title,
 			IsDone:          task.IsDone,
-			ScheduledDate:   task.ScheduledDate.Format("2006-02-01"),
-			ScheduledTime:   task.ScheduledTime.Format("15:04"),
+			ScheduledDate:   task.ScheduledDate.Format(dateLayout),
+			ScheduledTime:   task.ScheduledTime.Format(timeLayout),
 			DurationMinutes: task.DurationMinutes,
 			RescheduleCount: task.RescheduleCount,
 			CreatedAt:       task.CreatedAt,
@@ -440,10 +465,6 @@ func (h *TaskHandler) mapTasksToResponse(tasks []domain.TaskOutput, userId int32
 }
 
 func convertDateTimes(startDateTimeString, endDateTimeString string) (time.Time, time.Time, time.Duration, error) {
-	const dateTimeLayout = "2006-01-02 15:04"
-	const dateLayout = "2006-01-02"
-	const timeLayout = "15:04"
-
 	var startDate, startTime time.Time
 	duration := 15 * time.Minute
 
@@ -459,8 +480,13 @@ func convertDateTimes(startDateTimeString, endDateTimeString string) (time.Time,
 		}
 	}
 
-	startDate, _ = time.Parse(dateLayout, startDateTime.Format(dateTimeLayout))
-	startTime, _ = time.Parse(timeLayout, startDateTime.Format(dateTimeLayout))
+	slog.Info("startDateTime parsed", "startDateTime", startDateTime)
+
+	startDate, _ = time.Parse(dateLayout, startDateTime.Format(dateLayout))
+	startTime, _ = time.Parse(timeLayout, startDateTime.Format(timeLayout))
+
+	slog.Info("startDate parsed", "startDate", startDate)
+	slog.Info("startTime parsed", "startTime", startTime)
 
 	if endDateTimeString != "" {
 		var endDateTime time.Time
