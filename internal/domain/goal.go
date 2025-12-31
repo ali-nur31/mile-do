@@ -3,36 +3,36 @@ package domain
 import "time"
 
 type CreateGoalInput struct {
-	UserID       int32  `json:"user_id"`
-	Title        string `json:"title"`
-	Color        string `json:"color"`
-	CategoryType string `json:"category_type"`
+	UserID       int32
+	Title        string
+	Color        string
+	CategoryType string
 }
 
 type UpdateGoalInput struct {
-	ID           int64  `json:"id"`
-	UserID       int32  `json:"user_id"`
-	Title        string `json:"title"`
-	Color        string `json:"color"`
-	CategoryType string `json:"category_type"`
-	IsArchived   bool   `json:"is_archived"`
+	ID           int64
+	UserID       int32
+	Title        string
+	Color        string
+	CategoryType string
+	IsArchived   bool
 }
 
 type UpdateGoalOutput struct {
-	ID           int64  `json:"id"`
-	UserID       int32  `json:"user_id"`
-	Title        string `json:"title"`
-	Color        string `json:"color"`
-	CategoryType string `json:"category_type"`
-	IsArchived   bool   `json:"is_archived"`
+	ID           int64
+	UserID       int32
+	Title        string
+	Color        string
+	CategoryType string
+	IsArchived   bool
 }
 
 type GoalOutput struct {
-	ID           int64     `json:"id"`
-	UserID       int32     `json:"user_id"`
-	Title        string    `json:"title"`
-	Color        string    `json:"color"`
-	CategoryType string    `json:"category_type"`
-	IsArchived   bool      `json:"is_archived"`
-	CreatedAt    time.Time `json:"created_at"`
+	ID           int64
+	UserID       int32
+	Title        string
+	Color        string
+	CategoryType string
+	IsArchived   bool
+	CreatedAt    time.Time
 }

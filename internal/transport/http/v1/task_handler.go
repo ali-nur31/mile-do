@@ -2,7 +2,6 @@ package v1
 
 import (
 	"fmt"
-	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -278,8 +277,9 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 
 	var scheduledDate, scheduledTime time.Time
 	var duration time.Duration
+	var hasTime bool
 	if request.ScheduledDateTime != "" || (request.ScheduledDateTime != "" && request.ScheduledEndDateTime != "") {
-		scheduledDate, scheduledTime, duration, err = convertDateTimes(request.ScheduledDateTime, request.ScheduledEndDateTime)
+		scheduledDate, scheduledTime, hasTime, duration, err = convertDateTimes(request.ScheduledDateTime, request.ScheduledEndDateTime)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 		}
@@ -291,6 +291,7 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 		Title:           request.Title,
 		ScheduledDate:   scheduledDate,
 		ScheduledTime:   scheduledTime,
+		HasTime:         hasTime,
 		DurationMinutes: duration,
 	}
 
@@ -348,7 +349,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "cannot find task with provided id", "error": err.Error()})
 	}
 
-	scheduledDate, scheduledTime, duration, err := convertDateTimes(request.ScheduledDateTime, request.ScheduledEndDateTime)
+	scheduledDate, scheduledTime, hasTime, duration, err := convertDateTimes(request.ScheduledDateTime, request.ScheduledEndDateTime)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
@@ -361,6 +362,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 		IsDone:          request.IsDone,
 		ScheduledDate:   scheduledDate,
 		ScheduledTime:   scheduledTime,
+		HasTime:         hasTime,
 		DurationMinutes: duration,
 		RescheduleCount: dbTask.RescheduleCount,
 	})
@@ -464,38 +466,36 @@ func (h *TaskHandler) mapTasksToResponse(tasks []domain.TaskOutput, userId int32
 	return outTasks
 }
 
-func convertDateTimes(startDateTimeString, endDateTimeString string) (time.Time, time.Time, time.Duration, error) {
+func convertDateTimes(startDateTimeString, endDateTimeString string) (time.Time, time.Time, bool, time.Duration, error) {
 	var startDate, startTime time.Time
 	duration := 15 * time.Minute
+	hasTime := false
 
 	if startDateTimeString == "" {
-		return time.Time{}, time.Time{}, duration, nil
+		return time.Time{}, time.Time{}, false, duration, nil
 	}
 
 	startDateTime, err := time.Parse(dateTimeLayout, startDateTimeString)
-	if err != nil {
+	if err == nil {
+		hasTime = true
+	} else {
 		startDateTime, err = time.Parse(dateLayout, startDateTimeString)
 		if err != nil {
-			return time.Time{}, time.Time{}, duration, fmt.Errorf("invalid scheduled_date_time format: %v", err)
+			return time.Time{}, time.Time{}, false, duration, fmt.Errorf("invalid scheduled_date_time format: %v", err)
 		}
 	}
-
-	slog.Info("startDateTime parsed", "startDateTime", startDateTime)
 
 	startDate, _ = time.Parse(dateLayout, startDateTime.Format(dateLayout))
 	startTime, _ = time.Parse(timeLayout, startDateTime.Format(timeLayout))
 
-	slog.Info("startDate parsed", "startDate", startDate)
-	slog.Info("startTime parsed", "startTime", startTime)
-
-	if endDateTimeString != "" {
+	if endDateTimeString != "" && hasTime {
 		var endDateTime time.Time
 
 		endDateTime, err = time.Parse(dateTimeLayout, endDateTimeString)
 		if err != nil {
 			endDateTime, err = time.Parse(dateLayout, endDateTimeString)
 			if err != nil {
-				return time.Time{}, time.Time{}, duration, fmt.Errorf("invalid scheduled_end_date_time format: %v", err)
+				return time.Time{}, time.Time{}, false, duration, fmt.Errorf("invalid scheduled_end_date_time format: %v", err)
 			}
 		}
 
@@ -504,5 +504,5 @@ func convertDateTimes(startDateTimeString, endDateTimeString string) (time.Time,
 		}
 	}
 
-	return startDate, startTime, duration, nil
+	return startDate, startTime, hasTime, duration, nil
 }

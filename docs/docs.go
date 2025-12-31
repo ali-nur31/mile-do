@@ -156,15 +156,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/internal_transport_http_v1.listGoalsResponse"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -208,7 +199,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_domain.GoalOutput"
+                            "$ref": "#/definitions/internal_transport_http_v1.goalResponse"
                         }
                     },
                     "400": {
@@ -272,20 +263,11 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_domain.UpdateGoalOutput"
+                            "$ref": "#/definitions/internal_transport_http_v1.updateGoalResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -334,10 +316,10 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "302": {
-                        "description": "Found",
+                    "200": {
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_domain.GoalOutput"
+                            "$ref": "#/definitions/internal_transport_http_v1.goalResponse"
                         }
                     },
                     "400": {
@@ -351,6 +333,15 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -954,55 +945,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_ali-nur31_mile-do_internal_domain.GoalOutput": {
-            "type": "object",
-            "properties": {
-                "category_type": {
-                    "type": "string"
-                },
-                "color": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_archived": {
-                    "type": "boolean"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "github_com_ali-nur31_mile-do_internal_domain.UpdateGoalOutput": {
-            "type": "object",
-            "properties": {
-                "category_type": {
-                    "type": "string"
-                },
-                "color": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_archived": {
-                    "type": "boolean"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "integer"
-                }
-            }
-        },
         "internal_transport_http_v1.createGoalRequest": {
             "type": "object",
             "properties": {
@@ -1068,6 +1010,32 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
+                }
+            }
+        },
+        "internal_transport_http_v1.goalResponse": {
+            "type": "object",
+            "properties": {
+                "category_type": {
+                    "type": "string"
+                },
+                "color": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_archived": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -1224,6 +1192,29 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
+                }
+            }
+        },
+        "internal_transport_http_v1.updateGoalResponse": {
+            "type": "object",
+            "properties": {
+                "category_type": {
+                    "type": "string"
+                },
+                "color": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_archived": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         },

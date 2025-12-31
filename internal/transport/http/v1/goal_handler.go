@@ -38,6 +38,25 @@ type updateGoalRequest struct {
 	IsArchived   bool   `json:"is_archived"`
 }
 
+type updateGoalResponse struct {
+	ID           int64  `json:"id"`
+	UserID       int32  `json:"user_id"`
+	Title        string `json:"title"`
+	Color        string `json:"color"`
+	CategoryType string `json:"category_type"`
+	IsArchived   bool   `json:"is_archived"`
+}
+
+type goalResponse struct {
+	ID           int64     `json:"id"`
+	UserID       int32     `json:"user_id"`
+	Title        string    `json:"title"`
+	Color        string    `json:"color"`
+	CategoryType string    `json:"category_type"`
+	IsArchived   bool      `json:"is_archived"`
+	CreatedAt    time.Time `json:"created_at"`
+}
+
 type GoalHandler struct {
 	service service.GoalService
 }
@@ -57,7 +76,6 @@ func NewGoalHandler(service service.GoalService) *GoalHandler {
 // @Security     BearerAuth
 // @Param        type query string false "get goals by type"
 // @Success      302  {object}  listGoalsResponse
-// @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /goals/ [get]
 func (h *GoalHandler) GetGoals(c echo.Context) error {
@@ -65,12 +83,12 @@ func (h *GoalHandler) GetGoals(c echo.Context) error {
 
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	goals, err := h.service.ListGoals(c.Request().Context(), param, userId)
 	if err != nil {
-		return c.JSON(http.StatusNotFound, err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	var outGoals listGoalsResponse
@@ -97,27 +115,36 @@ func (h *GoalHandler) GetGoals(c echo.Context) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id path int64 true "Goal ID"
-// @Success      302  {object}  domain.GoalOutput
+// @Success      200  {object}  goalResponse
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
+// @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /goals/{id} [get]
 func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	goal, err := h.service.GetGoalByID(c.Request().Context(), int64(id), userId)
 	if err != nil {
-		return c.JSON(http.StatusNotFound, err)
+		return c.JSON(http.StatusNotFound, map[string]string{"message": "not found", "error": err.Error()})
 	}
 
-	return c.JSON(http.StatusFound, goal)
+	return c.JSON(http.StatusOK, goalResponse{
+		ID:           goal.ID,
+		UserID:       userId,
+		Title:        goal.Title,
+		Color:        goal.Color,
+		CategoryType: goal.CategoryType,
+		IsArchived:   goal.IsArchived,
+		CreatedAt:    goal.CreatedAt,
+	})
 }
 
 // CreateGoal godoc
@@ -128,7 +155,7 @@ func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        input body createGoalRequest true "Goal Info"
-// @Success      201  {object}  domain.GoalOutput
+// @Success      201  {object}  goalResponse
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
@@ -136,11 +163,11 @@ func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 func (h *GoalHandler) CreateGoal(c echo.Context) error {
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	var request createGoalRequest
-	if err := c.Bind(&request); err != nil {
+	if err = c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
@@ -153,10 +180,18 @@ func (h *GoalHandler) CreateGoal(c echo.Context) error {
 
 	outGoal, err := h.service.CreateGoal(c.Request().Context(), goal)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	return c.JSON(http.StatusCreated, &outGoal)
+	return c.JSON(http.StatusCreated, goalResponse{
+		ID:           outGoal.ID,
+		UserID:       userId,
+		Title:        outGoal.Title,
+		Color:        outGoal.Color,
+		CategoryType: outGoal.CategoryType,
+		IsArchived:   outGoal.IsArchived,
+		CreatedAt:    outGoal.CreatedAt,
+	})
 }
 
 // UpdateGoal godoc
@@ -167,20 +202,19 @@ func (h *GoalHandler) CreateGoal(c echo.Context) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        input body updateGoalRequest true "New Goal Info"
-// @Success      200  {object}  domain.UpdateGoalOutput
-// @Failure      404  {object}  map[string]string "Not Found"
+// @Success      200  {object}  updateGoalResponse
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /goals/ [patch]
 func (h *GoalHandler) UpdateGoal(c echo.Context) error {
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	var request updateGoalRequest
-	if err := c.Bind(&request); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+	if err = c.Bind(&request); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
 	outGoal, err := h.service.UpdateGoal(c.Request().Context(), domain.UpdateGoalInput{
@@ -192,10 +226,17 @@ func (h *GoalHandler) UpdateGoal(c echo.Context) error {
 		IsArchived:   request.IsArchived,
 	})
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, &outGoal)
+	return c.JSON(http.StatusOK, goalResponse{
+		ID:           outGoal.ID,
+		UserID:       userId,
+		Title:        outGoal.Title,
+		Color:        outGoal.Color,
+		CategoryType: outGoal.CategoryType,
+		IsArchived:   outGoal.IsArchived,
+	})
 }
 
 // DeleteGoalByID godoc
@@ -206,24 +247,24 @@ func (h *GoalHandler) UpdateGoal(c echo.Context) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id path int64 true "Goal ID"
-// @Success      201  {string}  map[string]string "goal has been removed
+// @Success      201  {string}  map[string]string "goal has been removed"
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Router       /goals/{id} [delete]
 func (h *GoalHandler) DeleteGoalByID(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
 	userId, err := getCurrentUserIDFromToken(c)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	err = h.service.DeleteGoalByID(c.Request().Context(), int64(id), userId)
 	if err != nil {
-		return c.JSON(http.StatusNotFound, err)
+		return c.JSON(http.StatusNotFound, map[string]string{"message": "goal not found", "error": err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{"message": "goal has been removed"})
