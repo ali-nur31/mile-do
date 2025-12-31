@@ -207,6 +207,7 @@ func mapTasksToOutputList(tasks []repo.Task) []domain.TaskOutput {
 			IsDone:          task.IsDone,
 			ScheduledDate:   task.ScheduledDate.Time,
 			ScheduledTime:   microsecondsToTime(task.ScheduledTime.Microseconds),
+			DurationMinutes: task.DurationMinutes.Int32,
 			RescheduleCount: task.RescheduleCount,
 			CreatedAt:       task.CreatedAt.Time,
 		})
