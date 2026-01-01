@@ -23,6 +23,7 @@ type UserService interface {
 	GetUser(ctx context.Context, email string) (repo.User, error)
 	CreateUser(ctx context.Context, user domain.UserInput) (domain.UserOutput, error)
 	LoginUser(ctx context.Context, user domain.UserInput) (domain.UserOutput, error)
+	LogoutUser(ctx context.Context, userId int32) error
 }
 
 type AuthService struct {
@@ -114,4 +115,8 @@ func (s *AuthService) LoginUser(ctx context.Context, user domain.UserInput) (dom
 	}
 
 	return output, nil
+}
+
+func (s *AuthService) LogoutUser(ctx context.Context, userId int32) error {
+	return s.refreshTokenService.DeleteRefreshTokenByUserID(ctx, userId)
 }

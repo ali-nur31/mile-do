@@ -64,7 +64,9 @@ func main() {
 
 	authMiddleware := middleware.NewAuthMiddleware(jwtTokenManager)
 
-	userService := service.NewUserService(queries, jwtTokenManager, passwordManager)
+	refreshTokenService := service.NewRefreshTokenService(queries)
+
+	userService := service.NewUserService(queries, jwtTokenManager, refreshTokenService, passwordManager)
 	authHandler := v1.NewAuthHandler(userService)
 	userHandler := v1.NewUserHandler(userService)
 

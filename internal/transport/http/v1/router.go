@@ -43,6 +43,7 @@ func (r Router) InitRoutes(api *echo.Group) {
 	users.Use(r.authMiddleware.TokenCheckMiddleware())
 	{
 		users.GET("/me", r.userHandler.GetUserByEmail)
+		users.DELETE("/", r.userHandler.LogoutUser)
 	}
 
 	goals := api.Group("/goals")

@@ -70,6 +70,29 @@ func (h *UserHandler) GetUserByEmail(c echo.Context) error {
 	return c.JSON(http.StatusFound, output)
 }
 
+// LogoutUser godoc
+// @Summary      logout user
+// @Description  logout from user account
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]string "successful log out"
+// @Failure      500  {object}  map[string]string "Internal Server Error"
+// @Router       /users/ [delete]
+func (h *UserHandler) LogoutUser(c echo.Context) error {
+	userId, err := getCurrentUserIDFromToken(c)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
+	}
+
+	err = h.service.LogoutUser(c.Request().Context(), userId)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"message": "successful log out"})
+}
+
 func getCurrentUserIDFromToken(c echo.Context) (int32, error) {
 	switch t := c.Get("userId").(type) {
 	case int64:
