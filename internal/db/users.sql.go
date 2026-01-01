@@ -7,8 +7,6 @@ package repo
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -21,8 +19,8 @@ RETURNING id, email, password_hash, created_at
 `
 
 type CreateUserParams struct {
-	Email        string      `json:"email"`
-	PasswordHash pgtype.Text `json:"password_hash"`
+	Email        string `json:"email"`
+	PasswordHash string `json:"password_hash"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {

@@ -16,5 +16,6 @@ CREATE TABLE IF NOT EXISTS goals (
 
 -- +goose Down
 -- +goose StatementBegin
+DROP TYPE IF EXISTS goals_category_type;
 DROP TABLE IF EXISTS goals;
 -- +goose StatementEnd

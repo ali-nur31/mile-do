@@ -75,6 +75,14 @@ type RecurringTasksTemplate struct {
 	CreatedAt         pgtype.Timestamp `json:"created_at"`
 }
 
+type RefreshToken struct {
+	ID        int64            `json:"id"`
+	UserID    int32            `json:"user_id"`
+	TokenHash string           `json:"token_hash"`
+	ExpiresAt pgtype.Timestamp `json:"expires_at"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+}
+
 type Task struct {
 	ID              int64            `json:"id"`
 	UserID          int32            `json:"user_id"`
@@ -91,6 +99,6 @@ type Task struct {
 type User struct {
 	ID           int64            `json:"id"`
 	Email        string           `json:"email"`
-	PasswordHash pgtype.Text      `json:"password_hash"`
+	PasswordHash string           `json:"password_hash"`
 	CreatedAt    pgtype.Timestamp `json:"created_at"`
 }

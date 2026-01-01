@@ -3,7 +3,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
     email VARCHAR(255) NOT NULL,
-    password_hash TEXT,
+    password_hash TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT now()
 );
 -- +goose StatementEnd

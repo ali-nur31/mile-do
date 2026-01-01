@@ -11,11 +11,14 @@ import (
 type Querier interface {
 	CountCompletedTasksForToday(ctx context.Context, userID int32) (CountCompletedTasksForTodayRow, error)
 	CreateGoal(ctx context.Context, arg CreateGoalParams) (Goal, error)
+	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
 	CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteGoalByID(ctx context.Context, arg DeleteGoalByIDParams) error
+	DeleteRefreshTokenByUserID(ctx context.Context, userID int32) error
 	DeleteTaskByID(ctx context.Context, arg DeleteTaskByIDParams) error
 	GetGoalByID(ctx context.Context, arg GetGoalByIDParams) (Goal, error)
+	GetRefreshTokenByUserID(ctx context.Context, userID int32) (RefreshToken, error)
 	GetTaskByID(ctx context.Context, arg GetTaskByIDParams) (Task, error)
 	GetUser(ctx context.Context, email string) (User, error)
 	ListGoals(ctx context.Context, userID int32) ([]Goal, error)
