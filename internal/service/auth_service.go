@@ -21,7 +21,8 @@ type AuthPasswordManager interface {
 }
 
 type UserService interface {
-	GetUser(ctx context.Context, email string) (repo.User, error)
+	GetUserByEmail(ctx context.Context, email string) (repo.User, error)
+	GetUserByID(ctx context.Context, id int64) (repo.User, error)
 	CreateUser(ctx context.Context, user domain.UserInput) (domain.UserOutput, error)
 	LoginUser(ctx context.Context, user domain.UserInput) (domain.UserOutput, error)
 	LogoutUser(ctx context.Context, userId int32) error
@@ -44,8 +45,12 @@ func NewUserService(repo repo.Querier, tokenManager AuthTokenManager, refreshTok
 	}
 }
 
-func (s *AuthService) GetUser(ctx context.Context, email string) (repo.User, error) {
-	return s.repo.GetUser(ctx, email)
+func (s *AuthService) GetUserByEmail(ctx context.Context, email string) (repo.User, error) {
+	return s.repo.GetUserByEmail(ctx, email)
+}
+
+func (s *AuthService) GetUserByID(ctx context.Context, id int64) (repo.User, error) {
+	return s.repo.GetUserByID(ctx, id)
 }
 
 func (s *AuthService) CreateUser(ctx context.Context, user domain.UserInput) (domain.UserOutput, error) {
@@ -87,7 +92,7 @@ func (s *AuthService) CreateUser(ctx context.Context, user domain.UserInput) (do
 }
 
 func (s *AuthService) LoginUser(ctx context.Context, user domain.UserInput) (domain.UserOutput, error) {
-	dbUser, err := s.GetUser(ctx, user.Email)
+	dbUser, err := s.GetUserByEmail(ctx, user.Email)
 	if err != nil {
 		slog.Error("cannot find user", "error", err)
 		return domain.UserOutput{}, err

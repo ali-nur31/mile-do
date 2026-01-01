@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"strings"
 
 	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -26,7 +25,7 @@ func NewUserHandler(service service.UserService) *UserHandler {
 	}
 }
 
-// GetUserByEmail godoc
+// GetUser godoc
 // @Summary      get user info
 // @Description  get user account by bearer token
 // @Tags         users
@@ -39,25 +38,13 @@ func NewUserHandler(service service.UserService) *UserHandler {
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /users/me [get]
-func (h *UserHandler) GetUserByEmail(c echo.Context) error {
-	emailFromCtx := c.Get("email")
-
-	if emailFromCtx == nil {
-		slog.Error("email not found in context")
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+func (h *UserHandler) GetUser(c echo.Context) error {
+	userId, err := getCurrentUserIDFromToken(c)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	email, ok := emailFromCtx.(string)
-	if !ok {
-		slog.Error("email in context is not a string", "value", emailFromCtx)
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal error"})
-	}
-
-	if !strings.Contains(email, "@") {
-		return c.JSON(http.StatusBadRequest, "email is invalid")
-	}
-
-	user, err := h.service.GetUser(c.Request().Context(), email)
+	user, err := h.service.GetUserByID(c.Request().Context(), int64(userId))
 	if err != nil {
 		return c.JSON(http.StatusNotFound, err)
 	}

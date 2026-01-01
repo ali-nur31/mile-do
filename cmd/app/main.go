@@ -62,9 +62,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	authMiddleware := middleware.NewAuthMiddleware(jwtTokenManager)
-
 	refreshTokenService := service.NewRefreshTokenService(queries)
+
+	authMiddleware := middleware.NewAuthMiddleware(jwtTokenManager, refreshTokenService)
 
 	userService := service.NewUserService(queries, jwtTokenManager, refreshTokenService, passwordManager)
 	authHandler := v1.NewAuthHandler(userService)

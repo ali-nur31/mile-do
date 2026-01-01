@@ -49,7 +49,6 @@ func (m *AuthMiddleware) TokenCheckMiddleware() echo.MiddlewareFunc {
 			}
 
 			c.Set("userId", claims.ID)
-			c.Set("email", claims.Email)
 
 			return next(c)
 		}
