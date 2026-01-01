@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -9,13 +10,14 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+var TokenExpiredError = errors.New("token has expired")
+
 type JwtManager struct {
 	jwt *config.Jwt
 }
 
 type AccessClaims struct {
-	ID    int64  `json:"id"`
-	Email string `json:"email"`
+	ID int64 `json:"id"`
 	jwt.RegisteredClaims
 }
 
@@ -37,10 +39,9 @@ func NewJwtManager(jwt *config.Jwt) (*JwtManager, error) {
 	}, nil
 }
 
-func (m *JwtManager) CreateToken(id int64, email string) (TokensData, error) {
+func (m *JwtManager) CreateTokens(id int64) (TokensData, error) {
 	accessClaims := AccessClaims{
-		ID:    id,
-		Email: email,
+		ID: id,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * time.Duration(m.jwt.AccessExpMins))),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -83,7 +84,7 @@ func (m *JwtManager) CreateToken(id int64, email string) (TokensData, error) {
 	}, nil
 }
 
-func (m *JwtManager) VerifyToken(tokenString string) (*AccessClaims, error) {
+func (m *JwtManager) VerifyAccessToken(tokenString string) (*AccessClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &AccessClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -93,11 +94,34 @@ func (m *JwtManager) VerifyToken(tokenString string) (*AccessClaims, error) {
 	})
 
 	if err != nil {
-		slog.Error("failed to parse token", "error", err)
+		slog.Error("failed to parse access token", "error", err)
 		return nil, err
 	} else if claims, ok := token.Claims.(*AccessClaims); ok && token.Valid {
 		return claims, nil
-	} else {
-		return nil, fmt.Errorf("invalid token claims")
+	} else if claims.ExpiresAt.Time.Before(time.Now()) {
+		return nil, TokenExpiredError
 	}
+
+	return nil, fmt.Errorf("invalid access token claims")
+}
+
+func (m *JwtManager) VerifyRefreshToken(tokenString string) (*RefreshClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &RefreshClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+
+		return []byte(m.jwt.RefreshKey), nil
+	})
+
+	if err != nil {
+		slog.Error("failed to parse refresh token", "error", err)
+		return nil, err
+	} else if claims, ok := token.Claims.(*RefreshClaims); ok && token.Valid {
+		return claims, nil
+	} else if claims.ExpiresAt.Time.Before(time.Now()) {
+		return nil, TokenExpiredError
+	}
+
+	return nil, fmt.Errorf("invalid refresh token claims")
 }

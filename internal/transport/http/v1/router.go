@@ -37,6 +37,7 @@ func (r Router) InitRoutes(api *echo.Group) {
 	{
 		auth.POST("/register", r.authHandler.RegisterUser)
 		auth.POST("/login", r.authHandler.LoginUser)
+		auth.POST("/refresh", r.authHandler.RefreshAccessToken)
 	}
 
 	users := api.Group("/users")

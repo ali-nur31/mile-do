@@ -1,24 +1,28 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
+	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/ali-nur31/mile-do/pkg/auth"
 	"github.com/labstack/echo/v4"
 )
 
 type AuthTokenManager interface {
-	VerifyToken(tokenString string) (*auth.AccessClaims, error)
+	VerifyAccessToken(tokenString string) (*auth.AccessClaims, error)
 }
 
 type AuthMiddleware struct {
-	tokenManager AuthTokenManager
+	tokenManager        AuthTokenManager
+	refreshTokenService service.RefreshTokenService
 }
 
-func NewAuthMiddleware(tokenManager AuthTokenManager) *AuthMiddleware {
+func NewAuthMiddleware(tokenManager AuthTokenManager, refreshTokenService service.RefreshTokenService) *AuthMiddleware {
 	return &AuthMiddleware{
-		tokenManager: tokenManager,
+		tokenManager:        tokenManager,
+		refreshTokenService: refreshTokenService,
 	}
 }
 
@@ -37,9 +41,11 @@ func (m *AuthMiddleware) TokenCheckMiddleware() echo.MiddlewareFunc {
 
 			tokenString := parts[1]
 
-			claims, err := m.tokenManager.VerifyToken(tokenString)
+			claims, err := m.tokenManager.VerifyAccessToken(tokenString)
 			if err != nil {
-				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid or expired token"})
+				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid token"})
+			} else if errors.Is(err, auth.TokenExpiredError) {
+				return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
 			}
 
 			c.Set("userId", claims.ID)

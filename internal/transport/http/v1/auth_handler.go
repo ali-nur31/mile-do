@@ -8,20 +8,24 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+type refreshAccessTokenRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
 type registerUserRequest struct {
 	Email           string `json:"email"`
 	Password        string `json:"password"`
 	ConfirmPassword string `json:"confirm_password"`
 }
 
-type authUserResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-}
-
 type loginUserRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type authUserResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 type AuthHandler struct {
@@ -103,5 +107,34 @@ func (h *AuthHandler) LoginUser(c echo.Context) error {
 	return c.JSON(http.StatusAccepted, authUserResponse{
 		AccessToken:  data.AccessToken,
 		RefreshToken: data.RefreshToken,
+	})
+}
+
+// RefreshAccessToken godoc
+// @Summary      refresh access token
+// @Description  refresh access token by refresh_token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        input body refreshAccessTokenRequest true "Refresh token"
+// @Success      202  {object}  authUserResponse
+// @Failure      400  {object}  map[string]string "Bad Request"
+// @Failure      500  {object}  map[string]string "Internal Server Error"
+// @Router       /auth/refresh [post]
+func (h *AuthHandler) RefreshAccessToken(c echo.Context) error {
+	var request refreshAccessTokenRequest
+
+	if err := c.Bind(&request); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "bad request"})
+	}
+
+	output, err := h.service.RefreshTokens(c.Request().Context(), request.RefreshToken)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, authUserResponse{
+		AccessToken:  output.AccessToken,
+		RefreshToken: output.RefreshToken,
 	})
 }
