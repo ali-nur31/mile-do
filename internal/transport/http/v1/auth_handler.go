@@ -14,17 +14,14 @@ type registerUserRequest struct {
 	ConfirmPassword string `json:"confirm_password"`
 }
 
-type registerUserResponse struct {
-	Token string `json:"token"`
+type authUserResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 type loginUserRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
-}
-
-type loginUserResponse struct {
-	Token string `json:"token"`
 }
 
 type AuthHandler struct {
@@ -69,7 +66,10 @@ func (h *AuthHandler) RegisterUser(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	return c.JSON(http.StatusCreated, registerUserResponse{data.Token})
+	return c.JSON(http.StatusCreated, authUserResponse{
+		AccessToken:  data.AccessToken,
+		RefreshToken: data.RefreshToken,
+	})
 }
 
 // LoginUser godoc
@@ -100,5 +100,8 @@ func (h *AuthHandler) LoginUser(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	return c.JSON(http.StatusAccepted, loginUserResponse{data.Token})
+	return c.JSON(http.StatusAccepted, authUserResponse{
+		AccessToken:  data.AccessToken,
+		RefreshToken: data.RefreshToken,
+	})
 }

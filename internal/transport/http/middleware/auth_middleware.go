@@ -9,7 +9,7 @@ import (
 )
 
 type AuthTokenManager interface {
-	VerifyToken(tokenString string) (*auth.AuthClaims, error)
+	VerifyToken(tokenString string) (*auth.AccessClaims, error)
 }
 
 type AuthMiddleware struct {

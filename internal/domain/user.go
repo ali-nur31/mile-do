@@ -6,5 +6,6 @@ type UserInput struct {
 }
 
 type UserOutput struct {
-	Token string
+	AccessToken  string
+	RefreshToken string
 }

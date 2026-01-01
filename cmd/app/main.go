@@ -57,7 +57,7 @@ func main() {
 
 	passwordManager := auth.NewBcryptPasswordManager()
 
-	jwtTokenManager, err := auth.NewJwtManager(cfg.Api.JWTSecretKey)
+	jwtTokenManager, err := auth.NewJwtManager(&cfg.Jwt)
 	if err != nil {
 		os.Exit(1)
 	}

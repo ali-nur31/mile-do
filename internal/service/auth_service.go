@@ -7,11 +7,11 @@ import (
 
 	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/domain"
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ali-nur31/mile-do/pkg/auth"
 )
 
 type AuthTokenManager interface {
-	CreateToken(id int64, email string) (string, error)
+	CreateToken(id int64, email string) (auth.TokensData, error)
 }
 
 type AuthPasswordManager interface {
@@ -26,16 +26,18 @@ type UserService interface {
 }
 
 type AuthService struct {
-	repo            repo.Querier
-	tokenManager    AuthTokenManager
-	passwordManager AuthPasswordManager
+	repo                repo.Querier
+	tokenManager        AuthTokenManager
+	refreshTokenService RefreshTokenService
+	passwordManager     AuthPasswordManager
 }
 
-func NewUserService(repo repo.Querier, tokenManager AuthTokenManager, passwordManager AuthPasswordManager) UserService {
+func NewUserService(repo repo.Querier, tokenManager AuthTokenManager, refreshTokenService RefreshTokenService, passwordManager AuthPasswordManager) UserService {
 	return &AuthService{
-		repo:            repo,
-		tokenManager:    tokenManager,
-		passwordManager: passwordManager,
+		repo:                repo,
+		tokenManager:        tokenManager,
+		refreshTokenService: refreshTokenService,
+		passwordManager:     passwordManager,
 	}
 }
 
@@ -50,14 +52,9 @@ func (s *AuthService) CreateUser(ctx context.Context, user domain.UserInput) (do
 		return domain.UserOutput{}, err
 	}
 
-	convertedPasswordHash := pgtype.Text{
-		String: passwordHash,
-		Valid:  true,
-	}
-
 	newUser := repo.CreateUserParams{
 		Email:        user.Email,
-		PasswordHash: convertedPasswordHash,
+		PasswordHash: passwordHash,
 	}
 
 	savedUser, err := s.repo.CreateUser(ctx, newUser)
@@ -66,10 +63,21 @@ func (s *AuthService) CreateUser(ctx context.Context, user domain.UserInput) (do
 		return domain.UserOutput{}, err
 	}
 
-	token, err := s.tokenManager.CreateToken(savedUser.ID, user.Email)
+	tokensData, err := s.tokenManager.CreateToken(savedUser.ID, user.Email)
+	if err != nil {
+		slog.Error("failed to generate tokens", "error", err)
+		return domain.UserOutput{}, err
+	}
+
+	err = s.refreshTokenService.CreateRefreshToken(ctx, domain.CreateRefreshTokenInput{
+		UserID:    int32(savedUser.ID),
+		TokenHash: tokensData.RefreshToken,
+		ExpiresAt: tokensData.RefreshTokenExp,
+	})
 
 	output := domain.UserOutput{
-		Token: token,
+		AccessToken:  tokensData.AccessToken,
+		RefreshToken: tokensData.RefreshToken,
 	}
 
 	return output, nil
@@ -82,16 +90,27 @@ func (s *AuthService) LoginUser(ctx context.Context, user domain.UserInput) (dom
 		return domain.UserOutput{}, err
 	}
 
-	passwordIsCorrect := s.passwordManager.CheckPasswordHash(user.Password, dbUser.PasswordHash.String)
+	passwordIsCorrect := s.passwordManager.CheckPasswordHash(user.Password, dbUser.PasswordHash)
 	if !passwordIsCorrect {
 		slog.Error("password is not correct")
 		return domain.UserOutput{}, fmt.Errorf("password is not correct")
 	}
 
-	token, _ := s.tokenManager.CreateToken(dbUser.ID, user.Email)
+	tokensData, err := s.tokenManager.CreateToken(dbUser.ID, user.Email)
+	if err != nil {
+		slog.Error("failed to generate tokens", "error", err)
+		return domain.UserOutput{}, err
+	}
+
+	err = s.refreshTokenService.CreateRefreshToken(ctx, domain.CreateRefreshTokenInput{
+		UserID:    int32(dbUser.ID),
+		TokenHash: tokensData.RefreshToken,
+		ExpiresAt: tokensData.RefreshTokenExp,
+	})
 
 	output := domain.UserOutput{
-		Token: token,
+		AccessToken:  tokensData.AccessToken,
+		RefreshToken: tokensData.RefreshToken,
 	}
 
 	return output, nil

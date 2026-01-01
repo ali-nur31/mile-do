@@ -9,11 +9,18 @@ import (
 type Config struct {
 	DB  Database
 	Api Api
+	Jwt Jwt
 }
 
 type Api struct {
-	Port         string `env:"API_PORT" env-default:":8080"`
-	JWTSecretKey string `env:"JWT_SECRET_KEY" env-default:"sUp3r_k3y$123"`
+	Port string `env:"API_PORT" env-default:":8080"`
+}
+
+type Jwt struct {
+	AccessKey      string `env:"JWT_ACCESS_KEY" env-default:"sUp3r_k3y$123"`
+	AccessExpMins  int    `env:"JWT_ACCESS_EXP_MINS" env-default:"10"`
+	RefreshKey     string `env:"JWT_REFRESH_KEY" env-default:"sUp3r_k3y$321"`
+	RefreshExpDays int    `env:"JWT_REFRESH_EXP_DAYS" env-default:"7"`
 }
 
 type Database struct {
@@ -29,9 +36,11 @@ func MustLoad() *Config {
 
 	db := databaseLoad()
 	api := apiLoad()
+	jwt := jwtLoad()
 
 	cfg.DB = db
 	cfg.Api = api
+	cfg.Jwt = jwt
 
 	return &cfg
 }
@@ -45,6 +54,17 @@ func apiLoad() Api {
 	}
 
 	return api
+}
+
+func jwtLoad() Jwt {
+	var jwt Jwt
+
+	err := cleanenv.ReadEnv(&jwt)
+	if err != nil {
+		slog.Error("failed to load .env vars for JWT, using default values", "error", err)
+	}
+
+	return jwt
 }
 
 func databaseLoad() Database {
