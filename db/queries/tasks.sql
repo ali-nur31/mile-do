@@ -31,9 +31,9 @@ ORDER BY id;
 
 -- name: CreateTask :one
 INSERT INTO tasks (
-    user_id, goal_id, title, scheduled_date, has_time, scheduled_time, duration_minutes
+    user_id, goal_id, recurring_template_id, title, scheduled_date, has_time, scheduled_time, duration_minutes
 ) VALUES (
-             $1, $2, $3, $4, $5, $6, $7
+             $1, $2, $3, $4, $5, $6, $7, $8
          )
     RETURNING *;
 
@@ -41,13 +41,14 @@ INSERT INTO tasks (
 UPDATE tasks
 SET
     goal_id = $3,
-    title = $4,
-    is_done = $5,
-    scheduled_date = $6,
-    has_time = $7,
-    scheduled_time = $8,
-    duration_minutes = $9,
-    reschedule_count = $10
+    recurring_template_id = $4,
+    title = $5,
+    is_done = $6,
+    scheduled_date = $7,
+    has_time = $8,
+    scheduled_time = $9,
+    duration_minutes = $10,
+    reschedule_count = $11
 WHERE id = $1 AND user_id = $2;
 
 -- name: DeleteTaskByID :exec

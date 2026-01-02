@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS tasks (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     goal_id INT NOT NULL,
     FOREIGN KEY (goal_id) REFERENCES goals(id) ON DELETE CASCADE,
+    recurring_template_id INT NULL,
+    FOREIGN KEY (recurring_template_id) REFERENCES recurring_tasks_templates(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     is_done BOOLEAN NOT NULL DEFAULT false,
     scheduled_date DATE,

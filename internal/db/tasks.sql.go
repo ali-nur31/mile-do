@@ -33,27 +33,29 @@ func (q *Queries) CountCompletedTasksForToday(ctx context.Context, userID int32)
 
 const createTask = `-- name: CreateTask :one
 INSERT INTO tasks (
-    user_id, goal_id, title, scheduled_date, has_time, scheduled_time, duration_minutes
+    user_id, goal_id, recurring_template_id, title, scheduled_date, has_time, scheduled_time, duration_minutes
 ) VALUES (
-             $1, $2, $3, $4, $5, $6, $7
+             $1, $2, $3, $4, $5, $6, $7, $8
          )
-    RETURNING id, user_id, goal_id, title, is_done, scheduled_date, has_time, scheduled_time, duration_minutes, reschedule_count, created_at
+    RETURNING id, user_id, goal_id, recurring_template_id, title, is_done, scheduled_date, has_time, scheduled_time, duration_minutes, reschedule_count, created_at
 `
 
 type CreateTaskParams struct {
-	UserID          int32       `json:"user_id"`
-	GoalID          int32       `json:"goal_id"`
-	Title           string      `json:"title"`
-	ScheduledDate   pgtype.Date `json:"scheduled_date"`
-	HasTime         bool        `json:"has_time"`
-	ScheduledTime   pgtype.Time `json:"scheduled_time"`
-	DurationMinutes pgtype.Int4 `json:"duration_minutes"`
+	UserID              int32       `json:"user_id"`
+	GoalID              int32       `json:"goal_id"`
+	RecurringTemplateID pgtype.Int4 `json:"recurring_template_id"`
+	Title               string      `json:"title"`
+	ScheduledDate       pgtype.Date `json:"scheduled_date"`
+	HasTime             bool        `json:"has_time"`
+	ScheduledTime       pgtype.Time `json:"scheduled_time"`
+	DurationMinutes     pgtype.Int4 `json:"duration_minutes"`
 }
 
 func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error) {
 	row := q.db.QueryRow(ctx, createTask,
 		arg.UserID,
 		arg.GoalID,
+		arg.RecurringTemplateID,
 		arg.Title,
 		arg.ScheduledDate,
 		arg.HasTime,
@@ -65,6 +67,7 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 		&i.ID,
 		&i.UserID,
 		&i.GoalID,
+		&i.RecurringTemplateID,
 		&i.Title,
 		&i.IsDone,
 		&i.ScheduledDate,
@@ -93,7 +96,7 @@ func (q *Queries) DeleteTaskByID(ctx context.Context, arg DeleteTaskByIDParams) 
 }
 
 const getTaskByID = `-- name: GetTaskByID :one
-SELECT id, user_id, goal_id, title, is_done, scheduled_date, has_time, scheduled_time, duration_minutes, reschedule_count, created_at FROM tasks
+SELECT id, user_id, goal_id, recurring_template_id, title, is_done, scheduled_date, has_time, scheduled_time, duration_minutes, reschedule_count, created_at FROM tasks
 WHERE id = $1 AND user_id = $2 LIMIT 1
 `
 
@@ -109,6 +112,7 @@ func (q *Queries) GetTaskByID(ctx context.Context, arg GetTaskByIDParams) (Task,
 		&i.ID,
 		&i.UserID,
 		&i.GoalID,
+		&i.RecurringTemplateID,
 		&i.Title,
 		&i.IsDone,
 		&i.ScheduledDate,
@@ -122,7 +126,7 @@ func (q *Queries) GetTaskByID(ctx context.Context, arg GetTaskByIDParams) (Task,
 }
 
 const listInboxTasks = `-- name: ListInboxTasks :many
-SELECT id, user_id, goal_id, title, is_done, scheduled_date, has_time, scheduled_time, duration_minutes, reschedule_count, created_at FROM tasks
+SELECT id, user_id, goal_id, recurring_template_id, title, is_done, scheduled_date, has_time, scheduled_time, duration_minutes, reschedule_count, created_at FROM tasks
 WHERE scheduled_date IS null AND has_time = false AND is_done = false AND user_id = $1
 ORDER BY id DESC
 `
@@ -140,6 +144,7 @@ func (q *Queries) ListInboxTasks(ctx context.Context, userID int32) ([]Task, err
 			&i.ID,
 			&i.UserID,
 			&i.GoalID,
+			&i.RecurringTemplateID,
 			&i.Title,
 			&i.IsDone,
 			&i.ScheduledDate,
@@ -160,7 +165,7 @@ func (q *Queries) ListInboxTasks(ctx context.Context, userID int32) ([]Task, err
 }
 
 const listTasks = `-- name: ListTasks :many
-SELECT id, user_id, goal_id, title, is_done, scheduled_date, has_time, scheduled_time, duration_minutes, reschedule_count, created_at FROM tasks
+SELECT id, user_id, goal_id, recurring_template_id, title, is_done, scheduled_date, has_time, scheduled_time, duration_minutes, reschedule_count, created_at FROM tasks
 WHERE user_id = $1
 ORDER BY id
 `
@@ -178,6 +183,7 @@ func (q *Queries) ListTasks(ctx context.Context, userID int32) ([]Task, error) {
 			&i.ID,
 			&i.UserID,
 			&i.GoalID,
+			&i.RecurringTemplateID,
 			&i.Title,
 			&i.IsDone,
 			&i.ScheduledDate,
@@ -198,7 +204,7 @@ func (q *Queries) ListTasks(ctx context.Context, userID int32) ([]Task, error) {
 }
 
 const listTasksByDateRange = `-- name: ListTasksByDateRange :many
-SELECT id, user_id, goal_id, title, is_done, scheduled_date, has_time, scheduled_time, duration_minutes, reschedule_count, created_at FROM tasks
+SELECT id, user_id, goal_id, recurring_template_id, title, is_done, scheduled_date, has_time, scheduled_time, duration_minutes, reschedule_count, created_at FROM tasks
 WHERE user_id = $3 AND scheduled_date >= $1 AND scheduled_date <= $2
 ORDER BY scheduled_time ASC, id
 `
@@ -222,6 +228,7 @@ func (q *Queries) ListTasksByDateRange(ctx context.Context, arg ListTasksByDateR
 			&i.ID,
 			&i.UserID,
 			&i.GoalID,
+			&i.RecurringTemplateID,
 			&i.Title,
 			&i.IsDone,
 			&i.ScheduledDate,
@@ -242,7 +249,7 @@ func (q *Queries) ListTasksByDateRange(ctx context.Context, arg ListTasksByDateR
 }
 
 const listTasksByGoalID = `-- name: ListTasksByGoalID :many
-SELECT id, user_id, goal_id, title, is_done, scheduled_date, has_time, scheduled_time, duration_minutes, reschedule_count, created_at FROM tasks
+SELECT id, user_id, goal_id, recurring_template_id, title, is_done, scheduled_date, has_time, scheduled_time, duration_minutes, reschedule_count, created_at FROM tasks
 WHERE goal_id = $1 AND user_id = $2
 ORDER BY is_done ASC, id DESC
 `
@@ -265,6 +272,7 @@ func (q *Queries) ListTasksByGoalID(ctx context.Context, arg ListTasksByGoalIDPa
 			&i.ID,
 			&i.UserID,
 			&i.GoalID,
+			&i.RecurringTemplateID,
 			&i.Title,
 			&i.IsDone,
 			&i.ScheduledDate,
@@ -288,27 +296,29 @@ const updateTaskByID = `-- name: UpdateTaskByID :exec
 UPDATE tasks
 SET
     goal_id = $3,
-    title = $4,
-    is_done = $5,
-    scheduled_date = $6,
-    has_time = $7,
-    scheduled_time = $8,
-    duration_minutes = $9,
-    reschedule_count = $10
+    recurring_template_id = $4,
+    title = $5,
+    is_done = $6,
+    scheduled_date = $7,
+    has_time = $8,
+    scheduled_time = $9,
+    duration_minutes = $10,
+    reschedule_count = $11
 WHERE id = $1 AND user_id = $2
 `
 
 type UpdateTaskByIDParams struct {
-	ID              int64       `json:"id"`
-	UserID          int32       `json:"user_id"`
-	GoalID          int32       `json:"goal_id"`
-	Title           string      `json:"title"`
-	IsDone          bool        `json:"is_done"`
-	ScheduledDate   pgtype.Date `json:"scheduled_date"`
-	HasTime         bool        `json:"has_time"`
-	ScheduledTime   pgtype.Time `json:"scheduled_time"`
-	DurationMinutes pgtype.Int4 `json:"duration_minutes"`
-	RescheduleCount int32       `json:"reschedule_count"`
+	ID                  int64       `json:"id"`
+	UserID              int32       `json:"user_id"`
+	GoalID              int32       `json:"goal_id"`
+	RecurringTemplateID pgtype.Int4 `json:"recurring_template_id"`
+	Title               string      `json:"title"`
+	IsDone              bool        `json:"is_done"`
+	ScheduledDate       pgtype.Date `json:"scheduled_date"`
+	HasTime             bool        `json:"has_time"`
+	ScheduledTime       pgtype.Time `json:"scheduled_time"`
+	DurationMinutes     pgtype.Int4 `json:"duration_minutes"`
+	RescheduleCount     int32       `json:"reschedule_count"`
 }
 
 func (q *Queries) UpdateTaskByID(ctx context.Context, arg UpdateTaskByIDParams) error {
@@ -316,6 +326,7 @@ func (q *Queries) UpdateTaskByID(ctx context.Context, arg UpdateTaskByIDParams) 
 		arg.ID,
 		arg.UserID,
 		arg.GoalID,
+		arg.RecurringTemplateID,
 		arg.Title,
 		arg.IsDone,
 		arg.ScheduledDate,

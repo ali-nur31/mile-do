@@ -86,17 +86,18 @@ type RefreshToken struct {
 }
 
 type Task struct {
-	ID              int64            `json:"id"`
-	UserID          int32            `json:"user_id"`
-	GoalID          int32            `json:"goal_id"`
-	Title           string           `json:"title"`
-	IsDone          bool             `json:"is_done"`
-	ScheduledDate   pgtype.Date      `json:"scheduled_date"`
-	HasTime         bool             `json:"has_time"`
-	ScheduledTime   pgtype.Time      `json:"scheduled_time"`
-	DurationMinutes pgtype.Int4      `json:"duration_minutes"`
-	RescheduleCount int32            `json:"reschedule_count"`
-	CreatedAt       pgtype.Timestamp `json:"created_at"`
+	ID                  int64            `json:"id"`
+	UserID              int32            `json:"user_id"`
+	GoalID              int32            `json:"goal_id"`
+	RecurringTemplateID pgtype.Int4      `json:"recurring_template_id"`
+	Title               string           `json:"title"`
+	IsDone              bool             `json:"is_done"`
+	ScheduledDate       pgtype.Date      `json:"scheduled_date"`
+	HasTime             bool             `json:"has_time"`
+	ScheduledTime       pgtype.Time      `json:"scheduled_time"`
+	DurationMinutes     pgtype.Int4      `json:"duration_minutes"`
+	RescheduleCount     int32            `json:"reschedule_count"`
+	CreatedAt           pgtype.Timestamp `json:"created_at"`
 }
 
 type User struct {
