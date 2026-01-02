@@ -11,6 +11,8 @@ import (
 	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/ali-nur31/mile-do/internal/transport/http/middleware"
 	v1 "github.com/ali-nur31/mile-do/internal/transport/http/v1"
+	"github.com/ali-nur31/mile-do/internal/worker"
+	"github.com/ali-nur31/mile-do/internal/worker/jobs"
 	"github.com/ali-nur31/mile-do/pkg/asynq_jobs"
 	"github.com/ali-nur31/mile-do/pkg/auth"
 	"github.com/ali-nur31/mile-do/pkg/logger"
@@ -102,6 +104,17 @@ func main() {
 	apiGroup := e.Group("api/v1")
 
 	router.InitRoutes(apiGroup)
+
+	taskGenerateRecurringJob := jobs.NewTaskGenerateRecurringJob(taskService)
+
+	backgroundWorker := worker.NewWorker(&cfg.Redis, taskGenerateRecurringJob)
+
+	go func() {
+		if err = backgroundWorker.Run(); err != nil {
+			slog.Error("failed to run worker, exit", "error", err)
+			os.Exit(1)
+		}
+	}()
 
 	port := cfg.Api.Port
 	if err := e.Start(port); err != nil {
