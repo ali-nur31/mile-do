@@ -75,7 +75,8 @@ func NewGoalHandler(service service.GoalService) *GoalHandler {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        type query string false "get goals by type"
-// @Success      302  {object}  listGoalsResponse
+// @Success      200  {object}  listGoalsResponse
+// @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /goals/ [get]
 func (h *GoalHandler) GetGoals(c echo.Context) error {
@@ -104,7 +105,7 @@ func (h *GoalHandler) GetGoals(c echo.Context) error {
 		outGoals.Data[index].CreatedAt = goal.CreatedAt
 	}
 
-	return c.JSON(http.StatusFound, outGoals)
+	return c.JSON(http.StatusOK, outGoals)
 }
 
 // GetGoalByID godoc
@@ -116,6 +117,7 @@ func (h *GoalHandler) GetGoals(c echo.Context) error {
 // @Security     BearerAuth
 // @Param        id path int64 true "Goal ID"
 // @Success      200  {object}  goalResponse
+// @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
@@ -156,7 +158,7 @@ func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 // @Security     BearerAuth
 // @Param        input body createGoalRequest true "Goal Info"
 // @Success      201  {object}  goalResponse
-// @Failure      404  {object}  map[string]string "Not Found"
+// @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /goals/ [post]
@@ -168,7 +170,7 @@ func (h *GoalHandler) CreateGoal(c echo.Context) error {
 
 	var request createGoalRequest
 	if err = c.Bind(&request); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
 	goal := domain.CreateGoalInput{
@@ -203,6 +205,7 @@ func (h *GoalHandler) CreateGoal(c echo.Context) error {
 // @Security     BearerAuth
 // @Param        input body updateGoalRequest true "New Goal Info"
 // @Success      200  {object}  updateGoalResponse
+// @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /goals/ [patch]
@@ -248,6 +251,7 @@ func (h *GoalHandler) UpdateGoal(c echo.Context) error {
 // @Security     BearerAuth
 // @Param        id path int64 true "Goal ID"
 // @Success      201  {string}  map[string]string "goal has been removed"
+// @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Router       /goals/{id} [delete]

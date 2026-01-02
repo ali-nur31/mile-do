@@ -1,5 +1,12 @@
 basePath: /api/v1
 definitions:
+  internal_transport_http_v1.authUserResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
   internal_transport_http_v1.createGoalRequest:
     properties:
       category_type:
@@ -86,9 +93,9 @@ definitions:
       password:
         type: string
     type: object
-  internal_transport_http_v1.loginUserResponse:
+  internal_transport_http_v1.refreshAccessTokenRequest:
     properties:
-      token:
+      refresh_token:
         type: string
     type: object
   internal_transport_http_v1.registerUserRequest:
@@ -98,11 +105,6 @@ definitions:
       email:
         type: string
       password:
-        type: string
-    type: object
-  internal_transport_http_v1.registerUserResponse:
-    properties:
-      token:
         type: string
     type: object
   internal_transport_http_v1.taskData:
@@ -239,7 +241,7 @@ paths:
         "202":
           description: Accepted
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.loginUserResponse'
+            $ref: '#/definitions/internal_transport_http_v1.authUserResponse'
         "400":
           description: Bad Request
           schema:
@@ -253,6 +255,40 @@ paths:
               type: string
             type: object
       summary: login user
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: refresh access token by refresh_token
+      parameters:
+      - description: Refresh token
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/internal_transport_http_v1.refreshAccessTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/internal_transport_http_v1.authUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: refresh access token
       tags:
       - auth
   /auth/register:
@@ -273,7 +309,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.registerUserResponse'
+            $ref: '#/definitions/internal_transport_http_v1.authUserResponse'
         "400":
           description: Bad Request
           schema:
@@ -302,10 +338,16 @@ paths:
       produces:
       - application/json
       responses:
-        "302":
-          description: Found
+        "200":
+          description: OK
           schema:
             $ref: '#/definitions/internal_transport_http_v1.listGoalsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal Server Error
           schema:
@@ -337,6 +379,12 @@ paths:
             $ref: '#/definitions/internal_transport_http_v1.updateGoalResponse'
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
           schema:
             additionalProperties:
               type: string
@@ -376,8 +424,8 @@ paths:
             additionalProperties:
               type: string
             type: object
-        "404":
-          description: Not Found
+        "401":
+          description: Unauthorized
           schema:
             additionalProperties:
               type: string
@@ -418,6 +466,12 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
           description: Not Found
           schema:
@@ -449,6 +503,12 @@ paths:
             $ref: '#/definitions/internal_transport_http_v1.goalResponse'
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
           schema:
             additionalProperties:
               type: string
@@ -495,6 +555,12 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal Server Error
           schema:
@@ -518,6 +584,12 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/internal_transport_http_v1.listTasksResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal Server Error
           schema:
@@ -549,6 +621,12 @@ paths:
             $ref: '#/definitions/internal_transport_http_v1.taskResponse'
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
           schema:
             additionalProperties:
               type: string
@@ -585,6 +663,12 @@ paths:
             type: string
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
           schema:
             additionalProperties:
               type: string
@@ -630,6 +714,12 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal Server Error
           schema:
@@ -671,6 +761,12 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
           description: Not Found
           schema:
@@ -706,6 +802,12 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       security:
       - BearerAuth: []
       summary: get stats for today
@@ -723,6 +825,12 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/internal_transport_http_v1.listTasksResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal Server Error
           schema:
@@ -761,6 +869,12 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal Server Error
           schema:
@@ -772,20 +886,16 @@ paths:
       summary: get tasks by period
       tags:
       - tasks
-  /users/me:
-    get:
+  /users/:
+    delete:
       consumes:
       - application/json
-      description: get user account by bearer token
+      description: logout from user account
       produces:
       - application/json
       responses:
-        "302":
-          description: Found
-          schema:
-            $ref: '#/definitions/internal_transport_http_v1.getUserResponse'
-        "400":
-          description: Bad Request
+        "200":
+          description: successful log out
           schema:
             additionalProperties:
               type: string
@@ -796,8 +906,35 @@ paths:
             additionalProperties:
               type: string
             type: object
-        "404":
-          description: Not Found
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: logout user
+      tags:
+      - auth
+  /users/me:
+    get:
+      consumes:
+      - application/json
+      description: get user account by bearer token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_transport_http_v1.getUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
           schema:
             additionalProperties:
               type: string

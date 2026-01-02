@@ -85,6 +85,7 @@ func NewTaskHandler(service service.TaskService) *TaskHandler {
 // @Security     BearerAuth
 // @Param        id path int64 true "Goal ID"
 // @Success      200  {object}  listTasksResponse
+// @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /goals/{id}/tasks [get]
@@ -117,6 +118,7 @@ func (h *TaskHandler) GetTasksByGoalID(c echo.Context) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Success      200  {object}  listTasksResponse
+// @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/inbox [get]
 func (h *TaskHandler) GetInboxTasks(c echo.Context) error {
@@ -145,6 +147,7 @@ func (h *TaskHandler) GetInboxTasks(c echo.Context) error {
 // @Param        after_date query string false "tasks after specific date"
 // @Param        before_date query string false "tasks before specific date"
 // @Success      200  {object}  listTasksResponse
+// @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/period [get]
@@ -192,6 +195,7 @@ func (h *TaskHandler) GetTasksByPeriod(c echo.Context) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Success      200  {object}  listTasksResponse
+// @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/ [get]
 func (h *TaskHandler) GetTasks(c echo.Context) error {
@@ -219,6 +223,7 @@ func (h *TaskHandler) GetTasks(c echo.Context) error {
 // @Security     BearerAuth
 // @Param        id path int64 true "Task ID"
 // @Success      200  {object}  taskResponse
+// @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/{id} [get]
@@ -261,6 +266,7 @@ func (h *TaskHandler) GetTaskByID(c echo.Context) error {
 // @Security     BearerAuth
 // @Param        input body createTaskRequest true "Task Info"
 // @Success      201  {object}  taskResponse
+// @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/ [post]
@@ -324,6 +330,7 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 // @Param        id path int64 true "Task ID"
 // @Param        input body updateTaskRequest true "New Task Info"
 // @Success      200  {object}  taskResponse
+// @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
@@ -392,6 +399,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Success      201  {string}  countCompletedTasksForTodayResponse
+// @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Router       /tasks/analyze [get]
 func (h *TaskHandler) AnalyzeForToday(c echo.Context) error {
@@ -420,6 +428,7 @@ func (h *TaskHandler) AnalyzeForToday(c echo.Context) error {
 // @Security     BearerAuth
 // @Param        id path int64 true "Task ID"
 // @Success      201  {string}  map[string]string "Task has been removed"
+// @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"

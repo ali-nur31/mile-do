@@ -32,10 +32,9 @@ func NewUserHandler(service service.UserService) *UserHandler {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      302  {object}  getUserResponse
-// @Failure      400  {object}  map[string]string "Bad Request"
+// @Success      200  {object}  getUserResponse
 // @Failure      401  {object}  map[string]string "Unauthorized"
-// @Failure      404  {object}  map[string]string "Not Found"
+// @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /users/me [get]
 func (h *UserHandler) GetUser(c echo.Context) error {
@@ -46,7 +45,7 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 
 	user, err := h.service.GetUserByID(c.Request().Context(), int64(userId))
 	if err != nil {
-		return c.JSON(http.StatusNotFound, err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	output := getUserResponse{
@@ -54,7 +53,7 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 		CreatedAt: user.CreatedAt,
 	}
 
-	return c.JSON(http.StatusFound, output)
+	return c.JSON(http.StatusOK, output)
 }
 
 // LogoutUser godoc
@@ -64,6 +63,7 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  map[string]string "successful log out"
+// @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /users/ [delete]
 func (h *UserHandler) LogoutUser(c echo.Context) error {

@@ -45,7 +45,7 @@ func NewAuthHandler(service service.UserService) *AuthHandler {
 // @Accept       json
 // @Produce      json
 // @Param        input body registerUserRequest true "Account Info"
-// @Success      201  {object}  registerUserResponse
+// @Success      201  {object}  authUserResponse
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}   map[string]string "Internal Server Error"
 // @Router       /auth/register [post]
@@ -83,7 +83,7 @@ func (h *AuthHandler) RegisterUser(c echo.Context) error {
 // @Accept       json
 // @Produce      json
 // @Param        input body loginUserRequest true "Account Info"
-// @Success      202  {object}  loginUserResponse
+// @Success      202  {object}  authUserResponse
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /auth/login [post]
