@@ -7,9 +7,10 @@ import (
 )
 
 type Config struct {
-	DB  Database
-	Api Api
-	Jwt Jwt
+	DB    Database
+	Redis Redis
+	Api   Api
+	Jwt   Jwt
 }
 
 type Api struct {
@@ -31,14 +32,23 @@ type Database struct {
 	Name     string `env:"DB_NAME" env-default:"mile_do_db"`
 }
 
+type Redis struct {
+	Addr     string `env:"REDIS_ADDR" env-default:"localhost:6379"`
+	Password string `env:"REDIS_PASSWORD" env-default:""`
+	DB       int    `env:"REDIS_DB" env-default:"0"`
+	Protocol int    `env:"REDIS_PROTOCOL" env-default:"2"`
+}
+
 func MustLoad() *Config {
 	var cfg Config
 
 	db := databaseLoad()
+	rdb := redisLoad()
 	api := apiLoad()
 	jwt := jwtLoad()
 
 	cfg.DB = db
+	cfg.Redis = rdb
 	cfg.Api = api
 	cfg.Jwt = jwt
 
@@ -76,4 +86,15 @@ func databaseLoad() Database {
 	}
 
 	return db
+}
+
+func redisLoad() Redis {
+	var rdb Redis
+
+	err := cleanenv.ReadEnv(&rdb)
+	if err != nil {
+		slog.Error("failed to load .env vars for Redis, using default values", "error", err)
+	}
+
+	return rdb
 }

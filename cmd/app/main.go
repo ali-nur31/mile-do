@@ -11,9 +11,11 @@ import (
 	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/ali-nur31/mile-do/internal/transport/http/middleware"
 	v1 "github.com/ali-nur31/mile-do/internal/transport/http/v1"
+	"github.com/ali-nur31/mile-do/pkg/asynq_jobs"
 	"github.com/ali-nur31/mile-do/pkg/auth"
 	"github.com/ali-nur31/mile-do/pkg/logger"
 	"github.com/ali-nur31/mile-do/pkg/postgres"
+	"github.com/ali-nur31/mile-do/pkg/redis_db"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 )
@@ -47,13 +49,24 @@ func main() {
 
 	pg, err := postgres.InitializeDatabaseConnection(ctx, &cfg.DB)
 	if err != nil {
-		slog.Error("failed to connect to database", "error", err)
 		os.Exit(1)
 	}
 
 	defer pg.Pool.Close(ctx)
 
 	queries := repo.New(pg.Pool)
+
+	_, err = redis_db.InitializeRedisConnection(ctx, &cfg.Redis)
+	if err != nil {
+		os.Exit(1)
+	}
+
+	asynq, err := asynq_jobs.InitializeAsynqClient(&cfg.Redis)
+	if err != nil {
+		os.Exit(1)
+	}
+
+	defer asynq.Client.Close()
 
 	passwordManager := auth.NewBcryptPasswordManager()
 

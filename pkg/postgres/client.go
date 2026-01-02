@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"os"
 
 	"github.com/ali-nur31/mile-do/config"
 	"github.com/jackc/pgx/v5"
@@ -27,7 +26,7 @@ func InitializeDatabaseConnection(ctx context.Context, cfg *config.Database) (*P
 	)
 	if err != nil {
 		slog.Error("couldn't connect to database", "error", err)
-		os.Exit(1)
+		return nil, err
 	}
 
 	fmt.Println("Connection to database is established")
