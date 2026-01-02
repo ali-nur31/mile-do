@@ -6,18 +6,24 @@ package repo
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
 	CountCompletedTasksForToday(ctx context.Context, userID int32) (CountCompletedTasksForTodayRow, error)
 	CreateGoal(ctx context.Context, arg CreateGoalParams) (Goal, error)
+	CreateRecurringTasksTemplate(ctx context.Context, arg CreateRecurringTasksTemplateParams) (RecurringTasksTemplate, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
 	CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteFutureTasksByRecurringTasksTemplateID(ctx context.Context, recurringTemplateID pgtype.Int4) error
 	DeleteGoalByID(ctx context.Context, arg DeleteGoalByIDParams) error
+	DeleteRecurringTasksTemplateByID(ctx context.Context, arg DeleteRecurringTasksTemplateByIDParams) error
 	DeleteRefreshTokenByUserID(ctx context.Context, userID int32) error
 	DeleteTaskByID(ctx context.Context, arg DeleteTaskByIDParams) error
 	GetGoalByID(ctx context.Context, arg GetGoalByIDParams) (Goal, error)
+	GetRecurringTasksTemplateByID(ctx context.Context, arg GetRecurringTasksTemplateByIDParams) (RecurringTasksTemplate, error)
 	GetRefreshTokenByUserID(ctx context.Context, userID int32) (RefreshToken, error)
 	GetTaskByID(ctx context.Context, arg GetTaskByIDParams) (Task, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
@@ -25,10 +31,14 @@ type Querier interface {
 	ListGoals(ctx context.Context, userID int32) ([]Goal, error)
 	ListGoalsByIsArchived(ctx context.Context, arg ListGoalsByIsArchivedParams) ([]Goal, error)
 	ListInboxTasks(ctx context.Context, userID int32) ([]Task, error)
+	ListRecurringTasksTemplates(ctx context.Context, userID int32) ([]RecurringTasksTemplate, error)
+	ListRecurringTasksTemplatesDueForGeneration(ctx context.Context) ([]RecurringTasksTemplate, error)
 	ListTasks(ctx context.Context, userID int32) ([]Task, error)
 	ListTasksByDateRange(ctx context.Context, arg ListTasksByDateRangeParams) ([]Task, error)
 	ListTasksByGoalID(ctx context.Context, arg ListTasksByGoalIDParams) ([]Task, error)
 	UpdateGoalByID(ctx context.Context, arg UpdateGoalByIDParams) error
+	UpdateLastGeneratedDateInRecurringTasksTemplateByID(ctx context.Context, arg UpdateLastGeneratedDateInRecurringTasksTemplateByIDParams) error
+	UpdateRecurringTasksTemplateByID(ctx context.Context, arg UpdateRecurringTasksTemplateByIDParams) error
 	UpdateTaskByID(ctx context.Context, arg UpdateTaskByIDParams) error
 }
 

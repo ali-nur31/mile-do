@@ -80,6 +80,16 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 	return i, err
 }
 
+const deleteFutureTasksByRecurringTasksTemplateID = `-- name: DeleteFutureTasksByRecurringTasksTemplateID :exec
+DELETE FROM tasks
+WHERE recurring_template_id = $1 AND scheduled_date > current_date AND is_done = false
+`
+
+func (q *Queries) DeleteFutureTasksByRecurringTasksTemplateID(ctx context.Context, recurringTemplateID pgtype.Int4) error {
+	_, err := q.db.Exec(ctx, deleteFutureTasksByRecurringTasksTemplateID, recurringTemplateID)
+	return err
+}
+
 const deleteTaskByID = `-- name: DeleteTaskByID :exec
 DELETE FROM tasks
 WHERE id = $1 AND user_id = $2

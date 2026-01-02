@@ -54,3 +54,7 @@ WHERE id = $1 AND user_id = $2;
 -- name: DeleteTaskByID :exec
 DELETE FROM tasks
 WHERE id = $1 AND user_id = $2;
+
+-- name: DeleteFutureTasksByRecurringTasksTemplateID :exec
+DELETE FROM tasks
+WHERE recurring_template_id = $1 AND scheduled_date > current_date AND is_done = false;
