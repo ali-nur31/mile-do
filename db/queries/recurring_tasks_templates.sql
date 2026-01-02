@@ -23,8 +23,7 @@ SET
     scheduled_datetime = $5,
     has_time = $6,
     duration_minutes = $7,
-    recurrence_rrule = $8,
-    last_generated_date = $9
+    recurrence_rrule = $8
 WHERE id = $1 AND user_id = $2;
 
 -- name: DeleteRecurringTasksTemplateByID :exec

@@ -196,8 +196,7 @@ SET
     scheduled_datetime = $5,
     has_time = $6,
     duration_minutes = $7,
-    recurrence_rrule = $8,
-    last_generated_date = $9
+    recurrence_rrule = $8
 WHERE id = $1 AND user_id = $2
 `
 
@@ -210,7 +209,6 @@ type UpdateRecurringTasksTemplateByIDParams struct {
 	HasTime           bool             `json:"has_time"`
 	DurationMinutes   int32            `json:"duration_minutes"`
 	RecurrenceRrule   string           `json:"recurrence_rrule"`
-	LastGeneratedDate pgtype.Date      `json:"last_generated_date"`
 }
 
 func (q *Queries) UpdateRecurringTasksTemplateByID(ctx context.Context, arg UpdateRecurringTasksTemplateByIDParams) error {
@@ -223,7 +221,6 @@ func (q *Queries) UpdateRecurringTasksTemplateByID(ctx context.Context, arg Upda
 		arg.HasTime,
 		arg.DurationMinutes,
 		arg.RecurrenceRrule,
-		arg.LastGeneratedDate,
 	)
 	return err
 }
