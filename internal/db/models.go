@@ -69,6 +69,8 @@ type RecurringTasksTemplate struct {
 	UserID            int32            `json:"user_id"`
 	GoalID            int32            `json:"goal_id"`
 	Title             string           `json:"title"`
+	ScheduledDatetime pgtype.Timestamp `json:"scheduled_datetime"`
+	HasTime           bool             `json:"has_time"`
 	DurationMinutes   int32            `json:"duration_minutes"`
 	RecurrenceRrule   string           `json:"recurrence_rrule"`
 	LastGeneratedDate pgtype.Date      `json:"last_generated_date"`
@@ -90,6 +92,7 @@ type Task struct {
 	Title           string           `json:"title"`
 	IsDone          bool             `json:"is_done"`
 	ScheduledDate   pgtype.Date      `json:"scheduled_date"`
+	HasTime         bool             `json:"has_time"`
 	ScheduledTime   pgtype.Time      `json:"scheduled_time"`
 	DurationMinutes pgtype.Int4      `json:"duration_minutes"`
 	RescheduleCount int32            `json:"reschedule_count"`

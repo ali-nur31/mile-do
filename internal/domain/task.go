@@ -39,6 +39,7 @@ type TaskOutput struct {
 	IsDone          bool
 	ScheduledDate   time.Time
 	ScheduledTime   time.Time
+	HasTime         bool
 	DurationMinutes int32
 	RescheduleCount int32
 	CreatedAt       time.Time

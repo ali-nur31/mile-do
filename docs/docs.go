@@ -96,8 +96,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "202": {
-                        "description": "Accepted",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/internal_transport_http_v1.authUserResponse"
                         }

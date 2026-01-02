@@ -21,6 +21,7 @@ type taskData struct {
 	Title           string    `json:"title"`
 	IsDone          bool      `json:"is_done"`
 	ScheduledDate   string    `json:"scheduled_date"`
+	HasTime         bool      `json:"has_time"`
 	ScheduledTime   string    `json:"scheduled_time"`
 	DurationMinutes int32     `json:"duration_minutes"`
 	RescheduleCount int32     `json:"reschedule_count"`
@@ -60,6 +61,7 @@ type taskResponse struct {
 	Title           string    `json:"title"`
 	IsDone          bool      `json:"is_done"`
 	ScheduledDate   string    `json:"scheduled_date"`
+	HasTime         bool      `json:"has_time"`
 	ScheduledTime   string    `json:"scheduled_time"`
 	DurationMinutes int32     `json:"duration_minutes"`
 	RescheduleCount int32     `json:"reschedule_count"`
@@ -250,6 +252,7 @@ func (h *TaskHandler) GetTaskByID(c echo.Context) error {
 		Title:           task.Title,
 		IsDone:          task.IsDone,
 		ScheduledDate:   task.ScheduledDate.Format(dateLayout),
+		HasTime:         task.HasTime,
 		ScheduledTime:   task.ScheduledTime.Format(timeLayout),
 		DurationMinutes: task.DurationMinutes,
 		RescheduleCount: task.RescheduleCount,
@@ -313,6 +316,7 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 		Title:           outTask.Title,
 		IsDone:          outTask.IsDone,
 		ScheduledDate:   outTask.ScheduledDate.Format(dateLayout),
+		HasTime:         outTask.HasTime,
 		ScheduledTime:   outTask.ScheduledTime.Format(timeLayout),
 		DurationMinutes: outTask.DurationMinutes,
 		RescheduleCount: outTask.RescheduleCount,
@@ -384,6 +388,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 		Title:           outTask.Title,
 		IsDone:          outTask.IsDone,
 		ScheduledDate:   outTask.ScheduledDate.Format(dateLayout),
+		HasTime:         outTask.HasTime,
 		ScheduledTime:   outTask.ScheduledTime.Format(timeLayout),
 		DurationMinutes: outTask.DurationMinutes,
 		RescheduleCount: outTask.RescheduleCount,
@@ -465,6 +470,7 @@ func (h *TaskHandler) mapTasksToResponse(tasks []domain.TaskOutput, userId int32
 			Title:           task.Title,
 			IsDone:          task.IsDone,
 			ScheduledDate:   task.ScheduledDate.Format(dateLayout),
+			HasTime:         task.HasTime,
 			ScheduledTime:   task.ScheduledTime.Format(timeLayout),
 			DurationMinutes: task.DurationMinutes,
 			RescheduleCount: task.RescheduleCount,

@@ -117,7 +117,7 @@ func (h *AuthHandler) LoginUser(c echo.Context) error {
 // @Accept       json
 // @Produce      json
 // @Param        input body refreshAccessTokenRequest true "Refresh token"
-// @Success      202  {object}  authUserResponse
+// @Success      200  {object}  authUserResponse
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /auth/refresh [post]

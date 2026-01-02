@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     title VARCHAR(255) NOT NULL,
     is_done BOOLEAN NOT NULL DEFAULT false,
     scheduled_date DATE,
+    has_time BOOLEAN NOT NULL DEFAULT false,
     scheduled_time TIME,
     duration_minutes INT DEFAULT 15,
     reschedule_count INT NOT NULL DEFAULT 0,

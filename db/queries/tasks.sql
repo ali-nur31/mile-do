@@ -9,7 +9,7 @@ ORDER BY is_done ASC, id DESC;
 
 -- name: ListInboxTasks :many
 SELECT * FROM tasks
-WHERE scheduled_date IS null AND is_done = false AND user_id = $1
+WHERE scheduled_date IS null AND has_time = false AND is_done = false AND user_id = $1
 ORDER BY id DESC;
 
 -- name: ListTasksByDateRange :many
@@ -31,9 +31,9 @@ ORDER BY id;
 
 -- name: CreateTask :one
 INSERT INTO tasks (
-    user_id, goal_id, title, scheduled_date, scheduled_time, duration_minutes
+    user_id, goal_id, title, scheduled_date, has_time, scheduled_time, duration_minutes
 ) VALUES (
-             $1, $2, $3, $4, $5, $6
+             $1, $2, $3, $4, $5, $6, $7
          )
     RETURNING *;
 
@@ -44,9 +44,10 @@ SET
     title = $4,
     is_done = $5,
     scheduled_date = $6,
-    scheduled_time = $7,
-    duration_minutes = $8,
-    reschedule_count = $9
+    has_time = $7,
+    scheduled_time = $8,
+    duration_minutes = $9,
+    reschedule_count = $10
 WHERE id = $1 AND user_id = $2;
 
 -- name: DeleteTaskByID :exec
