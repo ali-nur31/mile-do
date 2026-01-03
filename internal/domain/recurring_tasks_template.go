@@ -12,7 +12,6 @@ type CreateRecurringTasksTemplateInput struct {
 	HasTime           bool
 	DurationMinutes   int32
 	RecurrenceRrule   string
-	CreatedAt         time.Time
 }
 
 type UpdateRecurringTasksTemplateInput struct {

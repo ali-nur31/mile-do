@@ -92,6 +92,7 @@ func main() {
 	goalHandler := v1.NewGoalHandler(goalService)
 
 	recurringTasksTemplateService := service.NewRecurringTasksTemplateService(queries, asynq.Client)
+	recurringTasksTemplateHandler := v1.NewRecurringTasksTemplateHandler(recurringTasksTemplateService)
 
 	taskService := service.NewTaskService(queries, recurringTasksTemplateService)
 	taskHandler := v1.NewTaskHandler(taskService)
@@ -102,6 +103,7 @@ func main() {
 		*authHandler,
 		*userHandler,
 		*goalHandler,
+		*recurringTasksTemplateHandler,
 		*taskHandler,
 	)
 

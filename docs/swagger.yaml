@@ -16,6 +16,25 @@ definitions:
       title:
         type: string
     type: object
+  internal_transport_http_v1.createRecurringTasksTemplateRequest:
+    properties:
+      duration_minutes:
+        type: integer
+      goal_id:
+        type: integer
+      has_time:
+        type: boolean
+      recurrence_rrule:
+        type: string
+      scheduled_datetime:
+        type: string
+      scheduled_end_datetime:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: integer
+    type: object
   internal_transport_http_v1.createTaskRequest:
     properties:
       goal_id:
@@ -77,6 +96,15 @@ definitions:
       user_id:
         type: integer
     type: object
+  internal_transport_http_v1.listRecurringTasksTemplatesResponse:
+    properties:
+      recurring_tasks_template_data:
+        items:
+          $ref: '#/definitions/internal_transport_http_v1.recurringTasksTemplateData'
+        type: array
+      user_id:
+        type: integer
+    type: object
   internal_transport_http_v1.listTasksResponse:
     properties:
       task_data:
@@ -92,6 +120,50 @@ definitions:
         type: string
       password:
         type: string
+    type: object
+  internal_transport_http_v1.recurringTasksTemplateData:
+    properties:
+      created_at:
+        type: string
+      duration_minutes:
+        type: integer
+      goal_id:
+        type: integer
+      has_time:
+        type: boolean
+      id:
+        type: integer
+      last_generated_date:
+        type: string
+      recurrence_rrule:
+        type: string
+      scheduled_datetime:
+        type: string
+      title:
+        type: string
+    type: object
+  internal_transport_http_v1.recurringTasksTemplateResponse:
+    properties:
+      created_at:
+        type: string
+      duration_minutes:
+        type: integer
+      goal_id:
+        type: integer
+      has_time:
+        type: boolean
+      id:
+        type: integer
+      last_generated_date:
+        type: string
+      recurrence_rrule:
+        type: string
+      scheduled_datetime:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: integer
     type: object
   internal_transport_http_v1.refreshAccessTokenRequest:
     properties:
@@ -115,6 +187,8 @@ definitions:
         type: integer
       goal_id:
         type: integer
+      has_time:
+        type: boolean
       id:
         type: integer
       is_done:
@@ -136,6 +210,8 @@ definitions:
         type: integer
       goal_id:
         type: integer
+      has_time:
+        type: boolean
       id:
         type: integer
       is_done:
@@ -178,6 +254,23 @@ definitions:
         type: string
       user_id:
         type: integer
+    type: object
+  internal_transport_http_v1.updateRecurringTasksTemplateRequest:
+    properties:
+      duration_minutes:
+        type: integer
+      goal_id:
+        type: integer
+      has_time:
+        type: boolean
+      recurrence_rrule:
+        type: string
+      scheduled_datetime:
+        type: string
+      scheduled_end_datetime:
+        type: string
+      title:
+        type: string
     type: object
   internal_transport_http_v1.updateTaskRequest:
     properties:
@@ -572,6 +665,218 @@ paths:
       summary: get tasks by :goal_id
       tags:
       - tasks
+  /recurring-tasks-templates/:
+    get:
+      consumes:
+      - application/json
+      description: get recurring tasks templates
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_transport_http_v1.listRecurringTasksTemplatesResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get recurring tasks templates
+      tags:
+      - recurring-tasks-templates
+    post:
+      consumes:
+      - application/json
+      description: create new recurring tasks template
+      parameters:
+      - description: Recurring Tasks Template Info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/internal_transport_http_v1.createRecurringTasksTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_transport_http_v1.recurringTasksTemplateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: create new recurring tasks template
+      tags:
+      - recurring-tasks-templates
+  /recurring-tasks-templates/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete recurring tasks template by :id
+      parameters:
+      - description: Recurring Tasks Template ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Recurring tasks template has been removed
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: delete recurring tasks template by :id
+      tags:
+      - recurring-tasks-templates
+    get:
+      consumes:
+      - application/json
+      description: get recurring tasks template by :id
+      parameters:
+      - description: Recurring Tasks Template ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_transport_http_v1.recurringTasksTemplateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get recurring tasks template by :id
+      tags:
+      - recurring-tasks-templates
+    patch:
+      consumes:
+      - application/json
+      description: update existing recurring tasks template by :id
+      parameters:
+      - description: Recurring Tasks Template ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: New Recurring Tasks Template Info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/internal_transport_http_v1.updateRecurringTasksTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_transport_http_v1.recurringTasksTemplateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: update recurring tasks template by :id
+      tags:
+      - recurring-tasks-templates
   /tasks/:
     get:
       consumes:

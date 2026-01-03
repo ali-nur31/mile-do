@@ -10,12 +10,13 @@ import (
 )
 
 type Router struct {
-	redisCfg       config.Redis
-	authMiddleware middleware.AuthMiddleware
-	authHandler    AuthHandler
-	userHandler    UserHandler
-	goalHandler    GoalHandler
-	taskHandler    TaskHandler
+	redisCfg                      config.Redis
+	authMiddleware                middleware.AuthMiddleware
+	authHandler                   AuthHandler
+	userHandler                   UserHandler
+	goalHandler                   GoalHandler
+	recurringTasksTemplateHandler RecurringTasksTemplateHandler
+	taskHandler                   TaskHandler
 }
 
 func NewRouter(
@@ -24,15 +25,17 @@ func NewRouter(
 	authHandler AuthHandler,
 	userHandler UserHandler,
 	goalHandler GoalHandler,
+	recurringTasksTemplateHandler RecurringTasksTemplateHandler,
 	taskHandler TaskHandler,
 ) *Router {
 	return &Router{
-		redisCfg:       redisCfg,
-		authMiddleware: authMiddleware,
-		authHandler:    authHandler,
-		userHandler:    userHandler,
-		goalHandler:    goalHandler,
-		taskHandler:    taskHandler,
+		redisCfg:                      redisCfg,
+		authMiddleware:                authMiddleware,
+		authHandler:                   authHandler,
+		userHandler:                   userHandler,
+		goalHandler:                   goalHandler,
+		recurringTasksTemplateHandler: recurringTasksTemplateHandler,
+		taskHandler:                   taskHandler,
 	}
 }
 
@@ -72,6 +75,16 @@ func (r Router) InitRoutes(api *echo.Group) {
 		goals.POST("/", r.goalHandler.CreateGoal)
 		goals.PATCH("/", r.goalHandler.UpdateGoal)
 		goals.DELETE("/:id", r.goalHandler.DeleteGoalByID)
+	}
+
+	recurringTasksTemplates := api.Group("/recurring-tasks-templates")
+	recurringTasksTemplates.Use(r.authMiddleware.TokenCheckMiddleware())
+	{
+		recurringTasksTemplates.GET("/", r.recurringTasksTemplateHandler.GetRecurringTasksTemplates)
+		recurringTasksTemplates.GET("/:id", r.recurringTasksTemplateHandler.GetRecurringTasksTemplateByID)
+		recurringTasksTemplates.POST("/", r.recurringTasksTemplateHandler.CreateRecurringTasksTemplate)
+		recurringTasksTemplates.PATCH("/:id", r.recurringTasksTemplateHandler.UpdateRecurringTasksTemplateByID)
+		recurringTasksTemplates.DELETE("/:id", r.recurringTasksTemplateHandler.DeleteRecurringTasksTemplateByID)
 	}
 
 	tasks := api.Group("/tasks")
