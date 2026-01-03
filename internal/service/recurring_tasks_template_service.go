@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+	"time"
 
 	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/domain"
+	asynq2 "github.com/hibiken/asynq"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -19,12 +21,14 @@ type RecurringTasksTemplateService interface {
 }
 
 type recurringTasksTemplateService struct {
-	repo repo.Querier
+	repo  repo.Querier
+	asynq *asynq2.Client
 }
 
-func NewRecurringTasksTemplateService(repo repo.Querier) RecurringTasksTemplateService {
+func NewRecurringTasksTemplateService(repo repo.Querier, asynq *asynq2.Client) RecurringTasksTemplateService {
 	return &recurringTasksTemplateService{
-		repo: repo,
+		repo:  repo,
+		asynq: asynq,
 	}
 }
 
@@ -96,7 +100,7 @@ func (s *recurringTasksTemplateService) CreateRecurringTasksTemplate(ctx context
 		return nil, err
 	}
 
-	return &domain.RecurringTasksTemplateOutput{
+	outTemplate := domain.RecurringTasksTemplateOutput{
 		ID:                template.ID,
 		UserID:            template.UserID,
 		GoalID:            template.GoalID,
@@ -107,7 +111,14 @@ func (s *recurringTasksTemplateService) CreateRecurringTasksTemplate(ctx context
 		RecurrenceRrule:   template.RecurrenceRrule,
 		LastGeneratedDate: template.LastGeneratedDate.Time,
 		CreatedAt:         template.CreatedAt.Time,
-	}, nil
+	}
+
+	_, err = s.asynq.Enqueue(domain.NewGenerateRecurringTasksByTemplateTask(outTemplate), asynq2.Queue("critical"))
+	if err != nil {
+		return nil, err
+	}
+
+	return &outTemplate, nil
 }
 
 func (s *recurringTasksTemplateService) UpdateRecurringTasksTemplateByID(ctx context.Context, dbTemplate domain.RecurringTasksTemplateOutput, updatingTemplate domain.UpdateRecurringTasksTemplateInput) (*domain.RecurringTasksTemplateOutput, error) {
@@ -129,7 +140,7 @@ func (s *recurringTasksTemplateService) UpdateRecurringTasksTemplateByID(ctx con
 		return nil, err
 	}
 
-	return &domain.RecurringTasksTemplateOutput{
+	outTemplate := domain.RecurringTasksTemplateOutput{
 		ID:                templateUpdatingParams.ID,
 		UserID:            templateUpdatingParams.UserID,
 		GoalID:            templateUpdatingParams.GoalID,
@@ -139,7 +150,19 @@ func (s *recurringTasksTemplateService) UpdateRecurringTasksTemplateByID(ctx con
 		DurationMinutes:   templateUpdatingParams.DurationMinutes,
 		RecurrenceRrule:   templateUpdatingParams.RecurrenceRrule,
 		CreatedAt:         dbTemplate.CreatedAt,
-	}, nil
+	}
+
+	_, err = s.asynq.Enqueue(domain.NewDeleteRecurringTasksByTemplateIDTask(dbTemplate.ID), asynq2.Queue("critical"))
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.asynq.Enqueue(domain.NewGenerateRecurringTasksByTemplateTask(outTemplate), asynq2.Queue("critical"), asynq2.ProcessIn(1*time.Second))
+	if err != nil {
+		return nil, err
+	}
+
+	return &outTemplate, nil
 }
 
 func (s *recurringTasksTemplateService) DeleteRecurringTasksTemplateByID(ctx context.Context, id int64, userId int32) error {

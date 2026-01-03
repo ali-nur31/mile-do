@@ -8,11 +8,11 @@ import (
 	"github.com/ali-nur31/mile-do/config"
 	_ "github.com/ali-nur31/mile-do/docs"
 	repo "github.com/ali-nur31/mile-do/internal/db"
+	"github.com/ali-nur31/mile-do/internal/jobs"
+	"github.com/ali-nur31/mile-do/internal/jobs/workers"
 	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/ali-nur31/mile-do/internal/transport/http/middleware"
 	v1 "github.com/ali-nur31/mile-do/internal/transport/http/v1"
-	"github.com/ali-nur31/mile-do/internal/worker"
-	"github.com/ali-nur31/mile-do/internal/worker/jobs"
 	"github.com/ali-nur31/mile-do/pkg/asynq_jobs"
 	"github.com/ali-nur31/mile-do/pkg/auth"
 	"github.com/ali-nur31/mile-do/pkg/logger"
@@ -88,7 +88,9 @@ func main() {
 	goalService := service.NewGoalService(queries)
 	goalHandler := v1.NewGoalHandler(goalService)
 
-	taskService := service.NewTaskService(queries)
+	recurringTasksTemplateService := service.NewRecurringTasksTemplateService(queries, asynq.Client)
+
+	taskService := service.NewTaskService(queries, recurringTasksTemplateService)
 	taskHandler := v1.NewTaskHandler(taskService)
 
 	router := v1.NewRouter(
@@ -105,13 +107,13 @@ func main() {
 
 	router.InitRoutes(apiGroup)
 
-	taskGenerateRecurringJob := jobs.NewTaskGenerateRecurringJob(taskService)
+	recurringTasksTemplatesWorker := workers.NewRecurringTasksTemplatesWorker(taskService)
 
-	backgroundWorker := worker.NewWorker(&cfg.Redis, taskGenerateRecurringJob)
+	backgroundWorker := jobs.NewJobRouter(&cfg.Redis, recurringTasksTemplatesWorker)
 
 	go func() {
 		if err = backgroundWorker.Run(); err != nil {
-			slog.Error("failed to run worker, exit", "error", err)
+			slog.Error("failed to run jobs, exit", "error", err)
 			os.Exit(1)
 		}
 	}()
