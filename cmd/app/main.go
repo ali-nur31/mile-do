@@ -4,6 +4,9 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/ali-nur31/mile-do/config"
 	_ "github.com/ali-nur31/mile-do/docs"
@@ -94,6 +97,7 @@ func main() {
 	taskHandler := v1.NewTaskHandler(taskService)
 
 	router := v1.NewRouter(
+		cfg.Redis,
 		*authMiddleware,
 		*authHandler,
 		*userHandler,
@@ -118,8 +122,26 @@ func main() {
 		}
 	}()
 
-	port := cfg.Api.Port
-	if err := e.Start(port); err != nil {
-		slog.Error("failed to start server", "error", err)
+	go func() {
+		port := cfg.Api.Port
+		if err = e.Start(port); err != nil {
+			slog.Error("failed to start server", "error", err)
+			os.Exit(1)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+
+	<-quit
+	slog.Info("Received shutdown signal. shutting down...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err = e.Shutdown(ctx); err != nil {
+		e.Logger.Fatal(err)
 	}
+
+	slog.Info("Server exited properly")
 }

@@ -1,12 +1,16 @@
 package v1
 
 import (
+	"github.com/ali-nur31/mile-do/config"
 	"github.com/ali-nur31/mile-do/internal/transport/http/middleware"
+	"github.com/hibiken/asynq"
+	"github.com/hibiken/asynqmon"
 	"github.com/labstack/echo/v4"
 	"github.com/swaggo/echo-swagger"
 )
 
 type Router struct {
+	redisCfg       config.Redis
 	authMiddleware middleware.AuthMiddleware
 	authHandler    AuthHandler
 	userHandler    UserHandler
@@ -15,6 +19,7 @@ type Router struct {
 }
 
 func NewRouter(
+	redisCfg config.Redis,
 	authMiddleware middleware.AuthMiddleware,
 	authHandler AuthHandler,
 	userHandler UserHandler,
@@ -22,6 +27,7 @@ func NewRouter(
 	taskHandler TaskHandler,
 ) *Router {
 	return &Router{
+		redisCfg:       redisCfg,
 		authMiddleware: authMiddleware,
 		authHandler:    authHandler,
 		userHandler:    userHandler,
@@ -32,6 +38,16 @@ func NewRouter(
 
 func (r Router) InitRoutes(api *echo.Group) {
 	api.GET("/swagger/*", echoSwagger.WrapHandler)
+	mon := asynqmon.New(asynqmon.Options{
+		RootPath: "/api/v1/asynq",
+		RedisConnOpt: asynq.RedisClientOpt{
+			Addr:     r.redisCfg.Addr,
+			Password: r.redisCfg.Password,
+			DB:       r.redisCfg.DB,
+		},
+	})
+
+	api.Any("/asynq/*", echo.WrapHandler(mon))
 
 	auth := api.Group("/auth")
 	{

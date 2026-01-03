@@ -1,8 +1,6 @@
 package asynq_jobs
 
 import (
-	"log/slog"
-
 	"github.com/ali-nur31/mile-do/config"
 	asynq2 "github.com/hibiken/asynq"
 )
@@ -17,11 +15,6 @@ func InitializeAsynqClient(cfg *config.Redis) (*Asynq, error) {
 		Password: cfg.Password,
 		DB:       cfg.DB,
 	})
-
-	if err := asynq.Ping(); err != nil {
-		slog.Error("failed to connect to Redis through Asynq client", "error", err)
-		return nil, err
-	}
 
 	return &Asynq{Client: asynq}, nil
 }
