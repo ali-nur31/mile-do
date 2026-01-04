@@ -10,7 +10,7 @@ import (
 )
 
 type RefreshTokenService interface {
-	GetRefreshTokenByUserID(ctx context.Context, userId int32) (repo.RefreshToken, error)
+	GetRefreshTokenByUserID(ctx context.Context, userId int32) (*domain.RefreshTokenOutput, error)
 	CreateRefreshToken(ctx context.Context, input domain.CreateRefreshTokenInput) error
 	DeleteRefreshTokenByUserID(ctx context.Context, userId int32) error
 }
@@ -25,8 +25,13 @@ func NewRefreshTokenService(repo repo.Querier) RefreshTokenService {
 	}
 }
 
-func (s *refreshTokenService) GetRefreshTokenByUserID(ctx context.Context, userId int32) (repo.RefreshToken, error) {
-	return s.repo.GetRefreshTokenByUserID(ctx, userId)
+func (s *refreshTokenService) GetRefreshTokenByUserID(ctx context.Context, userId int32) (*domain.RefreshTokenOutput, error) {
+	refreshToken, err := s.repo.GetRefreshTokenByUserID(ctx, userId)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get refresh token by user id: %w", err)
+	}
+
+	return domain.ToRefreshTokenOutput(&refreshToken), nil
 }
 
 func (s *refreshTokenService) CreateRefreshToken(ctx context.Context, input domain.CreateRefreshTokenInput) error {
@@ -39,7 +44,7 @@ func (s *refreshTokenService) CreateRefreshToken(ctx context.Context, input doma
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("failed to save refresh_token: %v", err)
+		return fmt.Errorf("couldn't save new refresh token: %w", err)
 	}
 
 	return nil
@@ -48,7 +53,7 @@ func (s *refreshTokenService) CreateRefreshToken(ctx context.Context, input doma
 func (s *refreshTokenService) DeleteRefreshTokenByUserID(ctx context.Context, userId int32) error {
 	err := s.repo.DeleteRefreshTokenByUserID(ctx, userId)
 	if err != nil {
-		return fmt.Errorf("failed to delete refresh_token from db: %v", err)
+		return fmt.Errorf("couldn't delete refresh token from db: %w", err)
 	}
 
 	return nil

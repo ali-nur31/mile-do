@@ -1,8 +1,6 @@
 package v1
 
 import (
-	"fmt"
-	"log/slog"
 	"net/http"
 
 	"github.com/ali-nur31/mile-do/internal/service"
@@ -11,12 +9,12 @@ import (
 )
 
 type UserHandler struct {
-	service service.UserService
+	userService service.UserService
 }
 
-func NewUserHandler(service service.UserService) *UserHandler {
+func NewUserHandler(userService service.UserService) *UserHandler {
 	return &UserHandler{
-		service: service,
+		userService: userService,
 	}
 }
 
@@ -33,49 +31,15 @@ func NewUserHandler(service service.UserService) *UserHandler {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /users/me [get]
 func (h *UserHandler) GetUser(c echo.Context) error {
-	userId, err := h.getCurrentUserIDFromToken(c)
+	userId, err := GetCurrentUserIdFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	user, err := h.service.GetUserByID(c.Request().Context(), int64(userId))
+	user, err := h.userService.GetUserByID(c.Request().Context(), int64(userId))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, dto.ToGetUserResponse(user))
-}
-
-// LogoutUser godoc
-// @Summary      logout user
-// @Description  logout from user account
-// @Tags         auth
-// @Accept       json
-// @Produce      json
-// @Success      200  {object}  map[string]string "successful log out"
-// @Failure      401  {object}  map[string]string "Unauthorized"
-// @Failure      500  {object}  map[string]string "Internal Server Error"
-// @Router       /users/ [delete]
-func (h *UserHandler) LogoutUser(c echo.Context) error {
-	userId, err := h.getCurrentUserIDFromToken(c)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
-	}
-
-	err = h.service.LogoutUser(c.Request().Context(), userId)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
-	}
-
-	return c.JSON(http.StatusOK, map[string]string{"message": "successful log out"})
-}
-
-func (h *UserHandler) getCurrentUserIDFromToken(c echo.Context) (int32, error) {
-	switch t := c.Get("userId").(type) {
-	case int64:
-		return int32(t), nil
-	default:
-		slog.Error("userId in context is not an integer", "value", t)
-		return -1, fmt.Errorf("failed to convert userId from string to integer")
-	}
 }

@@ -3,7 +3,6 @@ package auth
 import (
 	"errors"
 	"fmt"
-	"log/slog"
 	"time"
 
 	"github.com/ali-nur31/mile-do/config"
@@ -16,12 +15,7 @@ type JwtManager struct {
 	jwt *config.Jwt
 }
 
-type AccessClaims struct {
-	ID int64 `json:"id"`
-	jwt.RegisteredClaims
-}
-
-type RefreshClaims struct {
+type Claims struct {
 	ID int64 `json:"id"`
 	jwt.RegisteredClaims
 }
@@ -39,8 +33,8 @@ func NewJwtManager(jwt *config.Jwt) (*JwtManager, error) {
 	}, nil
 }
 
-func (m *JwtManager) CreateTokens(id int64) (TokensData, error) {
-	accessClaims := AccessClaims{
+func (m *JwtManager) CreateTokens(id int64) (*TokensData, error) {
+	accessClaims := Claims{
 		ID: id,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * time.Duration(m.jwt.AccessExpMins))),
@@ -48,7 +42,7 @@ func (m *JwtManager) CreateTokens(id int64) (TokensData, error) {
 		},
 	}
 
-	refreshClaims := RefreshClaims{
+	refreshClaims := Claims{
 		ID: id,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * time.Duration(m.jwt.RefreshExpDays))),
@@ -68,15 +62,15 @@ func (m *JwtManager) CreateTokens(id int64) (TokensData, error) {
 
 	accessTokenString, err := accessToken.SignedString([]byte(m.jwt.AccessKey))
 	if err != nil {
-		return TokensData{}, err
+		return nil, fmt.Errorf("couldn't sign access token: %w", err)
 	}
 
 	refreshTokenString, err := refreshToken.SignedString([]byte(m.jwt.RefreshKey))
 	if err != nil {
-		return TokensData{}, err
+		return nil, fmt.Errorf("couldn't sign refresh token: %w", err)
 	}
 
-	return TokensData{
+	return &TokensData{
 		AccessToken:     accessTokenString,
 		AccessTokenExp:  accessClaims.ExpiresAt.Time,
 		RefreshToken:    refreshTokenString,
@@ -84,44 +78,31 @@ func (m *JwtManager) CreateTokens(id int64) (TokensData, error) {
 	}, nil
 }
 
-func (m *JwtManager) VerifyAccessToken(tokenString string) (*AccessClaims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &AccessClaims{}, func(token *jwt.Token) (interface{}, error) {
+func (m *JwtManager) VerifyToken(tokenString, tokenType string) (*Claims, error) {
+	var secretKey string
+	if tokenType == "access" {
+		secretKey = m.jwt.AccessKey
+	} else if tokenType == "refresh" {
+		secretKey = m.jwt.RefreshKey
+	} else {
+		return nil, fmt.Errorf("invalid tokenType param: %v", tokenType)
+	}
+
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
-		return []byte(m.jwt.AccessKey), nil
+		return []byte(secretKey), nil
 	})
 
 	if err != nil {
-		slog.Error("failed to parse access token", "error", err)
-		return nil, err
-	} else if claims, ok := token.Claims.(*AccessClaims); ok && token.Valid {
+		return nil, fmt.Errorf("couldn't parse %v token: %w", tokenType, err)
+	} else if claims, ok := token.Claims.(*Claims); ok && token.Valid {
 		return claims, nil
 	} else if claims.ExpiresAt.Time.Before(time.Now()) {
 		return nil, TokenExpiredError
 	}
 
-	return nil, fmt.Errorf("invalid access token claims")
-}
-
-func (m *JwtManager) VerifyRefreshToken(tokenString string) (*RefreshClaims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &RefreshClaims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-
-		return []byte(m.jwt.RefreshKey), nil
-	})
-
-	if err != nil {
-		slog.Error("failed to parse refresh token", "error", err)
-		return nil, err
-	} else if claims, ok := token.Claims.(*RefreshClaims); ok && token.Valid {
-		return claims, nil
-	} else if claims.ExpiresAt.Time.Before(time.Now()) {
-		return nil, TokenExpiredError
-	}
-
-	return nil, fmt.Errorf("invalid refresh token claims")
+	return nil, fmt.Errorf("invalid %v token claims", tokenType)
 }

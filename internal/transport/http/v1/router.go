@@ -57,13 +57,13 @@ func (r Router) InitRoutes(api *echo.Group) {
 		auth.POST("/register", r.authHandler.RegisterUser)
 		auth.POST("/login", r.authHandler.LoginUser)
 		auth.POST("/refresh", r.authHandler.RefreshAccessToken)
+		auth.DELETE("/logout", r.authHandler.LogoutUser)
 	}
 
 	users := api.Group("/users")
 	users.Use(r.authMiddleware.TokenCheckMiddleware())
 	{
 		users.GET("/me", r.userHandler.GetUser)
-		users.DELETE("/", r.userHandler.LogoutUser)
 	}
 
 	goals := api.Group("/goals")

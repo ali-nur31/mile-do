@@ -11,7 +11,7 @@ import (
 )
 
 type AuthTokenManager interface {
-	VerifyAccessToken(tokenString string) (*auth.AccessClaims, error)
+	VerifyToken(tokenString, tokenType string) (*auth.Claims, error)
 }
 
 type AuthMiddleware struct {
@@ -41,7 +41,7 @@ func (m *AuthMiddleware) TokenCheckMiddleware() echo.MiddlewareFunc {
 
 			tokenString := parts[1]
 
-			claims, err := m.tokenManager.VerifyAccessToken(tokenString)
+			claims, err := m.tokenManager.VerifyToken(tokenString, "access")
 			if err != nil {
 				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid token"})
 			} else if errors.Is(err, auth.TokenExpiredError) {
