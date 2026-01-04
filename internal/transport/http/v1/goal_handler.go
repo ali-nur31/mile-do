@@ -58,12 +58,14 @@ type goalResponse struct {
 }
 
 type GoalHandler struct {
-	service service.GoalService
+	service     service.GoalService
+	userHandler UserHandler
 }
 
-func NewGoalHandler(service service.GoalService) *GoalHandler {
+func NewGoalHandler(service service.GoalService, userHandler UserHandler) *GoalHandler {
 	return &GoalHandler{
-		service: service,
+		service:     service,
+		userHandler: userHandler,
 	}
 }
 
@@ -82,7 +84,7 @@ func NewGoalHandler(service service.GoalService) *GoalHandler {
 func (h *GoalHandler) GetGoals(c echo.Context) error {
 	param := c.QueryParam("type")
 
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := h.userHandler.getCurrentUserIDFromToken(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -128,7 +130,7 @@ func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := h.userHandler.getCurrentUserIDFromToken(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -163,7 +165,7 @@ func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /goals/ [post]
 func (h *GoalHandler) CreateGoal(c echo.Context) error {
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := h.userHandler.getCurrentUserIDFromToken(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -210,7 +212,7 @@ func (h *GoalHandler) CreateGoal(c echo.Context) error {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /goals/ [patch]
 func (h *GoalHandler) UpdateGoal(c echo.Context) error {
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := h.userHandler.getCurrentUserIDFromToken(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -261,7 +263,7 @@ func (h *GoalHandler) DeleteGoalByID(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := h.userHandler.getCurrentUserIDFromToken(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}

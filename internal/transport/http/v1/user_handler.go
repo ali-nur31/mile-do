@@ -6,13 +6,9 @@ import (
 	"net/http"
 
 	"github.com/ali-nur31/mile-do/internal/service"
+	"github.com/ali-nur31/mile-do/internal/transport/http/v1/dto"
 	"github.com/labstack/echo/v4"
 )
-
-type getUserResponse struct {
-	Email     string `json:"email"`
-	CreatedAt string `json:"created_at"`
-}
 
 type UserHandler struct {
 	service service.UserService
@@ -31,13 +27,13 @@ func NewUserHandler(service service.UserService) *UserHandler {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200  {object}  getUserResponse
+// @Success      200  {object}  dto.GetUserResponse
 // @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /users/me [get]
 func (h *UserHandler) GetUser(c echo.Context) error {
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := h.getCurrentUserIDFromToken(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -47,12 +43,7 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	output := getUserResponse{
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt.String(),
-	}
-
-	return c.JSON(http.StatusOK, output)
+	return c.JSON(http.StatusOK, dto.ToGetUserResponse(user))
 }
 
 // LogoutUser godoc
@@ -66,7 +57,7 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /users/ [delete]
 func (h *UserHandler) LogoutUser(c echo.Context) error {
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := h.getCurrentUserIDFromToken(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -79,7 +70,7 @@ func (h *UserHandler) LogoutUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"message": "successful log out"})
 }
 
-func getCurrentUserIDFromToken(c echo.Context) (int32, error) {
+func (h *UserHandler) getCurrentUserIDFromToken(c echo.Context) (int32, error) {
 	switch t := c.Get("userId").(type) {
 	case int64:
 		return int32(t), nil

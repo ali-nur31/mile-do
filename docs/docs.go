@@ -39,7 +39,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.loginUserRequest"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.LoginUserRequest"
                         }
                     }
                 ],
@@ -47,7 +47,7 @@ const docTemplate = `{
                     "202": {
                         "description": "Accepted",
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.authUserResponse"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.AuthUserResponse"
                         }
                     },
                     "400": {
@@ -91,7 +91,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.refreshAccessTokenRequest"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RefreshAccessTokenRequest"
                         }
                     }
                 ],
@@ -99,7 +99,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.authUserResponse"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.AuthUserResponse"
                         }
                     },
                     "400": {
@@ -143,7 +143,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.registerUserRequest"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RegisterUserRequest"
                         }
                     }
                 ],
@@ -151,7 +151,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.authUserResponse"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.AuthUserResponse"
                         }
                     },
                     "400": {
@@ -1442,7 +1442,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.getUserResponse"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GetUserResponse"
                         }
                     },
                     "400": {
@@ -1477,13 +1477,57 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "internal_transport_http_v1.authUserResponse": {
+        "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.AuthUserResponse": {
             "type": "object",
             "properties": {
                 "access_token": {
                     "type": "string"
                 },
                 "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GetUserResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.LoginUserRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RefreshAccessTokenRequest": {
+            "type": "object",
+            "properties": {
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RegisterUserRequest": {
+            "type": "object",
+            "properties": {
+                "confirm_password": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "password": {
                     "type": "string"
                 }
             }
@@ -1519,17 +1563,6 @@ const docTemplate = `{
                 },
                 "user_id": {
                     "type": "integer"
-                }
-            }
-        },
-        "internal_transport_http_v1.getUserResponse": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "$ref": "#/definitions/pgtype.Timestamp"
-                },
-                "email": {
-                    "type": "string"
                 }
             }
         },
@@ -1624,17 +1657,6 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_transport_http_v1.loginUserRequest": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
-        },
         "internal_transport_http_v1.recurringTasksTemplateData": {
             "type": "object",
             "properties": {
@@ -1699,28 +1721,6 @@ const docTemplate = `{
                 },
                 "user_id": {
                     "type": "integer"
-                }
-            }
-        },
-        "internal_transport_http_v1.refreshAccessTokenRequest": {
-            "type": "object",
-            "properties": {
-                "refresh_token": {
-                    "type": "string"
-                }
-            }
-        },
-        "internal_transport_http_v1.registerUserRequest": {
-            "type": "object",
-            "properties": {
-                "confirm_password": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
                 }
             }
         },
@@ -1880,35 +1880,6 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
-                }
-            }
-        },
-        "pgtype.InfinityModifier": {
-            "type": "integer",
-            "format": "int32",
-            "enum": [
-                1,
-                0,
-                -1
-            ],
-            "x-enum-varnames": [
-                "Infinity",
-                "Finite",
-                "NegativeInfinity"
-            ]
-        },
-        "pgtype.Timestamp": {
-            "type": "object",
-            "properties": {
-                "infinityModifier": {
-                    "$ref": "#/definitions/pgtype.InfinityModifier"
-                },
-                "time": {
-                    "description": "Time zone will be ignored when encoding to PostgreSQL.",
-                    "type": "string"
-                },
-                "valid": {
-                    "type": "boolean"
                 }
             }
         }

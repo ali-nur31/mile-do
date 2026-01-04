@@ -1,10 +1,38 @@
 basePath: /api/v1
 definitions:
-  internal_transport_http_v1.authUserResponse:
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.AuthUserResponse:
     properties:
       access_token:
         type: string
       refresh_token:
+        type: string
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GetUserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.LoginUserRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RefreshAccessTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RegisterUserRequest:
+    properties:
+      confirm_password:
+        type: string
+      email:
+        type: string
+      password:
         type: string
     type: object
   internal_transport_http_v1.createGoalRequest:
@@ -28,13 +56,6 @@ definitions:
         type: string
       user_id:
         type: integer
-    type: object
-  internal_transport_http_v1.getUserResponse:
-    properties:
-      created_at:
-        $ref: '#/definitions/pgtype.Timestamp'
-      email:
-        type: string
     type: object
   internal_transport_http_v1.goalData:
     properties:
@@ -95,13 +116,6 @@ definitions:
       user_id:
         type: integer
     type: object
-  internal_transport_http_v1.loginUserRequest:
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-    type: object
   internal_transport_http_v1.recurringTasksTemplateData:
     properties:
       created_at:
@@ -145,20 +159,6 @@ definitions:
         type: string
       user_id:
         type: integer
-    type: object
-  internal_transport_http_v1.refreshAccessTokenRequest:
-    properties:
-      refresh_token:
-        type: string
-    type: object
-  internal_transport_http_v1.registerUserRequest:
-    properties:
-      confirm_password:
-        type: string
-      email:
-        type: string
-      password:
-        type: string
     type: object
   internal_transport_http_v1.taskData:
     properties:
@@ -264,27 +264,6 @@ definitions:
       title:
         type: string
     type: object
-  pgtype.InfinityModifier:
-    enum:
-    - 1
-    - 0
-    - -1
-    format: int32
-    type: integer
-    x-enum-varnames:
-    - Infinity
-    - Finite
-    - NegativeInfinity
-  pgtype.Timestamp:
-    properties:
-      infinityModifier:
-        $ref: '#/definitions/pgtype.InfinityModifier'
-      time:
-        description: Time zone will be ignored when encoding to PostgreSQL.
-        type: string
-      valid:
-        type: boolean
-    type: object
 host: localhost:8080
 info:
   contact:
@@ -306,14 +285,14 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/internal_transport_http_v1.loginUserRequest'
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.LoginUserRequest'
       produces:
       - application/json
       responses:
         "202":
           description: Accepted
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.authUserResponse'
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.AuthUserResponse'
         "400":
           description: Bad Request
           schema:
@@ -340,14 +319,14 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/internal_transport_http_v1.refreshAccessTokenRequest'
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RefreshAccessTokenRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.authUserResponse'
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.AuthUserResponse'
         "400":
           description: Bad Request
           schema:
@@ -374,14 +353,14 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/internal_transport_http_v1.registerUserRequest'
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RegisterUserRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.authUserResponse'
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.AuthUserResponse'
         "400":
           description: Bad Request
           schema:
@@ -1210,7 +1189,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.getUserResponse'
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GetUserResponse'
         "400":
           description: Bad Request
           schema:
