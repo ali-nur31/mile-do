@@ -365,7 +365,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	outTask, err := h.service.UpdateTask(c.Request().Context(), *dbTask, domain.UpdateTask{
+	outTask, err := h.service.UpdateTask(c.Request().Context(), *dbTask, domain.UpdateTaskInput{
 		ID:              int64(taskId),
 		UserID:          userId,
 		GoalID:          request.GoalID,
@@ -419,7 +419,7 @@ func (h *TaskHandler) AnalyzeForToday(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, countCompletedTasksForTodayResponse{
-		TotalTasks: stats.TotalToday,
+		TotalTasks: stats.TotalTasks,
 		Completed:  stats.CompletedToday,
 	})
 }

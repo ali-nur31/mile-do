@@ -17,7 +17,7 @@ func NewGenerateRecurringTasksTask() *asynq.Task {
 	return asynq.NewTask(TypeGenerateRecurringTasks, []byte{})
 }
 
-func NewGenerateRecurringTasksByTemplateTask(template RecurringTasksTemplateOutput) *asynq.Task {
+func NewGenerateRecurringTasksByTemplateTask(template *RecurringTasksTemplateOutput) *asynq.Task {
 	encodedPayload, err := json.Marshal(template)
 	if err != nil {
 		slog.Error("couldn't convert map to bytes", "error", err)

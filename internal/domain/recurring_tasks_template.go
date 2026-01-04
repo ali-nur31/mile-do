@@ -2,6 +2,8 @@ package domain
 
 import (
 	"time"
+
+	repo "github.com/ali-nur31/mile-do/internal/db"
 )
 
 type CreateRecurringTasksTemplateInput struct {
@@ -44,4 +46,27 @@ type RecurringTasksTemplateOutput struct {
 	// ToDo change type to LastGeneratedDate
 	LastGeneratedDate time.Time
 	CreatedAt         time.Time
+}
+
+func ToRecurringTasksTemplateOutput(template *repo.RecurringTasksTemplate) *RecurringTasksTemplateOutput {
+	return &RecurringTasksTemplateOutput{
+		ID:                template.ID,
+		UserID:            template.UserID,
+		GoalID:            template.GoalID,
+		Title:             template.Title,
+		ScheduledDatetime: template.ScheduledDatetime.Time,
+		HasTime:           template.HasTime,
+		DurationMinutes:   template.DurationMinutes,
+		RecurrenceRrule:   template.RecurrenceRrule,
+		LastGeneratedDate: template.LastGeneratedDate.Time,
+		CreatedAt:         template.CreatedAt.Time,
+	}
+}
+
+func ToRecurringTasksTemplateOutputList(templates []repo.RecurringTasksTemplate) []RecurringTasksTemplateOutput {
+	output := make([]RecurringTasksTemplateOutput, len(templates))
+	for i, t := range templates {
+		output[i] = *ToRecurringTasksTemplateOutput(&t)
+	}
+	return output
 }

@@ -94,9 +94,9 @@ func (h *GoalHandler) GetGoals(c echo.Context) error {
 
 	var outGoals listGoalsResponse
 	outGoals.UserID = userId
-	outGoals.Data = make([]goalData, len(*goals))
+	outGoals.Data = make([]goalData, len(goals))
 
-	for index, goal := range *goals {
+	for index, goal := range goals {
 		outGoals.Data[index].ID = goal.ID
 		outGoals.Data[index].Title = goal.Title
 		outGoals.Data[index].Color = goal.Color
