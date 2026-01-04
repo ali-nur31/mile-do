@@ -36,10 +36,10 @@ type Querier interface {
 	ListTasks(ctx context.Context, userID int32) ([]Task, error)
 	ListTasksByDateRange(ctx context.Context, arg ListTasksByDateRangeParams) ([]Task, error)
 	ListTasksByGoalID(ctx context.Context, arg ListTasksByGoalIDParams) ([]Task, error)
-	UpdateGoalByID(ctx context.Context, arg UpdateGoalByIDParams) error
+	UpdateGoalByID(ctx context.Context, arg UpdateGoalByIDParams) (Goal, error)
 	UpdateLastGeneratedDateInRecurringTasksTemplateByID(ctx context.Context, arg UpdateLastGeneratedDateInRecurringTasksTemplateByIDParams) error
-	UpdateRecurringTasksTemplateByID(ctx context.Context, arg UpdateRecurringTasksTemplateByIDParams) error
-	UpdateTaskByID(ctx context.Context, arg UpdateTaskByIDParams) error
+	UpdateRecurringTasksTemplateByID(ctx context.Context, arg UpdateRecurringTasksTemplateByIDParams) (RecurringTasksTemplate, error)
+	UpdateTaskByID(ctx context.Context, arg UpdateTaskByIDParams) (Task, error)
 }
 
 var _ Querier = (*Queries)(nil)

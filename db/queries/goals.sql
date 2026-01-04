@@ -20,10 +20,11 @@ INSERT INTO goals (
 )
 RETURNING *;
 
--- name: UpdateGoalByID :exec
+-- name: UpdateGoalByID :one
 UPDATE goals
 SET title = $3, color = $4, category_type = $5, is_archived = $6
-WHERE id = $1 AND user_id = $2;
+WHERE id = $1 AND user_id = $2
+RETURNING *;
 
 -- name: DeleteGoalByID :exec
 DELETE FROM goals

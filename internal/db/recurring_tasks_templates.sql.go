@@ -188,7 +188,7 @@ func (q *Queries) UpdateLastGeneratedDateInRecurringTasksTemplateByID(ctx contex
 	return err
 }
 
-const updateRecurringTasksTemplateByID = `-- name: UpdateRecurringTasksTemplateByID :exec
+const updateRecurringTasksTemplateByID = `-- name: UpdateRecurringTasksTemplateByID :one
 UPDATE recurring_tasks_templates
 SET
     goal_id = $3,
@@ -198,6 +198,7 @@ SET
     duration_minutes = $7,
     recurrence_rrule = $8
 WHERE id = $1 AND user_id = $2
+RETURNING id, user_id, goal_id, title, scheduled_datetime, has_time, duration_minutes, recurrence_rrule, last_generated_date, created_at
 `
 
 type UpdateRecurringTasksTemplateByIDParams struct {
@@ -211,8 +212,8 @@ type UpdateRecurringTasksTemplateByIDParams struct {
 	RecurrenceRrule   string           `json:"recurrence_rrule"`
 }
 
-func (q *Queries) UpdateRecurringTasksTemplateByID(ctx context.Context, arg UpdateRecurringTasksTemplateByIDParams) error {
-	_, err := q.db.Exec(ctx, updateRecurringTasksTemplateByID,
+func (q *Queries) UpdateRecurringTasksTemplateByID(ctx context.Context, arg UpdateRecurringTasksTemplateByIDParams) (RecurringTasksTemplate, error) {
+	row := q.db.QueryRow(ctx, updateRecurringTasksTemplateByID,
 		arg.ID,
 		arg.UserID,
 		arg.GoalID,
@@ -222,5 +223,18 @@ func (q *Queries) UpdateRecurringTasksTemplateByID(ctx context.Context, arg Upda
 		arg.DurationMinutes,
 		arg.RecurrenceRrule,
 	)
-	return err
+	var i RecurringTasksTemplate
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.GoalID,
+		&i.Title,
+		&i.ScheduledDatetime,
+		&i.HasTime,
+		&i.DurationMinutes,
+		&i.RecurrenceRrule,
+		&i.LastGeneratedDate,
+		&i.CreatedAt,
+	)
+	return i, err
 }

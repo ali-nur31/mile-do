@@ -97,7 +97,7 @@ func (h *TaskHandler) GetTasksByGoalID(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := GetCurrentUserIdFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -124,7 +124,7 @@ func (h *TaskHandler) GetTasksByGoalID(c echo.Context) error {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/inbox [get]
 func (h *TaskHandler) GetInboxTasks(c echo.Context) error {
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := GetCurrentUserIdFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -170,7 +170,7 @@ func (h *TaskHandler) GetTasksByPeriod(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request, before_date must be in 2025-31-12 format", "error": err.Error()})
 	}
 
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := GetCurrentUserIdFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -201,7 +201,7 @@ func (h *TaskHandler) GetTasksByPeriod(c echo.Context) error {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/ [get]
 func (h *TaskHandler) GetTasks(c echo.Context) error {
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := GetCurrentUserIdFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -235,7 +235,7 @@ func (h *TaskHandler) GetTaskByID(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := GetCurrentUserIdFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -274,7 +274,7 @@ func (h *TaskHandler) GetTaskByID(c echo.Context) error {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/ [post]
 func (h *TaskHandler) CreateTask(c echo.Context) error {
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := GetCurrentUserIdFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -340,7 +340,7 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/{id} [patch]
 func (h *TaskHandler) UpdateTask(c echo.Context) error {
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := GetCurrentUserIdFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -408,7 +408,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Router       /tasks/analyze [get]
 func (h *TaskHandler) AnalyzeForToday(c echo.Context) error {
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := GetCurrentUserIdFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -444,7 +444,7 @@ func (h *TaskHandler) DeleteTaskByID(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := GetCurrentUserIdFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}

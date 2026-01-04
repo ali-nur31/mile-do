@@ -10,7 +10,7 @@ import (
 )
 
 type GoalService interface {
-	ListGoals(ctx context.Context, filter string, userId int32) (*[]domain.GoalOutput, error)
+	ListGoals(ctx context.Context, filter string, userId int32) ([]domain.GoalOutput, error)
 	GetGoalByID(ctx context.Context, id int64, userId int32) (*domain.GoalOutput, error)
 	CreateGoal(ctx context.Context, input domain.CreateGoalInput) (*domain.GoalOutput, error)
 	UpdateGoal(ctx context.Context, input domain.UpdateGoalInput) (*domain.UpdateGoalOutput, error)
@@ -27,8 +27,7 @@ func NewGoalService(repo repo.Querier) GoalService {
 	}
 }
 
-func (s *goalService) ListGoals(ctx context.Context, filter string, userId int32) (*[]domain.GoalOutput, error) {
-	var output []domain.GoalOutput
+func (s *goalService) ListGoals(ctx context.Context, filter string, userId int32) ([]domain.GoalOutput, error) {
 	var goals []repo.Goal
 	var err error
 
@@ -46,26 +45,14 @@ func (s *goalService) ListGoals(ctx context.Context, filter string, userId int32
 	case "":
 		goals, err = s.repo.ListGoals(ctx, userId)
 	default:
-		return nil, fmt.Errorf("wrong arguments, expected 'active', 'archive' or ''")
+		return nil, fmt.Errorf("wrong arguments, expected 'active', 'archive' or nothing")
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("couldn't get goals: %w", err)
 	}
 
-	for _, goal := range goals {
-		output = append(output, domain.GoalOutput{
-			ID:           goal.ID,
-			UserID:       goal.UserID,
-			Title:        goal.Title,
-			Color:        goal.Color.String,
-			CategoryType: string(goal.CategoryType),
-			IsArchived:   goal.IsArchived,
-			CreatedAt:    goal.CreatedAt.Time,
-		})
-	}
-
-	return &output, nil
+	return domain.ToGoalOutputList(goals), nil
 }
 
 func (s *goalService) GetGoalByID(ctx context.Context, id int64, userId int32) (*domain.GoalOutput, error) {
@@ -74,20 +61,10 @@ func (s *goalService) GetGoalByID(ctx context.Context, id int64, userId int32) (
 		UserID: userId,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("couldn't get goal by id: %w", err)
 	}
 
-	outGoal := domain.GoalOutput{
-		ID:           goal.ID,
-		UserID:       goal.UserID,
-		Title:        goal.Title,
-		Color:        goal.Color.String,
-		CategoryType: string(goal.CategoryType),
-		IsArchived:   goal.IsArchived,
-		CreatedAt:    goal.CreatedAt.Time,
-	}
-
-	return &outGoal, nil
+	return domain.ToGoalOutput(&goal), nil
 }
 
 func (s *goalService) CreateGoal(ctx context.Context, input domain.CreateGoalInput) (*domain.GoalOutput, error) {
@@ -101,18 +78,10 @@ func (s *goalService) CreateGoal(ctx context.Context, input domain.CreateGoalInp
 		CategoryType: repo.GoalsCategoryType(input.CategoryType),
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("couldn't create new goal: %w", err)
 	}
 
-	return &domain.GoalOutput{
-		ID:           goal.ID,
-		UserID:       goal.UserID,
-		Title:        goal.Title,
-		Color:        goal.Color.String,
-		CategoryType: string(goal.CategoryType),
-		IsArchived:   goal.IsArchived,
-		CreatedAt:    goal.CreatedAt.Time,
-	}, nil
+	return domain.ToGoalOutput(&goal), nil
 }
 
 func (s *goalService) UpdateGoal(ctx context.Context, input domain.UpdateGoalInput) (*domain.UpdateGoalOutput, error) {
@@ -130,7 +99,7 @@ func (s *goalService) UpdateGoal(ctx context.Context, input domain.UpdateGoalInp
 
 	err := s.repo.UpdateGoalByID(ctx, goalUpdatingParams)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("couldn't update goal: %w", err)
 	}
 
 	return &domain.UpdateGoalOutput{
@@ -144,8 +113,13 @@ func (s *goalService) UpdateGoal(ctx context.Context, input domain.UpdateGoalInp
 }
 
 func (s *goalService) DeleteGoalByID(ctx context.Context, id int64, userId int32) error {
-	return s.repo.DeleteGoalByID(ctx, repo.DeleteGoalByIDParams{
+	err := s.repo.DeleteGoalByID(ctx, repo.DeleteGoalByIDParams{
 		ID:     id,
 		UserID: userId,
 	})
+	if err != nil {
+		return fmt.Errorf("couldn't delete goal by id: %w", err)
+	}
+
+	return nil
 }

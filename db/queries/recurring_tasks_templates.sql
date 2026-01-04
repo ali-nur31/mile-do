@@ -15,7 +15,7 @@ INSERT INTO recurring_tasks_templates (
          )
     RETURNING *;
 
--- name: UpdateRecurringTasksTemplateByID :exec
+-- name: UpdateRecurringTasksTemplateByID :one
 UPDATE recurring_tasks_templates
 SET
     goal_id = $3,
@@ -24,7 +24,8 @@ SET
     has_time = $6,
     duration_minutes = $7,
     recurrence_rrule = $8
-WHERE id = $1 AND user_id = $2;
+WHERE id = $1 AND user_id = $2
+RETURNING *;
 
 -- name: DeleteRecurringTasksTemplateByID :exec
 DELETE FROM recurring_tasks_templates

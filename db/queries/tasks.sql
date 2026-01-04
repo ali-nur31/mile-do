@@ -37,7 +37,7 @@ INSERT INTO tasks (
          )
     RETURNING *;
 
--- name: UpdateTaskByID :exec
+-- name: UpdateTaskByID :one
 UPDATE tasks
 SET
     goal_id = $3,
@@ -49,7 +49,8 @@ SET
     scheduled_time = $9,
     duration_minutes = $10,
     reschedule_count = $11
-WHERE id = $1 AND user_id = $2;
+WHERE id = $1 AND user_id = $2
+RETURNING *;
 
 -- name: DeleteTaskByID :exec
 DELETE FROM tasks

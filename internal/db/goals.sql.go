@@ -160,10 +160,11 @@ func (q *Queries) ListGoalsByIsArchived(ctx context.Context, arg ListGoalsByIsAr
 	return items, nil
 }
 
-const updateGoalByID = `-- name: UpdateGoalByID :exec
+const updateGoalByID = `-- name: UpdateGoalByID :one
 UPDATE goals
 SET title = $3, color = $4, category_type = $5, is_archived = $6
 WHERE id = $1 AND user_id = $2
+RETURNING id, user_id, title, color, category_type, is_archived, created_at
 `
 
 type UpdateGoalByIDParams struct {
@@ -175,8 +176,8 @@ type UpdateGoalByIDParams struct {
 	IsArchived   bool              `json:"is_archived"`
 }
 
-func (q *Queries) UpdateGoalByID(ctx context.Context, arg UpdateGoalByIDParams) error {
-	_, err := q.db.Exec(ctx, updateGoalByID,
+func (q *Queries) UpdateGoalByID(ctx context.Context, arg UpdateGoalByIDParams) (Goal, error) {
+	row := q.db.QueryRow(ctx, updateGoalByID,
 		arg.ID,
 		arg.UserID,
 		arg.Title,
@@ -184,5 +185,15 @@ func (q *Queries) UpdateGoalByID(ctx context.Context, arg UpdateGoalByIDParams) 
 		arg.CategoryType,
 		arg.IsArchived,
 	)
-	return err
+	var i Goal
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Title,
+		&i.Color,
+		&i.CategoryType,
+		&i.IsArchived,
+		&i.CreatedAt,
+	)
+	return i, err
 }

@@ -302,7 +302,7 @@ func (q *Queries) ListTasksByGoalID(ctx context.Context, arg ListTasksByGoalIDPa
 	return items, nil
 }
 
-const updateTaskByID = `-- name: UpdateTaskByID :exec
+const updateTaskByID = `-- name: UpdateTaskByID :one
 UPDATE tasks
 SET
     goal_id = $3,
@@ -315,6 +315,7 @@ SET
     duration_minutes = $10,
     reschedule_count = $11
 WHERE id = $1 AND user_id = $2
+RETURNING id, user_id, goal_id, recurring_template_id, title, is_done, scheduled_date, has_time, scheduled_time, duration_minutes, reschedule_count, created_at
 `
 
 type UpdateTaskByIDParams struct {
@@ -331,8 +332,8 @@ type UpdateTaskByIDParams struct {
 	RescheduleCount     int32       `json:"reschedule_count"`
 }
 
-func (q *Queries) UpdateTaskByID(ctx context.Context, arg UpdateTaskByIDParams) error {
-	_, err := q.db.Exec(ctx, updateTaskByID,
+func (q *Queries) UpdateTaskByID(ctx context.Context, arg UpdateTaskByIDParams) (Task, error) {
+	row := q.db.QueryRow(ctx, updateTaskByID,
 		arg.ID,
 		arg.UserID,
 		arg.GoalID,
@@ -345,5 +346,20 @@ func (q *Queries) UpdateTaskByID(ctx context.Context, arg UpdateTaskByIDParams) 
 		arg.DurationMinutes,
 		arg.RescheduleCount,
 	)
-	return err
+	var i Task
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.GoalID,
+		&i.RecurringTemplateID,
+		&i.Title,
+		&i.IsDone,
+		&i.ScheduledDate,
+		&i.HasTime,
+		&i.ScheduledTime,
+		&i.DurationMinutes,
+		&i.RescheduleCount,
+		&i.CreatedAt,
+	)
+	return i, err
 }

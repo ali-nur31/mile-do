@@ -72,7 +72,7 @@ func NewRecurringTasksTemplateHandler(service service.RecurringTasksTemplateServ
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /recurring-tasks-templates/ [get]
 func (h *RecurringTasksTemplateHandler) GetRecurringTasksTemplates(c echo.Context) error {
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := GetCurrentUserIdFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -123,7 +123,7 @@ func (h *RecurringTasksTemplateHandler) GetRecurringTasksTemplateByID(c echo.Con
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := GetCurrentUserIdFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -161,7 +161,7 @@ func (h *RecurringTasksTemplateHandler) GetRecurringTasksTemplateByID(c echo.Con
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /recurring-tasks-templates/ [post]
 func (h *RecurringTasksTemplateHandler) CreateRecurringTasksTemplate(c echo.Context) error {
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := GetCurrentUserIdFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -224,7 +224,7 @@ func (h *RecurringTasksTemplateHandler) CreateRecurringTasksTemplate(c echo.Cont
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /recurring-tasks-templates/{id} [patch]
 func (h *RecurringTasksTemplateHandler) UpdateRecurringTasksTemplateByID(c echo.Context) error {
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := GetCurrentUserIdFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -296,7 +296,7 @@ func (h *RecurringTasksTemplateHandler) DeleteRecurringTasksTemplateByID(c echo.
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	userId, err := getCurrentUserIDFromToken(c)
+	userId, err := GetCurrentUserIdFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
