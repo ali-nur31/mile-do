@@ -628,7 +628,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.createRecurringTasksTemplateRequest"
+                            "$ref": "#/definitions/internal_transport_http_v1.updateRecurringTasksTemplateRequest"
                         }
                     }
                 ],
@@ -1502,35 +1502,6 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_transport_http_v1.createRecurringTasksTemplateRequest": {
-            "type": "object",
-            "properties": {
-                "duration_minutes": {
-                    "type": "integer"
-                },
-                "goal_id": {
-                    "type": "integer"
-                },
-                "has_time": {
-                    "type": "boolean"
-                },
-                "recurrence_rrule": {
-                    "type": "string"
-                },
-                "scheduled_datetime": {
-                    "type": "string"
-                },
-                "scheduled_end_datetime": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "integer"
-                }
-            }
-        },
         "internal_transport_http_v1.createTaskRequest": {
             "type": "object",
             "properties": {
@@ -1872,9 +1843,6 @@ const docTemplate = `{
         "internal_transport_http_v1.updateRecurringTasksTemplateRequest": {
             "type": "object",
             "properties": {
-                "duration_minutes": {
-                    "type": "integer"
-                },
                 "goal_id": {
                     "type": "integer"
                 },
@@ -1887,7 +1855,7 @@ const docTemplate = `{
                 "scheduled_datetime": {
                     "type": "string"
                 },
-                "scheduled_end_datetime": {
+                "scheduled_end_time": {
                     "type": "string"
                 },
                 "title": {

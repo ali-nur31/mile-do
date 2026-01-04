@@ -345,7 +345,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	task_id, err := strconv.Atoi(c.Param("id"))
+	taskId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
@@ -355,7 +355,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	dbTask, err := h.service.GetTaskByID(c.Request().Context(), int64(task_id), userId)
+	dbTask, err := h.service.GetTaskByID(c.Request().Context(), int64(taskId), userId)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "cannot find task with provided id", "error": err.Error()})
 	}
@@ -366,7 +366,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 	}
 
 	outTask, err := h.service.UpdateTask(c.Request().Context(), *dbTask, domain.UpdateTask{
-		ID:              int64(task_id),
+		ID:              int64(taskId),
 		UserID:          userId,
 		GoalID:          request.GoalID,
 		Title:           request.Title,

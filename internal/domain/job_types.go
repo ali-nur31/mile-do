@@ -18,26 +18,13 @@ func NewGenerateRecurringTasksTask() *asynq.Task {
 }
 
 func NewGenerateRecurringTasksByTemplateTask(template RecurringTasksTemplateOutput) *asynq.Task {
-	payload := map[string]interface{}{
-		"id":                  template.ID,
-		"user_id":             template.UserID,
-		"goal_id":             template.GoalID,
-		"title":               template.Title,
-		"scheduled_datetime":  template.ScheduledDatetime,
-		"has_time":            template.HasTime,
-		"duration_minutes":    template.DurationMinutes,
-		"recurrence_rrule":    template.RecurrenceRrule,
-		"last_generated_date": template.LastGeneratedDate,
-		"created_at":          template.CreatedAt,
-	}
-
-	encodedPayload, err := json.Marshal(payload)
+	encodedPayload, err := json.Marshal(template)
 	if err != nil {
 		slog.Error("couldn't convert map to bytes", "error", err)
 		return nil
 	}
 
-	return asynq.NewTask(TypeDeleteRecurringTasksByTemplateID, encodedPayload)
+	return asynq.NewTask(TypeGenerateRecurringTasksByTemplate, encodedPayload)
 }
 
 func NewDeleteRecurringTasksByTemplateIDTask(id int64) *asynq.Task {
@@ -49,5 +36,5 @@ func NewDeleteRecurringTasksByTemplateIDTask(id int64) *asynq.Task {
 		return nil
 	}
 
-	return asynq.NewTask(TypeGenerateRecurringTasks, encodedPayload)
+	return asynq.NewTask(TypeDeleteRecurringTasksByTemplateID, encodedPayload)
 }

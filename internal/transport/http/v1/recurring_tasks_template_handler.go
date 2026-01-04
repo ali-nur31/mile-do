@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -27,25 +28,13 @@ type listRecurringTasksTemplatesResponse struct {
 	RecurringTasksTemplateData []recurringTasksTemplateData `json:"recurring_tasks_template_data"`
 }
 
-type createRecurringTasksTemplateRequest struct {
-	UserID               int32  `json:"user_id"`
-	GoalID               int32  `json:"goal_id"`
-	Title                string `json:"title"`
-	ScheduledDatetime    string `json:"scheduled_datetime"`
-	ScheduledEndDatetime string `json:"scheduled_end_datetime"`
-	HasTime              bool   `json:"has_time"`
-	DurationMinutes      int32  `json:"duration_minutes"`
-	RecurrenceRrule      string `json:"recurrence_rrule"`
-}
-
 type updateRecurringTasksTemplateRequest struct {
-	GoalID               int32  `json:"goal_id"`
-	Title                string `json:"title"`
-	ScheduledDatetime    string `json:"scheduled_datetime"`
-	ScheduledEndDatetime string `json:"scheduled_end_datetime"`
-	HasTime              bool   `json:"has_time"`
-	DurationMinutes      int32  `json:"duration_minutes"`
-	RecurrenceRrule      string `json:"recurrence_rrule"`
+	GoalID            int32  `json:"goal_id"`
+	Title             string `json:"title"`
+	ScheduledDatetime string `json:"scheduled_datetime"`
+	ScheduledEndTime  string `json:"scheduled_end_time"`
+	HasTime           bool   `json:"has_time"`
+	RecurrenceRrule   string `json:"recurrence_rrule"`
 }
 
 type recurringTasksTemplateResponse struct {
@@ -165,7 +154,7 @@ func (h *RecurringTasksTemplateHandler) GetRecurringTasksTemplateByID(c echo.Con
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        input body createRecurringTasksTemplateRequest true "Recurring Tasks Template Info"
+// @Param        input body updateRecurringTasksTemplateRequest true "Recurring Tasks Template Info"
 // @Success      201  {object}  recurringTasksTemplateResponse
 // @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      400  {object}  map[string]string "Bad Request"
@@ -177,20 +166,15 @@ func (h *RecurringTasksTemplateHandler) CreateRecurringTasksTemplate(c echo.Cont
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	var request createRecurringTasksTemplateRequest
+	var request updateRecurringTasksTemplateRequest
 	if err = c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	parsedDatetime, err := time.Parse(dateTimeLayout, request.ScheduledDatetime)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
-	}
-
 	var duration time.Duration
-	var hasTime bool
-	if request.ScheduledDatetime != "" || (request.ScheduledDatetime != "" && request.ScheduledEndDatetime != "") {
-		_, _, hasTime, duration, err = convertDateTimes(request.ScheduledDatetime, request.ScheduledEndDatetime)
+	var startDatetime time.Time
+	if request.ScheduledDatetime != "" || (request.ScheduledDatetime != "" && request.ScheduledEndTime != "") {
+		startDatetime, duration, err = convertDateTimeAndTime(request.ScheduledDatetime, request.ScheduledEndTime)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 		}
@@ -200,8 +184,8 @@ func (h *RecurringTasksTemplateHandler) CreateRecurringTasksTemplate(c echo.Cont
 		UserID:            userId,
 		GoalID:            request.GoalID,
 		Title:             request.Title,
-		ScheduledDatetime: parsedDatetime,
-		HasTime:           hasTime,
+		ScheduledDatetime: startDatetime,
+		HasTime:           request.HasTime,
 		DurationMinutes:   int32(duration),
 		RecurrenceRrule:   request.RecurrenceRrule,
 	}
@@ -260,12 +244,7 @@ func (h *RecurringTasksTemplateHandler) UpdateRecurringTasksTemplateByID(c echo.
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "cannot find recurring tasks template with provided id", "error": err.Error()})
 	}
 
-	parsedDatetime, err := time.Parse(dateTimeLayout, request.ScheduledDatetime)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
-	}
-
-	_, _, hasTime, duration, err := convertDateTimes(request.ScheduledDatetime, request.ScheduledEndDatetime)
+	startDatetime, duration, err := convertDateTimeAndTime(request.ScheduledDatetime, request.ScheduledEndTime)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
@@ -275,8 +254,8 @@ func (h *RecurringTasksTemplateHandler) UpdateRecurringTasksTemplateByID(c echo.
 		UserID:            userId,
 		GoalID:            request.GoalID,
 		Title:             request.Title,
-		ScheduledDatetime: parsedDatetime,
-		HasTime:           hasTime,
+		ScheduledDatetime: startDatetime,
+		HasTime:           request.HasTime,
 		DurationMinutes:   int32(duration),
 		RecurrenceRrule:   request.RecurrenceRrule,
 	})
@@ -328,4 +307,38 @@ func (h *RecurringTasksTemplateHandler) DeleteRecurringTasksTemplateByID(c echo.
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{"message": "recurring tasks template has been removed"})
+}
+
+func convertDateTimeAndTime(startDateTimeString, endTimeString string) (time.Time, time.Duration, error) {
+	var startTime time.Time
+	duration := 15 * time.Minute
+
+	if startDateTimeString == "" {
+		return time.Time{}, duration, nil
+	}
+
+	startDateTime, err := time.Parse(dateTimeLayout, startDateTimeString)
+	if err != nil {
+		startDateTime, err = time.Parse(dateLayout, startDateTimeString)
+		if err != nil {
+			return time.Time{}, duration, fmt.Errorf("invalid scheduled_datetime format: %v", err)
+		}
+	}
+
+	startTime, _ = time.Parse(timeLayout, startDateTime.Format(timeLayout))
+
+	if endTimeString != "" {
+		var endTime time.Time
+
+		endTime, err = time.Parse(timeLayout, endTimeString)
+		if err != nil {
+			return time.Time{}, duration, fmt.Errorf("invalid scheduled_end_date_time format: %v", err)
+		}
+
+		if !endTime.IsZero() && endTime.After(startTime) {
+			duration = endTime.Sub(startTime)
+		}
+	}
+
+	return startDateTime, duration, nil
 }

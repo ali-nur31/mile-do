@@ -21,6 +21,11 @@ func NewJobRouter(cfg *config.Redis, recurringTasksTemplatesWorker *workers.Recu
 		},
 		asynq2.Config{
 			Concurrency: 10,
+			Queues: map[string]int{
+				"critical": 6,
+				"default":  3,
+				"low":      1,
+			},
 		},
 	)
 
@@ -35,6 +40,7 @@ func (w *JobRouter) Run() error {
 
 	mux.HandleFunc(domain.TypeGenerateRecurringTasks, w.recurringTasksTemplatesWorker.GenerateRecurringTasks)
 	mux.HandleFunc(domain.TypeGenerateRecurringTasksByTemplate, w.recurringTasksTemplatesWorker.GenerateRecurringTasksByTemplate)
+	mux.HandleFunc(domain.TypeDeleteRecurringTasksByTemplateID, w.recurringTasksTemplatesWorker.DeleteRecurringTasksByTemplateID)
 
 	return w.server.Run(mux)
 }

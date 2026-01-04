@@ -223,7 +223,7 @@ func (s *taskService) CreateTasksByRecurringTasksTemplates(ctx context.Context) 
 		return err
 	}
 
-	horizonDate := time.Now().AddDate(0, 1, 0)
+	horizonDate := time.Now().UTC().AddDate(0, 1, 0)
 	for _, template := range templates {
 		var rule *rrule.Set
 
@@ -237,7 +237,7 @@ func (s *taskService) CreateTasksByRecurringTasksTemplates(ctx context.Context) 
 
 		var lastDate time.Time
 		if template.LastGeneratedDate.IsZero() {
-			lastDate = template.ScheduledDatetime.Add(-1 + time.Second)
+			lastDate = template.ScheduledDatetime.Add(-1 * time.Second)
 		} else {
 			lastDate = template.LastGeneratedDate
 		}
@@ -260,7 +260,7 @@ func (s *taskService) CreateTasksByRecurringTasksTemplates(ctx context.Context) 
 				ScheduledDate:   scheduledDateOnly,
 				ScheduledTime:   scheduledTimeOnly,
 				HasTime:         template.HasTime,
-				DurationMinutes: time.Duration(template.DurationMinutes),
+				DurationMinutes: time.Duration(template.DurationMinutes) * time.Minute,
 			})
 			if err != nil {
 				slog.Error("cannot create task by recurring template", "error", err)
@@ -271,6 +271,7 @@ func (s *taskService) CreateTasksByRecurringTasksTemplates(ctx context.Context) 
 		newLastGeneratedDate := dates[len(dates)-1]
 
 		_, err = s.recurringTasksTemplateService.UpdateLastGeneratedDateInRecurringTasksTemplateByID(ctx, domain.UpdateLastGeneratedDateInRecurringTasksTemplateInput{
+			ID:                template.ID,
 			LastGeneratedDate: newLastGeneratedDate,
 		})
 		if err != nil {
@@ -285,7 +286,7 @@ func (s *taskService) CreateTasksByRecurringTasksTemplates(ctx context.Context) 
 func (s *taskService) CreateTasksByRecurringTasksTemplate(ctx context.Context, template domain.RecurringTasksTemplateOutput) error {
 	var err error
 
-	horizonDate := time.Now().AddDate(0, 3, 0)
+	horizonDate := time.Now().UTC().AddDate(0, 3, 0)
 	var rule *rrule.Set
 
 	rule, err = rrule.StrToRRuleSet(template.RecurrenceRrule)
@@ -298,7 +299,7 @@ func (s *taskService) CreateTasksByRecurringTasksTemplate(ctx context.Context, t
 
 	var lastDate time.Time
 	if template.LastGeneratedDate.IsZero() {
-		lastDate = template.ScheduledDatetime.Add(-1 + time.Second)
+		lastDate = template.ScheduledDatetime.Add(-1 * time.Second)
 	} else {
 		lastDate = template.LastGeneratedDate
 	}
@@ -321,7 +322,7 @@ func (s *taskService) CreateTasksByRecurringTasksTemplate(ctx context.Context, t
 			ScheduledDate:   scheduledDateOnly,
 			ScheduledTime:   scheduledTimeOnly,
 			HasTime:         template.HasTime,
-			DurationMinutes: time.Duration(template.DurationMinutes),
+			DurationMinutes: time.Duration(template.DurationMinutes) * time.Minute,
 		})
 		if err != nil {
 			slog.Error("cannot create task by recurring template", "error", err)
@@ -332,6 +333,7 @@ func (s *taskService) CreateTasksByRecurringTasksTemplate(ctx context.Context, t
 	newLastGeneratedDate := dates[len(dates)-1]
 
 	_, err = s.recurringTasksTemplateService.UpdateLastGeneratedDateInRecurringTasksTemplateByID(ctx, domain.UpdateLastGeneratedDateInRecurringTasksTemplateInput{
+		ID:                template.ID,
 		LastGeneratedDate: newLastGeneratedDate,
 	})
 	if err != nil {

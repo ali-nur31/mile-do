@@ -6,13 +6,12 @@ import (
 	"net/http"
 
 	"github.com/ali-nur31/mile-do/internal/service"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo/v4"
 )
 
 type getUserResponse struct {
-	Email     string           `json:"email"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
+	Email     string `json:"email"`
+	CreatedAt string `json:"created_at"`
 }
 
 type UserHandler struct {
@@ -50,7 +49,7 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 
 	output := getUserResponse{
 		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
+		CreatedAt: user.CreatedAt.String(),
 	}
 
 	return c.JSON(http.StatusOK, output)

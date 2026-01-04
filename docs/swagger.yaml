@@ -16,25 +16,6 @@ definitions:
       title:
         type: string
     type: object
-  internal_transport_http_v1.createRecurringTasksTemplateRequest:
-    properties:
-      duration_minutes:
-        type: integer
-      goal_id:
-        type: integer
-      has_time:
-        type: boolean
-      recurrence_rrule:
-        type: string
-      scheduled_datetime:
-        type: string
-      scheduled_end_datetime:
-        type: string
-      title:
-        type: string
-      user_id:
-        type: integer
-    type: object
   internal_transport_http_v1.createTaskRequest:
     properties:
       goal_id:
@@ -257,8 +238,6 @@ definitions:
     type: object
   internal_transport_http_v1.updateRecurringTasksTemplateRequest:
     properties:
-      duration_minutes:
-        type: integer
       goal_id:
         type: integer
       has_time:
@@ -267,7 +246,7 @@ definitions:
         type: string
       scheduled_datetime:
         type: string
-      scheduled_end_datetime:
+      scheduled_end_time:
         type: string
       title:
         type: string
@@ -704,7 +683,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/internal_transport_http_v1.createRecurringTasksTemplateRequest'
+          $ref: '#/definitions/internal_transport_http_v1.updateRecurringTasksTemplateRequest'
       produces:
       - application/json
       responses:
