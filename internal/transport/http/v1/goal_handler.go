@@ -4,59 +4,12 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/ali-nur31/mile-do/internal/domain"
 	"github.com/ali-nur31/mile-do/internal/service"
+	"github.com/ali-nur31/mile-do/internal/transport/http/v1/dto"
 	"github.com/labstack/echo/v4"
 )
-
-type goalData struct {
-	ID           int64     `json:"id"`
-	Title        string    `json:"title"`
-	Color        string    `json:"color"`
-	CategoryType string    `json:"category_type"`
-	IsArchived   bool      `json:"is_archived"`
-	CreatedAt    time.Time `json:"created_at"`
-}
-
-type listGoalsResponse struct {
-	UserID int32      `json:"user_id"`
-	Data   []goalData `json:"data"`
-}
-
-type createGoalRequest struct {
-	Title        string `json:"title"`
-	Color        string `json:"color"`
-	CategoryType string `json:"category_type"`
-}
-
-type updateGoalRequest struct {
-	ID           int64  `json:"id"`
-	Title        string `json:"title"`
-	Color        string `json:"color"`
-	CategoryType string `json:"category_type"`
-	IsArchived   bool   `json:"is_archived"`
-}
-
-type updateGoalResponse struct {
-	ID           int64  `json:"id"`
-	UserID       int32  `json:"user_id"`
-	Title        string `json:"title"`
-	Color        string `json:"color"`
-	CategoryType string `json:"category_type"`
-	IsArchived   bool   `json:"is_archived"`
-}
-
-type goalResponse struct {
-	ID           int64     `json:"id"`
-	UserID       int32     `json:"user_id"`
-	Title        string    `json:"title"`
-	Color        string    `json:"color"`
-	CategoryType string    `json:"category_type"`
-	IsArchived   bool      `json:"is_archived"`
-	CreatedAt    time.Time `json:"created_at"`
-}
 
 type GoalHandler struct {
 	service service.GoalService
@@ -76,7 +29,7 @@ func NewGoalHandler(service service.GoalService) *GoalHandler {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        type query string false "get goals by type"
-// @Success      200  {object}  listGoalsResponse
+// @Success      200  {object}  dto.ListGoalsResponse
 // @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /goals/ [get]
@@ -94,20 +47,7 @@ func (h *GoalHandler) GetGoals(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	var outGoals listGoalsResponse
-	outGoals.UserID = userId
-	outGoals.Data = make([]goalData, len(goals))
-
-	for index, goal := range goals {
-		outGoals.Data[index].ID = goal.ID
-		outGoals.Data[index].Title = goal.Title
-		outGoals.Data[index].Color = goal.Color
-		outGoals.Data[index].CategoryType = goal.CategoryType
-		outGoals.Data[index].IsArchived = goal.IsArchived
-		outGoals.Data[index].CreatedAt = goal.CreatedAt
-	}
-
-	return c.JSON(http.StatusOK, outGoals)
+	return c.JSON(http.StatusOK, dto.ToListGoalsResponse(goals))
 }
 
 // GetGoalByID godoc
@@ -118,7 +58,7 @@ func (h *GoalHandler) GetGoals(c echo.Context) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id path int64 true "Goal ID"
-// @Success      200  {object}  goalResponse
+// @Success      200  {object}  dto.GoalResponse
 // @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
@@ -141,15 +81,7 @@ func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "not found", "error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, goalResponse{
-		ID:           goal.ID,
-		UserID:       userId,
-		Title:        goal.Title,
-		Color:        goal.Color,
-		CategoryType: goal.CategoryType,
-		IsArchived:   goal.IsArchived,
-		CreatedAt:    goal.CreatedAt,
-	})
+	return c.JSON(http.StatusOK, dto.ToGoalResponse(goal))
 }
 
 // CreateGoal godoc
@@ -160,7 +92,7 @@ func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        input body createGoalRequest true "Goal Info"
-// @Success      201  {object}  goalResponse
+// @Success      201  {object}  dto.GoalResponse
 // @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
@@ -171,7 +103,7 @@ func (h *GoalHandler) CreateGoal(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	var request createGoalRequest
+	var request dto.CreateGoalRequest
 	if err = c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
@@ -189,15 +121,7 @@ func (h *GoalHandler) CreateGoal(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	return c.JSON(http.StatusCreated, goalResponse{
-		ID:           outGoal.ID,
-		UserID:       userId,
-		Title:        outGoal.Title,
-		Color:        outGoal.Color,
-		CategoryType: outGoal.CategoryType,
-		IsArchived:   outGoal.IsArchived,
-		CreatedAt:    outGoal.CreatedAt,
-	})
+	return c.JSON(http.StatusCreated, dto.ToGoalResponse(outGoal))
 }
 
 // UpdateGoal godoc
@@ -207,8 +131,8 @@ func (h *GoalHandler) CreateGoal(c echo.Context) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        input body updateGoalRequest true "New Goal Info"
-// @Success      200  {object}  updateGoalResponse
+// @Param        input body dto.UpdateGoalRequest true "New Goal Info"
+// @Success      200  {object}  dto.GoalResponse
 // @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
@@ -219,7 +143,7 @@ func (h *GoalHandler) UpdateGoal(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	var request updateGoalRequest
+	var request dto.UpdateGoalRequest
 	if err = c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
@@ -237,14 +161,7 @@ func (h *GoalHandler) UpdateGoal(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, goalResponse{
-		ID:           outGoal.ID,
-		UserID:       userId,
-		Title:        outGoal.Title,
-		Color:        outGoal.Color,
-		CategoryType: outGoal.CategoryType,
-		IsArchived:   outGoal.IsArchived,
-	})
+	return c.JSON(http.StatusOK, dto.ToGoalResponse(outGoal))
 }
 
 // DeleteGoalByID godoc

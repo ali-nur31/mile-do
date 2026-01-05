@@ -499,7 +499,7 @@ func convertDateTimes(startDateTimeString, endDateTimeString string) (time.Time,
 	hasTime := false
 
 	if startDateTimeString == "" {
-		return time.Time{}, time.Time{}, false, duration, nil
+		return time.Time{}, time.Time{}, false, duration, fmt.Errorf("start date time is empty")
 	}
 
 	startDateTime, err := time.Parse(dateTimeLayout, startDateTimeString)
@@ -508,7 +508,7 @@ func convertDateTimes(startDateTimeString, endDateTimeString string) (time.Time,
 	} else {
 		startDateTime, err = time.Parse(dateLayout, startDateTimeString)
 		if err != nil {
-			return time.Time{}, time.Time{}, false, duration, fmt.Errorf("invalid scheduled_date_time format: %v", err)
+			return time.Time{}, time.Time{}, false, duration, fmt.Errorf("invalid start date time format: %v", err)
 		}
 	}
 
@@ -522,7 +522,7 @@ func convertDateTimes(startDateTimeString, endDateTimeString string) (time.Time,
 		if err != nil {
 			endDateTime, err = time.Parse(dateLayout, endDateTimeString)
 			if err != nil {
-				return time.Time{}, time.Time{}, false, duration, fmt.Errorf("invalid scheduled_end_date_time format: %v", err)
+				return time.Time{}, time.Time{}, false, duration, fmt.Errorf("invalid start date time format: %v", err)
 			}
 		}
 
