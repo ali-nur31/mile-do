@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/ali-nur31/mile-do/internal/service"
@@ -38,6 +39,7 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 
 	user, err := h.userService.GetUserByID(c.Request().Context(), int64(userId))
 	if err != nil {
+		slog.Error("failed on getting user by id", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 

@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -79,6 +80,7 @@ func (h *RecurringTasksTemplateHandler) GetRecurringTasksTemplates(c echo.Contex
 
 	templates, err := h.service.ListRecurringTasksTemplates(c.Request().Context(), userId)
 	if err != nil {
+		slog.Error("failed on getting recurring tasks templates", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
@@ -130,6 +132,7 @@ func (h *RecurringTasksTemplateHandler) GetRecurringTasksTemplateByID(c echo.Con
 
 	template, err := h.service.GetRecurringTasksTemplateByID(c.Request().Context(), int64(id), userId)
 	if err != nil {
+		slog.Error("failed on getting recurring tasks template by id", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
@@ -176,6 +179,7 @@ func (h *RecurringTasksTemplateHandler) CreateRecurringTasksTemplate(c echo.Cont
 	if request.ScheduledDatetime != "" || (request.ScheduledDatetime != "" && request.ScheduledEndTime != "") {
 		startDatetime, duration, err = convertDateTimeAndTime(request.ScheduledDatetime, request.ScheduledEndTime)
 		if err != nil {
+			slog.Error("failed on creating recurring tasks template", "error", err)
 			return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 		}
 	}
@@ -192,6 +196,7 @@ func (h *RecurringTasksTemplateHandler) CreateRecurringTasksTemplate(c echo.Cont
 
 	outTemplate, err := h.service.CreateRecurringTasksTemplate(c.Request().Context(), template)
 	if err != nil {
+		slog.Error("failed on creating recurring tasks template", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
@@ -246,6 +251,7 @@ func (h *RecurringTasksTemplateHandler) UpdateRecurringTasksTemplateByID(c echo.
 
 	startDatetime, duration, err := convertDateTimeAndTime(request.ScheduledDatetime, request.ScheduledEndTime)
 	if err != nil {
+		slog.Error("failed on updating recurring tasks template by id", "error", err)
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
@@ -260,6 +266,7 @@ func (h *RecurringTasksTemplateHandler) UpdateRecurringTasksTemplateByID(c echo.
 		RecurrenceRrule:   request.RecurrenceRrule,
 	})
 	if err != nil {
+		slog.Error("failed on updating recurring tasks template by id", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
@@ -303,6 +310,7 @@ func (h *RecurringTasksTemplateHandler) DeleteRecurringTasksTemplateByID(c echo.
 
 	err = h.service.DeleteRecurringTasksTemplateByID(c.Request().Context(), int64(id), userId)
 	if err != nil {
+		slog.Error("failed on deleting recurring tasks template by id", "error", err)
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "recurring tasks template not found", "error": err.Error()})
 	}
 

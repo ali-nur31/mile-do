@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -104,6 +105,7 @@ func (h *TaskHandler) GetTasksByGoalID(c echo.Context) error {
 
 	tasks, err := h.service.ListTasksByGoalID(c.Request().Context(), userId, int32(goalId))
 	if err != nil {
+		slog.Error("failed on getting tasks by goal id", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
@@ -131,6 +133,7 @@ func (h *TaskHandler) GetInboxTasks(c echo.Context) error {
 
 	tasks, err := h.service.ListInboxTasks(c.Request().Context(), userId)
 	if err != nil {
+		slog.Error("failed on getting inbox tasks", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
@@ -181,6 +184,7 @@ func (h *TaskHandler) GetTasksByPeriod(c echo.Context) error {
 		BeforeDate: beforeDate,
 	})
 	if err != nil {
+		slog.Error("failed on getting tasks by period", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
@@ -208,6 +212,7 @@ func (h *TaskHandler) GetTasks(c echo.Context) error {
 
 	tasks, err := h.service.ListTasks(c.Request().Context(), userId)
 	if err != nil {
+		slog.Error("failed on getting all tasks", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
@@ -242,6 +247,7 @@ func (h *TaskHandler) GetTaskByID(c echo.Context) error {
 
 	task, err := h.service.GetTaskByID(c.Request().Context(), int64(id), userId)
 	if err != nil {
+		slog.Error("failed on getting task by id", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
@@ -290,6 +296,7 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 	if request.ScheduledDateTime != "" || (request.ScheduledDateTime != "" && request.ScheduledEndDateTime != "") {
 		scheduledDate, scheduledTime, hasTime, duration, err = convertDateTimes(request.ScheduledDateTime, request.ScheduledEndDateTime)
 		if err != nil {
+			slog.Error("failed on creating task", "error", err)
 			return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 		}
 	}
@@ -306,6 +313,7 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 
 	outTask, err := h.service.CreateTask(c.Request().Context(), task)
 	if err != nil {
+		slog.Error("failed on creating task", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
@@ -362,6 +370,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 
 	scheduledDate, scheduledTime, hasTime, duration, err := convertDateTimes(request.ScheduledDateTime, request.ScheduledEndDateTime)
 	if err != nil {
+		slog.Error("failed on updating task", "error", err)
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
@@ -378,6 +387,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 		RescheduleCount: dbTask.RescheduleCount,
 	})
 	if err != nil {
+		slog.Error("failed on updating task", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
@@ -415,6 +425,7 @@ func (h *TaskHandler) AnalyzeForToday(c echo.Context) error {
 
 	stats, err := h.service.AnalyzeForToday(c.Request().Context(), userId)
 	if err != nil {
+		slog.Error("failed on getting tasks analysis for today", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
@@ -451,6 +462,7 @@ func (h *TaskHandler) DeleteTaskByID(c echo.Context) error {
 
 	err = h.service.DeleteTaskByID(c.Request().Context(), int64(id), userId)
 	if err != nil {
+		slog.Error("failed on deleting task by id", "error", err)
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "task not found", "error": err.Error()})
 	}
 

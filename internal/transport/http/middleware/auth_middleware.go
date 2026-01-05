@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -43,6 +44,7 @@ func (m *AuthMiddleware) TokenCheckMiddleware() echo.MiddlewareFunc {
 
 			claims, err := m.tokenManager.VerifyToken(tokenString, "access")
 			if err != nil {
+				slog.Error("couldn't verify token", "error", err)
 				return c.JSON(http.StatusUnauthorized, map[string]string{"message": "invalid token", "error": err.Error()})
 			} else if errors.Is(err, auth.TokenExpiredError) {
 				return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})

@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -89,6 +90,7 @@ func (h *GoalHandler) GetGoals(c echo.Context) error {
 
 	goals, err := h.service.ListGoals(c.Request().Context(), param, userId)
 	if err != nil {
+		slog.Error("failed on getting goals", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
@@ -135,6 +137,7 @@ func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 
 	goal, err := h.service.GetGoalByID(c.Request().Context(), int64(id), userId)
 	if err != nil {
+		slog.Error("failed on getting goal by id", "error", err)
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "not found", "error": err.Error()})
 	}
 
@@ -182,6 +185,7 @@ func (h *GoalHandler) CreateGoal(c echo.Context) error {
 
 	outGoal, err := h.service.CreateGoal(c.Request().Context(), goal)
 	if err != nil {
+		slog.Error("failed on creating goal", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
@@ -229,6 +233,7 @@ func (h *GoalHandler) UpdateGoal(c echo.Context) error {
 		IsArchived:   request.IsArchived,
 	})
 	if err != nil {
+		slog.Error("failed on updating goal", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
@@ -268,6 +273,7 @@ func (h *GoalHandler) DeleteGoalByID(c echo.Context) error {
 
 	err = h.service.DeleteGoalByID(c.Request().Context(), int64(id), userId)
 	if err != nil {
+		slog.Error("failed on deleting goal by id", "error", err)
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "goal not found", "error": err.Error()})
 	}
 

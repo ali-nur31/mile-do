@@ -48,6 +48,7 @@ func (h *AuthHandler) RegisterUser(c echo.Context) error {
 		Password: request.Password,
 	})
 	if err != nil {
+		slog.Error("failed on register", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
@@ -77,6 +78,7 @@ func (h *AuthHandler) LoginUser(c echo.Context) error {
 		Password: request.Password,
 	})
 	if err != nil {
+		slog.Error("failed on login", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
@@ -103,6 +105,7 @@ func (h *AuthHandler) RefreshAccessToken(c echo.Context) error {
 
 	output, err := h.authService.RefreshTokens(c.Request().Context(), request.RefreshToken)
 	if err != nil {
+		slog.Error("failed on refreshing token", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
@@ -120,13 +123,14 @@ func (h *AuthHandler) RefreshAccessToken(c echo.Context) error {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /auth/logout [delete]
 func (h *AuthHandler) LogoutUser(c echo.Context) error {
-	userId, err := h.GetCurrentUserIdFromCtx(c)
+	userId, err := GetCurrentUserIdFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	err = h.authService.LogoutUser(c.Request().Context(), userId)
 	if err != nil {
+		slog.Error("failed on logout", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
@@ -139,6 +143,6 @@ func GetCurrentUserIdFromCtx(c echo.Context) (int32, error) {
 		return int32(t), nil
 	default:
 		slog.Error("userId in context is not an integer", "value", t)
-		return -1, fmt.Errorf("failed to convert userId from string to integer")
+		return -1, fmt.Errorf("failed to convert userId to integer")
 	}
 }
