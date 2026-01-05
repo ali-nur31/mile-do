@@ -7,6 +7,28 @@ definitions:
       refresh_token:
         type: string
     type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.CreateGoalRequest:
+    properties:
+      category_type:
+        type: string
+      color:
+        type: string
+      title:
+        type: string
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.CreateTaskRequest:
+    properties:
+      goal_id:
+        type: integer
+      scheduled_date_time:
+        type: string
+      scheduled_end_date_time:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: integer
+    type: object
   github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GetUserResponse:
     properties:
       created_at:
@@ -14,12 +36,115 @@ definitions:
       email:
         type: string
     type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GoalData:
+    properties:
+      category_type:
+        type: string
+      color:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_archived:
+        type: boolean
+      title:
+        type: string
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GoalResponse:
+    properties:
+      category_type:
+        type: string
+      color:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_archived:
+        type: boolean
+      title:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListGoalsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GoalData'
+        type: array
+      user_id:
+        type: integer
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListRecurringTasksTemplatesResponse:
+    properties:
+      recurring_tasks_template_data:
+        items:
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RecurringTasksTemplateData'
+        type: array
+      user_id:
+        type: integer
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListTasksResponse:
+    properties:
+      task_data:
+        items:
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskData'
+        type: array
+      user_id:
+        type: integer
+    type: object
   github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.LoginUserRequest:
     properties:
       email:
         type: string
       password:
         type: string
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RecurringTasksTemplateData:
+    properties:
+      created_at:
+        type: string
+      duration_minutes:
+        type: integer
+      goal_id:
+        type: integer
+      has_time:
+        type: boolean
+      id:
+        type: integer
+      last_generated_date:
+        type: string
+      recurrence_rrule:
+        type: string
+      scheduled_datetime:
+        type: string
+      title:
+        type: string
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RecurringTasksTemplateResponse:
+    properties:
+      created_at:
+        type: string
+      duration_minutes:
+        type: integer
+      goal_id:
+        type: integer
+      has_time:
+        type: boolean
+      id:
+        type: integer
+      last_generated_date:
+        type: string
+      recurrence_rrule:
+        type: string
+      scheduled_datetime:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: integer
     type: object
   github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RefreshAccessTokenRequest:
     properties:
@@ -35,132 +160,7 @@ definitions:
       password:
         type: string
     type: object
-  internal_transport_http_v1.createGoalRequest:
-    properties:
-      category_type:
-        type: string
-      color:
-        type: string
-      title:
-        type: string
-    type: object
-  internal_transport_http_v1.createTaskRequest:
-    properties:
-      goal_id:
-        type: integer
-      scheduled_date_time:
-        type: string
-      scheduled_end_date_time:
-        type: string
-      title:
-        type: string
-      user_id:
-        type: integer
-    type: object
-  internal_transport_http_v1.goalData:
-    properties:
-      category_type:
-        type: string
-      color:
-        type: string
-      created_at:
-        type: string
-      id:
-        type: integer
-      is_archived:
-        type: boolean
-      title:
-        type: string
-    type: object
-  internal_transport_http_v1.goalResponse:
-    properties:
-      category_type:
-        type: string
-      color:
-        type: string
-      created_at:
-        type: string
-      id:
-        type: integer
-      is_archived:
-        type: boolean
-      title:
-        type: string
-      user_id:
-        type: integer
-    type: object
-  internal_transport_http_v1.listGoalsResponse:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/internal_transport_http_v1.goalData'
-        type: array
-      user_id:
-        type: integer
-    type: object
-  internal_transport_http_v1.listRecurringTasksTemplatesResponse:
-    properties:
-      recurring_tasks_template_data:
-        items:
-          $ref: '#/definitions/internal_transport_http_v1.recurringTasksTemplateData'
-        type: array
-      user_id:
-        type: integer
-    type: object
-  internal_transport_http_v1.listTasksResponse:
-    properties:
-      task_data:
-        items:
-          $ref: '#/definitions/internal_transport_http_v1.taskData'
-        type: array
-      user_id:
-        type: integer
-    type: object
-  internal_transport_http_v1.recurringTasksTemplateData:
-    properties:
-      created_at:
-        type: string
-      duration_minutes:
-        type: integer
-      goal_id:
-        type: integer
-      has_time:
-        type: boolean
-      id:
-        type: integer
-      last_generated_date:
-        type: string
-      recurrence_rrule:
-        type: string
-      scheduled_datetime:
-        type: string
-      title:
-        type: string
-    type: object
-  internal_transport_http_v1.recurringTasksTemplateResponse:
-    properties:
-      created_at:
-        type: string
-      duration_minutes:
-        type: integer
-      goal_id:
-        type: integer
-      has_time:
-        type: boolean
-      id:
-        type: integer
-      last_generated_date:
-        type: string
-      recurrence_rrule:
-        type: string
-      scheduled_datetime:
-        type: string
-      title:
-        type: string
-      user_id:
-        type: integer
-    type: object
-  internal_transport_http_v1.taskData:
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskData:
     properties:
       created_at:
         type: string
@@ -183,7 +183,7 @@ definitions:
       title:
         type: string
     type: object
-  internal_transport_http_v1.taskResponse:
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskResponse:
     properties:
       created_at:
         type: string
@@ -208,7 +208,7 @@ definitions:
       user_id:
         type: integer
     type: object
-  internal_transport_http_v1.updateGoalRequest:
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateGoalRequest:
     properties:
       category_type:
         type: string
@@ -221,22 +221,7 @@ definitions:
       title:
         type: string
     type: object
-  internal_transport_http_v1.updateGoalResponse:
-    properties:
-      category_type:
-        type: string
-      color:
-        type: string
-      id:
-        type: integer
-      is_archived:
-        type: boolean
-      title:
-        type: string
-      user_id:
-        type: integer
-    type: object
-  internal_transport_http_v1.updateRecurringTasksTemplateRequest:
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateRecurringTasksTemplateRequest:
     properties:
       goal_id:
         type: integer
@@ -251,7 +236,7 @@ definitions:
       title:
         type: string
     type: object
-  internal_transport_http_v1.updateTaskRequest:
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateTaskRequest:
     properties:
       goal_id:
         type: integer
@@ -306,6 +291,35 @@ paths:
               type: string
             type: object
       summary: login user
+      tags:
+      - auth
+  /auth/logout:
+    delete:
+      consumes:
+      - application/json
+      description: logout from user account
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: successful log out
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: logout user
       tags:
       - auth
   /auth/refresh:
@@ -392,7 +406,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.listGoalsResponse'
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListGoalsResponse'
         "401":
           description: Unauthorized
           schema:
@@ -420,14 +434,14 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/internal_transport_http_v1.updateGoalRequest'
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateGoalRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.updateGoalResponse'
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GoalResponse'
         "400":
           description: Bad Request
           schema:
@@ -461,14 +475,14 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/internal_transport_http_v1.createGoalRequest'
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.CreateGoalRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.goalResponse'
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GoalResponse'
         "400":
           description: Bad Request
           schema:
@@ -551,7 +565,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.goalResponse'
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GoalResponse'
         "400":
           description: Bad Request
           schema:
@@ -599,7 +613,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.listTasksResponse'
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListTasksResponse'
         "400":
           description: Bad Request
           schema:
@@ -634,7 +648,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.listRecurringTasksTemplatesResponse'
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListRecurringTasksTemplatesResponse'
         "401":
           description: Unauthorized
           schema:
@@ -662,14 +676,14 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/internal_transport_http_v1.updateRecurringTasksTemplateRequest'
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateRecurringTasksTemplateRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.recurringTasksTemplateResponse'
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RecurringTasksTemplateResponse'
         "400":
           description: Bad Request
           schema:
@@ -758,7 +772,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.recurringTasksTemplateResponse'
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RecurringTasksTemplateResponse'
         "400":
           description: Bad Request
           schema:
@@ -798,14 +812,14 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/internal_transport_http_v1.updateRecurringTasksTemplateRequest'
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateRecurringTasksTemplateRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.recurringTasksTemplateResponse'
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RecurringTasksTemplateResponse'
         "400":
           description: Bad Request
           schema:
@@ -846,7 +860,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.listTasksResponse'
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListTasksResponse'
         "401":
           description: Unauthorized
           schema:
@@ -874,14 +888,14 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/internal_transport_http_v1.createTaskRequest'
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.CreateTaskRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.taskResponse'
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskResponse'
         "400":
           description: Bad Request
           schema:
@@ -970,7 +984,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.taskResponse'
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskResponse'
         "400":
           description: Bad Request
           schema:
@@ -1010,14 +1024,14 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/internal_transport_http_v1.updateTaskRequest'
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateTaskRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.taskResponse'
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskResponse'
         "400":
           description: Bad Request
           schema:
@@ -1087,7 +1101,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.listTasksResponse'
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListTasksResponse'
         "401":
           description: Unauthorized
           schema:
@@ -1125,7 +1139,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_transport_http_v1.listTasksResponse'
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListTasksResponse'
         "400":
           description: Bad Request
           schema:
@@ -1149,35 +1163,6 @@ paths:
       summary: get tasks by period
       tags:
       - tasks
-  /users/:
-    delete:
-      consumes:
-      - application/json
-      description: logout from user account
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: successful log out
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: logout user
-      tags:
-      - auth
   /users/me:
     get:
       consumes:

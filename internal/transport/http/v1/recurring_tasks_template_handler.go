@@ -89,7 +89,7 @@ func (h *RecurringTasksTemplateHandler) GetRecurringTasksTemplateByID(c echo.Con
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        input body updateRecurringTasksTemplateRequest true "Recurring Tasks Template Info"
+// @Param        input body dto.UpdateRecurringTasksTemplateRequest true "Recurring Tasks Template Info"
 // @Success      201  {object}  dto.RecurringTasksTemplateResponse
 // @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      400  {object}  map[string]string "Bad Request"

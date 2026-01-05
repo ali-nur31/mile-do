@@ -71,6 +71,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/logout": {
+            "delete": {
+                "description": "logout from user account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "logout user",
+                "responses": {
+                    "200": {
+                        "description": "successful log out",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/auth/refresh": {
             "post": {
                 "description": "refresh access token by refresh_token",
@@ -205,7 +249,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.listGoalsResponse"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListGoalsResponse"
                         }
                     },
                     "401": {
@@ -252,7 +296,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.createGoalRequest"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.CreateGoalRequest"
                         }
                     }
                 ],
@@ -260,7 +304,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.goalResponse"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GoalResponse"
                         }
                     },
                     "400": {
@@ -316,7 +360,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.updateGoalRequest"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateGoalRequest"
                         }
                     }
                 ],
@@ -324,7 +368,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.updateGoalResponse"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GoalResponse"
                         }
                     },
                     "400": {
@@ -389,7 +433,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.goalResponse"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GoalResponse"
                         }
                     },
                     "400": {
@@ -526,7 +570,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.listTasksResponse"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListTasksResponse"
                         }
                     },
                     "400": {
@@ -581,7 +625,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.listRecurringTasksTemplatesResponse"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListRecurringTasksTemplatesResponse"
                         }
                     },
                     "401": {
@@ -628,7 +672,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.updateRecurringTasksTemplateRequest"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateRecurringTasksTemplateRequest"
                         }
                     }
                 ],
@@ -636,7 +680,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.recurringTasksTemplateResponse"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RecurringTasksTemplateResponse"
                         }
                     },
                     "400": {
@@ -701,7 +745,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.recurringTasksTemplateResponse"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RecurringTasksTemplateResponse"
                         }
                     },
                     "400": {
@@ -837,7 +881,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.updateRecurringTasksTemplateRequest"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateRecurringTasksTemplateRequest"
                         }
                     }
                 ],
@@ -845,7 +889,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.recurringTasksTemplateResponse"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RecurringTasksTemplateResponse"
                         }
                     },
                     "400": {
@@ -909,7 +953,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.listTasksResponse"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListTasksResponse"
                         }
                     },
                     "401": {
@@ -956,7 +1000,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.createTaskRequest"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.CreateTaskRequest"
                         }
                     }
                 ],
@@ -964,7 +1008,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.taskResponse"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskResponse"
                         }
                     },
                     "400": {
@@ -1065,7 +1109,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.listTasksResponse"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListTasksResponse"
                         }
                     },
                     "401": {
@@ -1125,7 +1169,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.listTasksResponse"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListTasksResponse"
                         }
                     },
                     "400": {
@@ -1190,7 +1234,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.taskResponse"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskResponse"
                         }
                     },
                     "400": {
@@ -1326,7 +1370,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.updateTaskRequest"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateTaskRequest"
                         }
                     }
                 ],
@@ -1334,7 +1378,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_transport_http_v1.taskResponse"
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskResponse"
                         }
                     },
                     "400": {
@@ -1357,50 +1401,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/users/": {
-            "delete": {
-                "description": "logout from user account",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "logout user",
-                "responses": {
-                    "200": {
-                        "description": "successful log out",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1488,6 +1488,40 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.CreateGoalRequest": {
+            "type": "object",
+            "properties": {
+                "category_type": {
+                    "type": "string"
+                },
+                "color": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.CreateTaskRequest": {
+            "type": "object",
+            "properties": {
+                "goal_id": {
+                    "type": "integer"
+                },
+                "scheduled_date_time": {
+                    "type": "string"
+                },
+                "scheduled_end_date_time": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GetUserResponse": {
             "type": "object",
             "properties": {
@@ -1499,6 +1533,97 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GoalData": {
+            "type": "object",
+            "properties": {
+                "category_type": {
+                    "type": "string"
+                },
+                "color": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_archived": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GoalResponse": {
+            "type": "object",
+            "properties": {
+                "category_type": {
+                    "type": "string"
+                },
+                "color": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_archived": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListGoalsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GoalData"
+                    }
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListRecurringTasksTemplatesResponse": {
+            "type": "object",
+            "properties": {
+                "recurring_tasks_template_data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RecurringTasksTemplateData"
+                    }
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListTasksResponse": {
+            "type": "object",
+            "properties": {
+                "task_data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskData"
+                    }
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.LoginUserRequest": {
             "type": "object",
             "properties": {
@@ -1507,6 +1632,73 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RecurringTasksTemplateData": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "duration_minutes": {
+                    "type": "integer"
+                },
+                "goal_id": {
+                    "type": "integer"
+                },
+                "has_time": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "last_generated_date": {
+                    "type": "string"
+                },
+                "recurrence_rrule": {
+                    "type": "string"
+                },
+                "scheduled_datetime": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RecurringTasksTemplateResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "duration_minutes": {
+                    "type": "integer"
+                },
+                "goal_id": {
+                    "type": "integer"
+                },
+                "has_time": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "last_generated_date": {
+                    "type": "string"
+                },
+                "recurrence_rrule": {
+                    "type": "string"
+                },
+                "scheduled_datetime": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -1532,199 +1724,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_transport_http_v1.createGoalRequest": {
-            "type": "object",
-            "properties": {
-                "category_type": {
-                    "type": "string"
-                },
-                "color": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "internal_transport_http_v1.createTaskRequest": {
-            "type": "object",
-            "properties": {
-                "goal_id": {
-                    "type": "integer"
-                },
-                "scheduled_date_time": {
-                    "type": "string"
-                },
-                "scheduled_end_date_time": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "internal_transport_http_v1.goalData": {
-            "type": "object",
-            "properties": {
-                "category_type": {
-                    "type": "string"
-                },
-                "color": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_archived": {
-                    "type": "boolean"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "internal_transport_http_v1.goalResponse": {
-            "type": "object",
-            "properties": {
-                "category_type": {
-                    "type": "string"
-                },
-                "color": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_archived": {
-                    "type": "boolean"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "internal_transport_http_v1.listGoalsResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/internal_transport_http_v1.goalData"
-                    }
-                },
-                "user_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "internal_transport_http_v1.listRecurringTasksTemplatesResponse": {
-            "type": "object",
-            "properties": {
-                "recurring_tasks_template_data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/internal_transport_http_v1.recurringTasksTemplateData"
-                    }
-                },
-                "user_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "internal_transport_http_v1.listTasksResponse": {
-            "type": "object",
-            "properties": {
-                "task_data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/internal_transport_http_v1.taskData"
-                    }
-                },
-                "user_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "internal_transport_http_v1.recurringTasksTemplateData": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "duration_minutes": {
-                    "type": "integer"
-                },
-                "goal_id": {
-                    "type": "integer"
-                },
-                "has_time": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "last_generated_date": {
-                    "type": "string"
-                },
-                "recurrence_rrule": {
-                    "type": "string"
-                },
-                "scheduled_datetime": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "internal_transport_http_v1.recurringTasksTemplateResponse": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "duration_minutes": {
-                    "type": "integer"
-                },
-                "goal_id": {
-                    "type": "integer"
-                },
-                "has_time": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "last_generated_date": {
-                    "type": "string"
-                },
-                "recurrence_rrule": {
-                    "type": "string"
-                },
-                "scheduled_datetime": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "internal_transport_http_v1.taskData": {
+        "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskData": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -1759,7 +1759,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_transport_http_v1.taskResponse": {
+        "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -1797,7 +1797,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_transport_http_v1.updateGoalRequest": {
+        "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateGoalRequest": {
             "type": "object",
             "properties": {
                 "category_type": {
@@ -1817,30 +1817,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_transport_http_v1.updateGoalResponse": {
-            "type": "object",
-            "properties": {
-                "category_type": {
-                    "type": "string"
-                },
-                "color": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_archived": {
-                    "type": "boolean"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "internal_transport_http_v1.updateRecurringTasksTemplateRequest": {
+        "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateRecurringTasksTemplateRequest": {
             "type": "object",
             "properties": {
                 "goal_id": {
@@ -1863,7 +1840,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_transport_http_v1.updateTaskRequest": {
+        "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateTaskRequest": {
             "type": "object",
             "properties": {
                 "goal_id": {

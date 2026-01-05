@@ -91,7 +91,7 @@ func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        input body createGoalRequest true "Goal Info"
+// @Param        input body dto.CreateGoalRequest true "Goal Info"
 // @Success      201  {object}  dto.GoalResponse
 // @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      400  {object}  map[string]string "Bad Request"

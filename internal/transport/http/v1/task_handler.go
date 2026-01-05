@@ -9,65 +9,13 @@ import (
 
 	"github.com/ali-nur31/mile-do/internal/domain"
 	"github.com/ali-nur31/mile-do/internal/service"
+	"github.com/ali-nur31/mile-do/internal/transport/http/v1/dto"
 	"github.com/labstack/echo/v4"
 )
 
 const dateTimeLayout = "2006-01-02 15:04"
 const dateLayout = "2006-01-02"
 const timeLayout = "15:04"
-
-type taskData struct {
-	ID              int64     `json:"id"`
-	GoalID          int32     `json:"goal_id"`
-	Title           string    `json:"title"`
-	IsDone          bool      `json:"is_done"`
-	ScheduledDate   string    `json:"scheduled_date"`
-	HasTime         bool      `json:"has_time"`
-	ScheduledTime   string    `json:"scheduled_time"`
-	DurationMinutes int32     `json:"duration_minutes"`
-	RescheduleCount int32     `json:"reschedule_count"`
-	CreatedAt       time.Time `json:"created_at"`
-}
-
-type listTasksResponse struct {
-	UserID   int32      `json:"user_id"`
-	TaskData []taskData `json:"task_data"`
-}
-
-type createTaskRequest struct {
-	UserID               int32  `json:"user_id"`
-	GoalID               int32  `json:"goal_id"`
-	Title                string `json:"title"`
-	ScheduledDateTime    string `json:"scheduled_date_time"`
-	ScheduledEndDateTime string `json:"scheduled_end_date_time"`
-}
-
-type updateTaskRequest struct {
-	GoalID               int32  `json:"goal_id"`
-	Title                string `json:"title"`
-	IsDone               bool   `json:"is_done"`
-	ScheduledDateTime    string `json:"scheduled_date_time"`
-	ScheduledEndDateTime string `json:"scheduled_end_date_time"`
-}
-
-type countCompletedTasksForTodayResponse struct {
-	TotalTasks int32 `json:"total_tasks"`
-	Completed  int32 `json:"completed"`
-}
-
-type taskResponse struct {
-	ID              int64     `json:"id"`
-	UserID          int32     `json:"user_id"`
-	GoalID          int32     `json:"goal_id"`
-	Title           string    `json:"title"`
-	IsDone          bool      `json:"is_done"`
-	ScheduledDate   string    `json:"scheduled_date"`
-	HasTime         bool      `json:"has_time"`
-	ScheduledTime   string    `json:"scheduled_time"`
-	DurationMinutes int32     `json:"duration_minutes"`
-	RescheduleCount int32     `json:"reschedule_count"`
-	CreatedAt       time.Time `json:"created_at"`
-}
 
 type TaskHandler struct {
 	service service.TaskService
@@ -87,7 +35,7 @@ func NewTaskHandler(service service.TaskService) *TaskHandler {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id path int64 true "Goal ID"
-// @Success      200  {object}  listTasksResponse
+// @Success      200  {object}  dto.ListTasksResponse
 // @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
@@ -109,9 +57,7 @@ func (h *TaskHandler) GetTasksByGoalID(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	outTasks := h.mapTasksToResponse(tasks, userId)
-
-	return c.JSON(http.StatusOK, outTasks)
+	return c.JSON(http.StatusOK, dto.ToListTasksResponse(tasks))
 }
 
 // GetInboxTasks godoc
@@ -121,7 +67,7 @@ func (h *TaskHandler) GetTasksByGoalID(c echo.Context) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200  {object}  listTasksResponse
+// @Success      200  {object}  dto.ListTasksResponse
 // @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/inbox [get]
@@ -137,9 +83,7 @@ func (h *TaskHandler) GetInboxTasks(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	outTasks := h.mapTasksToResponse(tasks, userId)
-
-	return c.JSON(http.StatusOK, outTasks)
+	return c.JSON(http.StatusOK, dto.ToListTasksResponse(tasks))
 }
 
 // GetTasksByPeriod godoc
@@ -151,7 +95,7 @@ func (h *TaskHandler) GetInboxTasks(c echo.Context) error {
 // @Security     BearerAuth
 // @Param        after_date query string false "tasks after specific date"
 // @Param        before_date query string false "tasks before specific date"
-// @Success      200  {object}  listTasksResponse
+// @Success      200  {object}  dto.ListTasksResponse
 // @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
@@ -165,12 +109,12 @@ func (h *TaskHandler) GetTasksByPeriod(c echo.Context) error {
 
 	afterDate, err := time.Parse(dateLayout, afterDateParam)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request, after_date must be in 2025-31-12 format", "error": err.Error()})
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request, after_date must be in YYYY-DD-MM format", "error": err.Error()})
 	}
 
 	beforeDate, err := time.Parse(dateLayout, beforeDateParam)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request, before_date must be in 2025-31-12 format", "error": err.Error()})
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request, before_date must be in YYYY-DD-MM format", "error": err.Error()})
 	}
 
 	userId, err := GetCurrentUserIdFromCtx(c)
@@ -188,9 +132,7 @@ func (h *TaskHandler) GetTasksByPeriod(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	outTasks := h.mapTasksToResponse(tasks, userId)
-
-	return c.JSON(http.StatusOK, outTasks)
+	return c.JSON(http.StatusOK, dto.ToListTasksResponse(tasks))
 }
 
 // GetTasks godoc
@@ -200,7 +142,7 @@ func (h *TaskHandler) GetTasksByPeriod(c echo.Context) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200  {object}  listTasksResponse
+// @Success      200  {object}  dto.ListTasksResponse
 // @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/ [get]
@@ -216,9 +158,7 @@ func (h *TaskHandler) GetTasks(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	outTasks := h.mapTasksToResponse(tasks, userId)
-
-	return c.JSON(http.StatusOK, outTasks)
+	return c.JSON(http.StatusOK, dto.ToListTasksResponse(tasks))
 }
 
 // GetTaskByID godoc
@@ -229,7 +169,7 @@ func (h *TaskHandler) GetTasks(c echo.Context) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id path int64 true "Task ID"
-// @Success      200  {object}  taskResponse
+// @Success      200  {object}  dto.TaskResponse
 // @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
@@ -251,19 +191,7 @@ func (h *TaskHandler) GetTaskByID(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, taskResponse{
-		ID:              task.ID,
-		UserID:          task.UserID,
-		GoalID:          task.GoalID,
-		Title:           task.Title,
-		IsDone:          task.IsDone,
-		ScheduledDate:   task.ScheduledDate.Format(dateLayout),
-		HasTime:         task.HasTime,
-		ScheduledTime:   task.ScheduledTime.Format(timeLayout),
-		DurationMinutes: task.DurationMinutes,
-		RescheduleCount: task.RescheduleCount,
-		CreatedAt:       task.CreatedAt,
-	})
+	return c.JSON(http.StatusOK, dto.ToTaskResponse(task))
 }
 
 // CreateTask godoc
@@ -273,8 +201,8 @@ func (h *TaskHandler) GetTaskByID(c echo.Context) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        input body createTaskRequest true "Task Info"
-// @Success      201  {object}  taskResponse
+// @Param        input body dto.CreateTaskRequest true "Task Info"
+// @Success      201  {object}  dto.TaskResponse
 // @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
@@ -285,7 +213,7 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	var request createTaskRequest
+	var request dto.CreateTaskRequest
 	if err = c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
@@ -317,19 +245,7 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	return c.JSON(http.StatusCreated, taskResponse{
-		ID:              outTask.ID,
-		UserID:          userId,
-		GoalID:          outTask.GoalID,
-		Title:           outTask.Title,
-		IsDone:          outTask.IsDone,
-		ScheduledDate:   outTask.ScheduledDate.Format(dateLayout),
-		HasTime:         outTask.HasTime,
-		ScheduledTime:   outTask.ScheduledTime.Format(timeLayout),
-		DurationMinutes: outTask.DurationMinutes,
-		RescheduleCount: outTask.RescheduleCount,
-		CreatedAt:       outTask.CreatedAt,
-	})
+	return c.JSON(http.StatusCreated, dto.ToTaskResponse(outTask))
 }
 
 // UpdateTask godoc
@@ -340,8 +256,8 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id path int64 true "Task ID"
-// @Param        input body updateTaskRequest true "New Task Info"
-// @Success      200  {object}  taskResponse
+// @Param        input body dto.UpdateTaskRequest true "New Task Info"
+// @Success      200  {object}  dto.TaskResponse
 // @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      404  {object}  map[string]string "Not Found"
 // @Failure      400  {object}  map[string]string "Bad Request"
@@ -358,7 +274,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	var request updateTaskRequest
+	var request dto.UpdateTaskRequest
 	if err = c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
@@ -391,19 +307,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, taskResponse{
-		ID:              outTask.ID,
-		UserID:          userId,
-		GoalID:          outTask.GoalID,
-		Title:           outTask.Title,
-		IsDone:          outTask.IsDone,
-		ScheduledDate:   outTask.ScheduledDate.Format(dateLayout),
-		HasTime:         outTask.HasTime,
-		ScheduledTime:   outTask.ScheduledTime.Format(timeLayout),
-		DurationMinutes: outTask.DurationMinutes,
-		RescheduleCount: outTask.RescheduleCount,
-		CreatedAt:       dbTask.CreatedAt,
-	})
+	return c.JSON(http.StatusOK, dto.ToTaskResponse(outTask))
 }
 
 // AnalyzeForToday godoc
@@ -413,7 +317,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      201  {string}  countCompletedTasksForTodayResponse
+// @Success      201  {string}  dto.CountCompletedTasksForTodayResponse
 // @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Router       /tasks/analyze [get]
@@ -429,10 +333,7 @@ func (h *TaskHandler) AnalyzeForToday(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, countCompletedTasksForTodayResponse{
-		TotalTasks: stats.TotalTasks,
-		Completed:  stats.CompletedToday,
-	})
+	return c.JSON(http.StatusOK, dto.ToCountCompletedTasksForTodayResponse(stats))
 }
 
 // DeleteTaskByID godoc
@@ -467,30 +368,6 @@ func (h *TaskHandler) DeleteTaskByID(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{"message": "task has been removed"})
-}
-
-func (h *TaskHandler) mapTasksToResponse(tasks []domain.TaskOutput, userId int32) listTasksResponse {
-	outTasks := listTasksResponse{
-		UserID:   userId,
-		TaskData: make([]taskData, len(tasks)),
-	}
-
-	for index, task := range tasks {
-		outTasks.TaskData[index] = taskData{
-			ID:              task.ID,
-			GoalID:          task.GoalID,
-			Title:           task.Title,
-			IsDone:          task.IsDone,
-			ScheduledDate:   task.ScheduledDate.Format(dateLayout),
-			HasTime:         task.HasTime,
-			ScheduledTime:   task.ScheduledTime.Format(timeLayout),
-			DurationMinutes: task.DurationMinutes,
-			RescheduleCount: task.RescheduleCount,
-			CreatedAt:       task.CreatedAt,
-		}
-	}
-
-	return outTasks
 }
 
 func convertDateTimes(startDateTimeString, endDateTimeString string) (time.Time, time.Time, bool, time.Duration, error) {
