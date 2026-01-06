@@ -32,8 +32,6 @@ type UpdateLastGeneratedDateInRecurringTasksTemplateInput struct {
 	LastGeneratedDate time.Time
 }
 
-type LastGeneratedDate time.Time
-
 type RecurringTasksTemplateOutput struct {
 	ID                int64
 	UserID            int32
@@ -43,7 +41,6 @@ type RecurringTasksTemplateOutput struct {
 	HasTime           bool
 	DurationMinutes   int32
 	RecurrenceRrule   string
-	// ToDo change type to LastGeneratedDate
 	LastGeneratedDate time.Time
 	CreatedAt         time.Time
 }

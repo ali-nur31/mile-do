@@ -13,10 +13,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-const dateTimeLayout = "2006-01-02 15:04"
-const dateLayout = "2006-01-02"
-const timeLayout = "15:04"
-
 type TaskHandler struct {
 	service service.TaskService
 }
@@ -107,14 +103,14 @@ func (h *TaskHandler) GetTasksByPeriod(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": "at least after_date or before_date must be present"})
 	}
 
-	afterDate, err := time.Parse(dateLayout, afterDateParam)
+	afterDate, err := time.Parse(time.DateOnly, afterDateParam)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request, after_date must be in YYYY-DD-MM format", "error": err.Error()})
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request, after_date must be in YYYY-MM-DD format", "error": err.Error()})
 	}
 
-	beforeDate, err := time.Parse(dateLayout, beforeDateParam)
+	beforeDate, err := time.Parse(time.DateOnly, beforeDateParam)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request, before_date must be in YYYY-DD-MM format", "error": err.Error()})
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request, before_date must be in YYYY-MM-DD format", "error": err.Error()})
 	}
 
 	userId, err := GetCurrentUserIdFromCtx(c)
@@ -379,25 +375,25 @@ func convertDateTimes(startDateTimeString, endDateTimeString string) (time.Time,
 		return time.Time{}, time.Time{}, false, duration, fmt.Errorf("start date time is empty")
 	}
 
-	startDateTime, err := time.Parse(dateTimeLayout, startDateTimeString)
+	startDateTime, err := time.Parse(time.DateTime, startDateTimeString)
 	if err == nil {
 		hasTime = true
 	} else {
-		startDateTime, err = time.Parse(dateLayout, startDateTimeString)
+		startDateTime, err = time.Parse(time.DateOnly, startDateTimeString)
 		if err != nil {
 			return time.Time{}, time.Time{}, false, duration, fmt.Errorf("invalid start date time format: %v", err)
 		}
 	}
 
-	startDate, _ = time.Parse(dateLayout, startDateTime.Format(dateLayout))
-	startTime, _ = time.Parse(timeLayout, startDateTime.Format(timeLayout))
+	startDate, _ = time.Parse(time.DateOnly, startDateTime.Format(time.DateOnly))
+	startTime, _ = time.Parse(time.TimeOnly, startDateTime.Format(time.TimeOnly))
 
 	if endDateTimeString != "" && hasTime {
 		var endDateTime time.Time
 
-		endDateTime, err = time.Parse(dateTimeLayout, endDateTimeString)
+		endDateTime, err = time.Parse(time.DateTime, endDateTimeString)
 		if err != nil {
-			endDateTime, err = time.Parse(dateLayout, endDateTimeString)
+			endDateTime, err = time.Parse(time.DateOnly, endDateTimeString)
 			if err != nil {
 				return time.Time{}, time.Time{}, false, duration, fmt.Errorf("invalid start date time format: %v", err)
 			}
