@@ -6,52 +6,31 @@ import (
 
 	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/domain"
-	"github.com/ali-nur31/mile-do/pkg/auth"
 )
 
-type AuthTokenManager interface {
-	CreateTokens(id int64) (*auth.TokensData, error)
-	VerifyToken(tokenString, tokenType string) (*auth.Claims, error)
-}
-
-type AuthPasswordManager interface {
-	CheckPasswordHash(password, hash string) bool
-}
-
-type AuthService interface {
-	RegisterUser(ctx context.Context, user domain.UserInput) (*domain.AuthOutput, error)
-	LoginUser(ctx context.Context, user domain.UserInput) (*domain.AuthOutput, error)
-	LogoutUser(ctx context.Context, userId int32) error
-	RefreshTokens(ctx context.Context, refreshToken string) (*domain.AuthOutput, error)
-}
-
-type authService struct {
-	repo                repo.Querier
-	userService         UserService
-	tokenManager        AuthTokenManager
-	refreshTokenService RefreshTokenService
-	passwordManager     AuthPasswordManager
-}
-
-func NewAuthService(repo repo.Querier, userService UserService, tokenManager AuthTokenManager, refreshTokenService RefreshTokenService, passwordManager AuthPasswordManager) AuthService {
-	return &authService{
-		repo:                repo,
-		userService:         userService,
-		tokenManager:        tokenManager,
-		refreshTokenService: refreshTokenService,
-		passwordManager:     passwordManager,
-	}
-}
-
 func (s *authService) RegisterUser(ctx context.Context, user domain.UserInput) (*domain.AuthOutput, error) {
-	savedUser, err := s.userService.CreateUser(ctx, user)
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer func() {
+		_ = tx.Rollback(context.Background())
+	}()
+
+	qtx := repo.New(tx)
+
+	savedUser, err := s.userService.CreateUser(ctx, qtx, user)
 	if err != nil {
 		return nil, err
 	}
 
-	tokensData, err := s.GenerateNewTokens(ctx, savedUser.ID)
+	tokensData, err := s.generateNewTokensInternal(ctx, qtx, savedUser.ID)
 	if err != nil {
 		return nil, err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("couldn't commit transaction for registering user: %w", err)
 	}
 
 	return domain.ToAuthOutput(tokensData), nil
@@ -68,7 +47,7 @@ func (s *authService) LoginUser(ctx context.Context, user domain.UserInput) (*do
 		return nil, fmt.Errorf("password is incorrect")
 	}
 
-	tokensData, err := s.GenerateNewTokens(ctx, dbUser.ID)
+	tokensData, err := s.generateNewTokensInternal(ctx, s.repo, dbUser.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +70,17 @@ func (s *authService) RefreshTokens(ctx context.Context, refreshToken string) (*
 		return nil, err
 	}
 
-	dbRefreshToken, err := s.refreshTokenService.GetRefreshTokenByUserID(ctx, int32(claims.ID))
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer func() {
+		_ = tx.Rollback(context.Background())
+	}()
+
+	qtx := repo.New(tx)
+
+	dbRefreshToken, err := s.refreshTokenService.GetRefreshTokenByUserID(ctx, qtx, int32(claims.ID))
 	if err != nil {
 		return nil, err
 	}
@@ -102,33 +91,19 @@ func (s *authService) RefreshTokens(ctx context.Context, refreshToken string) (*
 
 	userId := dbRefreshToken.UserID
 
-	tokensData, err := s.GenerateNewTokens(ctx, int64(userId))
+	tokensData, err := s.generateNewTokensInternal(ctx, qtx, int64(userId))
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.refreshTokenService.DeleteRefreshTokenByUserID(ctx, dbRefreshToken.UserID)
+	err = qtx.DeleteRefreshTokenByUserID(ctx, dbRefreshToken.UserID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("couldn't delete refresh token by user id for refresh tokens: %w", err)
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("couldn't commit transaction for refresh tokens: %w", err)
 	}
 
 	return domain.ToAuthOutput(tokensData), nil
-}
-
-func (s *authService) GenerateNewTokens(ctx context.Context, userId int64) (*auth.TokensData, error) {
-	tokensData, err := s.tokenManager.CreateTokens(userId)
-	if err != nil {
-		return nil, err
-	}
-
-	err = s.refreshTokenService.CreateRefreshToken(ctx, domain.CreateRefreshTokenInput{
-		UserID:    int32(userId),
-		TokenHash: tokensData.RefreshToken,
-		ExpiresAt: tokensData.RefreshTokenExp,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("couldn't create new refresh token: %w", err)
-	}
-
-	return tokensData, nil
 }

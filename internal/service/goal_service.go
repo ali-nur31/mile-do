@@ -9,24 +9,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type GoalService interface {
-	ListGoals(ctx context.Context, filter string, userId int32) ([]domain.GoalOutput, error)
-	GetGoalByID(ctx context.Context, id int64, userId int32) (*domain.GoalOutput, error)
-	CreateGoal(ctx context.Context, input domain.CreateGoalInput) (*domain.GoalOutput, error)
-	UpdateGoal(ctx context.Context, input domain.UpdateGoalInput) (*domain.GoalOutput, error)
-	DeleteGoalByID(ctx context.Context, id int64, userId int32) error
-}
-
-type goalService struct {
-	repo repo.Querier
-}
-
-func NewGoalService(repo repo.Querier) GoalService {
-	return &goalService{
-		repo: repo,
-	}
-}
-
 func (s *goalService) ListGoals(ctx context.Context, filter string, userId int32) ([]domain.GoalOutput, error) {
 	var goals []repo.Goal
 	var err error

@@ -9,29 +9,8 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type RefreshTokenService interface {
-	GetRefreshTokenByUserID(ctx context.Context, userId int32) (*domain.RefreshTokenOutput, error)
-	CreateRefreshToken(ctx context.Context, input domain.CreateRefreshTokenInput) error
-	DeleteRefreshTokenByUserID(ctx context.Context, userId int32) error
-}
-
-type refreshTokenService struct {
-	repo repo.Querier
-}
-
-func NewRefreshTokenService(repo repo.Querier) RefreshTokenService {
-	return &refreshTokenService{
-		repo: repo,
-	}
-}
-
-func (s *refreshTokenService) GetRefreshTokenByUserID(ctx context.Context, userId int32) (*domain.RefreshTokenOutput, error) {
-	refreshToken, err := s.repo.GetRefreshTokenByUserID(ctx, userId)
-	if err != nil {
-		return nil, fmt.Errorf("couldn't get refresh token by user id: %w", err)
-	}
-
-	return domain.ToRefreshTokenOutput(&refreshToken), nil
+func (s *refreshTokenService) GetRefreshTokenByUserID(ctx context.Context, qtx repo.Querier, userId int32) (*domain.RefreshTokenOutput, error) {
+	return s.getRefreshTokenByUserIDInternal(ctx, qtx, userId)
 }
 
 func (s *refreshTokenService) CreateRefreshToken(ctx context.Context, input domain.CreateRefreshTokenInput) error {

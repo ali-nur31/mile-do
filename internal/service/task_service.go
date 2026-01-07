@@ -4,40 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"time"
 
 	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/domain"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/teambition/rrule-go"
 )
-
-type TaskService interface {
-	ListTasksByGoalID(ctx context.Context, userId int32, goalId int32) ([]domain.TaskOutput, error)
-	ListInboxTasks(ctx context.Context, userId int32) ([]domain.TaskOutput, error)
-	ListTasksByPeriod(ctx context.Context, period domain.GetTasksByPeriodInput) ([]domain.TaskOutput, error)
-	ListTasks(ctx context.Context, userId int32) ([]domain.TaskOutput, error)
-	GetTaskByID(ctx context.Context, id int64, userId int32) (*domain.TaskOutput, error)
-	CreateTask(ctx context.Context, input domain.CreateTaskInput) (*domain.TaskOutput, error)
-	UpdateTask(ctx context.Context, dbTask domain.TaskOutput, updatingTask domain.UpdateTaskInput) (*domain.TaskOutput, error)
-	AnalyzeForToday(ctx context.Context, userId int32) (*domain.TodayProgressOutput, error)
-	DeleteTaskByID(ctx context.Context, id int64, userId int32) error
-	DeleteFutureTasksByRecurringTasksTemplateID(ctx context.Context, templateId int64) error
-	CreateTasksByRecurringTasksTemplates(ctx context.Context) error
-	CreateTasksByRecurringTasksTemplate(ctx context.Context, template domain.RecurringTasksTemplateOutput) error
-}
-
-type taskService struct {
-	repo                          repo.Querier
-	recurringTasksTemplateService RecurringTasksTemplateService
-}
-
-func NewTaskService(repo repo.Querier, recurringTasksTemplateService RecurringTasksTemplateService) TaskService {
-	return &taskService{
-		repo:                          repo,
-		recurringTasksTemplateService: recurringTasksTemplateService,
-	}
-}
 
 func (s *taskService) ListTasksByGoalID(ctx context.Context, userId int32, goalId int32) ([]domain.TaskOutput, error) {
 	tasks, err := s.repo.ListTasksByGoalID(ctx, repo.ListTasksByGoalIDParams{
@@ -111,7 +82,7 @@ func (s *taskService) CreateTask(ctx context.Context, input domain.CreateTaskInp
 		},
 		HasTime: input.HasTime,
 		ScheduledTime: pgtype.Time{
-			Microseconds: timeToMicroseconds(input.ScheduledTime),
+			Microseconds: convertTimeToMicroseconds(input.ScheduledTime),
 			Valid:        input.HasTime,
 		},
 		DurationMinutes: pgtype.Int4{
@@ -143,7 +114,7 @@ func (s *taskService) UpdateTask(ctx context.Context, dbTask domain.TaskOutput, 
 		},
 		HasTime: updatingTask.HasTime,
 		ScheduledTime: pgtype.Time{
-			Microseconds: timeToMicroseconds(updatingTask.ScheduledTime),
+			Microseconds: convertTimeToMicroseconds(updatingTask.ScheduledTime),
 			Valid:        updatingTask.HasTime,
 		},
 		DurationMinutes: pgtype.Int4{
@@ -197,18 +168,29 @@ func (s *taskService) DeleteFutureTasksByRecurringTasksTemplateID(ctx context.Co
 }
 
 func (s *taskService) CreateTasksByRecurringTasksTemplates(ctx context.Context) error {
-	var templates []domain.RecurringTasksTemplateOutput
-	var err error
-
-	templates, err = s.recurringTasksTemplateService.ListRecurringTasksTemplatesDueForGeneration(ctx)
+	templates, err := s.repo.ListRecurringTasksTemplatesDueForGeneration(ctx)
 	if err != nil {
 		return err
 	}
 
 	for _, template := range templates {
-		err = s.CreateTasksByRecurringTasksTemplate(ctx, template)
+		outTemplate := domain.RecurringTasksTemplateOutput{
+			ID:                template.ID,
+			UserID:            template.UserID,
+			GoalID:            template.GoalID,
+			Title:             template.Title,
+			ScheduledDatetime: template.ScheduledDatetime.Time,
+			HasTime:           template.HasTime,
+			DurationMinutes:   template.DurationMinutes,
+			RecurrenceRrule:   template.RecurrenceRrule,
+			LastGeneratedDate: template.LastGeneratedDate.Time,
+			CreatedAt:         template.CreatedAt.Time,
+		}
+
+		err = s.CreateTasksByRecurringTasksTemplate(ctx, outTemplate)
 		if err != nil {
-			return err
+			slog.Error("failed to process template", "template_id", template.ID, "error", err)
+			continue
 		}
 	}
 
@@ -216,67 +198,21 @@ func (s *taskService) CreateTasksByRecurringTasksTemplates(ctx context.Context) 
 }
 
 func (s *taskService) CreateTasksByRecurringTasksTemplate(ctx context.Context, template domain.RecurringTasksTemplateOutput) error {
-	var err error
-
-	horizonDate := time.Now().UTC().AddDate(0, 3, 0)
-	var rule *rrule.Set
-
-	rule, err = rrule.StrToRRuleSet(template.RecurrenceRrule)
+	tx, err := s.pool.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("couldn't parse rrule from template: %w", err)
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
+	defer func() {
+		_ = tx.Rollback(context.Background())
+	}()
 
-	rule.DTStart(template.ScheduledDatetime)
+	qtx := repo.New(tx)
 
-	var lastDate time.Time
-	if template.LastGeneratedDate.IsZero() {
-		lastDate = template.ScheduledDatetime.Add(-1 * time.Second)
-	} else {
-		lastDate = template.LastGeneratedDate
-	}
+	err = s.CreateTasksByTemplateInternal(ctx, template, qtx)
 
-	dates := rule.Between(lastDate, horizonDate, true)
-	if len(dates) == 0 {
-		return nil
-	}
-
-	for _, date := range dates {
-		var scheduledDateOnly, scheduledTimeOnly time.Time
-
-		scheduledDateOnly, _ = time.Parse(time.DateOnly, date.Format(time.DateOnly))
-		scheduledTimeOnly, _ = time.Parse(time.TimeOnly, date.Format(time.TimeOnly))
-
-		_, err = s.CreateTask(ctx, domain.CreateTaskInput{
-			UserID:          template.UserID,
-			GoalID:          template.GoalID,
-			Title:           template.Title,
-			ScheduledDate:   scheduledDateOnly,
-			ScheduledTime:   scheduledTimeOnly,
-			HasTime:         template.HasTime,
-			DurationMinutes: time.Duration(template.DurationMinutes) * time.Minute,
-		})
-		if err != nil {
-			return fmt.Errorf("couldn't create task by recurring tasks template: %w", err)
-		}
-	}
-
-	newLastGeneratedDate := dates[len(dates)-1]
-
-	_, err = s.recurringTasksTemplateService.UpdateLastGeneratedDateInRecurringTasksTemplateByID(ctx, domain.UpdateLastGeneratedDateInRecurringTasksTemplateInput{
-		ID:                template.ID,
-		LastGeneratedDate: newLastGeneratedDate,
-	})
-	if err != nil {
-		slog.Error("cannot update last_generated_date in recurring_template", "error", err)
-		return err
+	if err = tx.Commit(ctx); err != nil {
+		return fmt.Errorf("couldn't commit transaction for create tasks by recurring tasks template: %w", err)
 	}
 
 	return nil
-}
-
-func timeToMicroseconds(t time.Time) int64 {
-	return int64(t.Hour())*3600000000 +
-		int64(t.Minute())*60000000 +
-		int64(t.Second())*1000000 +
-		int64(t.Nanosecond())/1000
 }

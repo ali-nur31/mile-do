@@ -54,10 +54,11 @@ func main() {
 
 	pg, err := postgres.InitializeDatabaseConnection(ctx, &cfg.DB)
 	if err != nil {
+		slog.Error("couldn't initialize database pool connection", "error", err)
 		os.Exit(1)
 	}
 
-	defer pg.Pool.Close(ctx)
+	defer pg.Pool.Close()
 
 	queries := repo.New(pg.Pool)
 
@@ -87,7 +88,7 @@ func main() {
 	userService := service.NewUserService(queries, passwordManager)
 	userHandler := v1.NewUserHandler(userService)
 
-	authService := service.NewAuthService(queries, userService, jwtTokenManager, refreshTokenService, passwordManager)
+	authService := service.NewAuthService(queries, pg.Pool, userService, jwtTokenManager, refreshTokenService, passwordManager)
 	authHandler := v1.NewAuthHandler(authService)
 
 	goalService := service.NewGoalService(queries)
@@ -96,7 +97,7 @@ func main() {
 	recurringTasksTemplateService := service.NewRecurringTasksTemplateService(queries, asynq.Client)
 	recurringTasksTemplateHandler := v1.NewRecurringTasksTemplateHandler(recurringTasksTemplateService)
 
-	taskService := service.NewTaskService(queries, recurringTasksTemplateService)
+	taskService := service.NewTaskService(queries, pg.Pool, recurringTasksTemplateService)
 	taskHandler := v1.NewTaskHandler(taskService)
 
 	router := v1.NewRouter(
