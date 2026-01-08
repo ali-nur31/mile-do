@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  server:
+    build: .
+    container_name: mile-do-server
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=postgres
+      - REDIS_ADDR=redis:6379
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    networks:
+      - mile-do-network
+    restart: on-failure
+
+  migrator:
+    image: kukymbr/goose-docker:latest
+    container_name: mile-do-migrator
+    env_file:
+      - .env
+    volumes:
+      - ./db/migrations:/migrations
+    command:
+      - -dir=/db/migrations
+      - postgres
+      - "${GOOSE_DBSTRING}"
+      - up
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - mile-do-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: mile-do-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-mile_do_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mile-do-network
+    restart: always
+
+  redis:
+    image: redis:8-alpine
+    container_name: mile-do-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - mile-do-network
+    restart: always
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  mile-do-network:
+    driver: bridge
