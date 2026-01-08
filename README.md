@@ -82,16 +82,35 @@ docker-compose down
 
 ---
 
-## 🛠 Services & Ports
+## 📊 Services & Endpoints
 
-When running via Docker Compose, the following services are exposed:
+When running via Docker Compose, the following services and UIs are exposed:
 
-| Service | Internal Host | External Port | Description |
-| --- | --- |---------------| --- |
-| **Server** | `server` | `8080`        | Main Go Backend API (`http://localhost:8080`) |
-| **PostgreSQL** | `postgres` | `5435`        | Database (Use `localhost:5432` to connect via DBeaver) |
-| **Redis** | `redis` | `6378`        | Task Queue & Caching |
-| **Migrator** | `migrator` | N/A           | Ephemeral container. Runs on startup to apply SQL migrations. |
+| Service | Internal Host | Address / Port                                    | Description |
+| --- | --- |---------------------------------------------------| --- |
+| **API Server** | `server` | `http://localhost:8080`                           | Main REST API |
+| **Swagger UI** | `server` | `http://localhost:8080/api/v1/swagger/index.html` | Interactive API Documentation |
+| **AsynqMon** | `server` | `http://localhost:8080/api/v1/asynq/`             | Background Task Dashboard (Queues, Retries) |
+| **PostgreSQL** | `postgres` | `localhost:5435`                                  | Database Connection |
+| **Redis** | `redis` | `localhost:6378`                                  | Task Queue Storage |
+
+---
+
+## 📝 Documentation & Monitoring
+
+### Swagger UI (API Docs)
+
+The backend auto-generates API documentation using Swagger.
+
+* **URL:** [http://localhost:8080/api/v1/swagger/index.html](http://localhost:8080/api/v1/swagger/index.html)
+* **Usage:** You can test endpoints directly from the browser. Authorize using the Bearer token returned from the Login endpoint.
+
+### Asynq Monitor (Task Dashboard)
+
+We use `asynqmon` to visualize background jobs (recurring tasks generation, email sending, etc.).
+
+* **URL:** [http://localhost:8080/api/v1/asynq/](http://localhost:8080/api/v1/asynq/) *(Check your specific route config)*
+* **Usage:** Monitor queues, view failed tasks, and manually retry jobs.
 
 ---
 
