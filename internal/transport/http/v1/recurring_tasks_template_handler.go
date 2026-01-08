@@ -237,20 +237,20 @@ func convertDateTimeAndTime(startDateTimeString, endTimeString string) (time.Tim
 		return time.Time{}, duration, fmt.Errorf("start date time is empty")
 	}
 
-	startDateTime, err := time.Parse(dateTimeLayout, startDateTimeString)
+	startDateTime, err := time.Parse(time.DateTime, startDateTimeString)
 	if err != nil {
-		startDateTime, err = time.Parse(dateLayout, startDateTimeString)
+		startDateTime, err = time.Parse(time.DateOnly, startDateTimeString)
 		if err != nil {
 			return time.Time{}, duration, fmt.Errorf("invalid start datetime format: %v", err)
 		}
 	}
 
-	startTime, _ = time.Parse(timeLayout, startDateTime.Format(timeLayout))
+	startTime, _ = time.Parse(time.TimeOnly, startDateTime.Format(time.TimeOnly))
 
 	if endTimeString != "" {
 		var endTime time.Time
 
-		endTime, err = time.Parse(timeLayout, endTimeString)
+		endTime, err = time.Parse(time.TimeOnly, endTimeString)
 		if err != nil {
 			return time.Time{}, duration, fmt.Errorf("invalid end time format: %v", err)
 		}
