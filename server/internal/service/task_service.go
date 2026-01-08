@@ -86,7 +86,7 @@ func (s *taskService) CreateTask(ctx context.Context, input domain.CreateTaskInp
 			Valid:        input.HasTime,
 		},
 		DurationMinutes: pgtype.Int4{
-			Int32: int32(input.DurationMinutes.Minutes()),
+			Int32: input.DurationMinutes,
 			Valid: true,
 		},
 	})
@@ -118,7 +118,7 @@ func (s *taskService) UpdateTask(ctx context.Context, dbTask domain.TaskOutput, 
 			Valid:        updatingTask.HasTime,
 		},
 		DurationMinutes: pgtype.Int4{
-			Int32: int32(updatingTask.DurationMinutes.Minutes()),
+			Int32: updatingTask.DurationMinutes,
 			Valid: true,
 		},
 	}

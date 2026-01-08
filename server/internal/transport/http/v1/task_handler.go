@@ -215,7 +215,7 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 	}
 
 	var scheduledDate, scheduledTime time.Time
-	var duration time.Duration
+	var duration int32
 	var hasTime bool
 	if request.ScheduledDateTime != "" || (request.ScheduledDateTime != "" && request.ScheduledEndDateTime != "") {
 		scheduledDate, scheduledTime, hasTime, duration, err = convertDateTimes(request.ScheduledDateTime, request.ScheduledEndDateTime)
@@ -366,9 +366,9 @@ func (h *TaskHandler) DeleteTaskByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"message": "task has been removed"})
 }
 
-func convertDateTimes(startDateTimeString, endDateTimeString string) (time.Time, time.Time, bool, time.Duration, error) {
+func convertDateTimes(startDateTimeString, endDateTimeString string) (time.Time, time.Time, bool, int32, error) {
 	var startDate, startTime time.Time
-	duration := 15 * time.Minute
+	var duration int32 = 15
 	hasTime := false
 
 	if startDateTimeString == "" {
@@ -400,7 +400,7 @@ func convertDateTimes(startDateTimeString, endDateTimeString string) (time.Time,
 		}
 
 		if !endDateTime.IsZero() && endDateTime.After(startDateTime) {
-			duration = endDateTime.Sub(startDateTime)
+			duration = int32(endDateTime.Sub(startDateTime) / time.Minute)
 		}
 	}
 

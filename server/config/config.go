@@ -14,7 +14,8 @@ type Config struct {
 }
 
 type Api struct {
-	Port string `env:"API_PORT" env-default:":8080"`
+	Port        string `env:"API_PORT" env-default:":8080"`
+	FrontendUrl string `env:"FRONTEND_URL" env-default:"*"`
 }
 
 type Jwt struct {

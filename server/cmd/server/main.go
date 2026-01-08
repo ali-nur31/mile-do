@@ -23,6 +23,7 @@ import (
 	"github.com/ali-nur31/mile-do/pkg/redis_db"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+	echo_middleware "github.com/labstack/echo/v4/middleware"
 )
 
 // @title           Mile-Do API
@@ -111,6 +112,13 @@ func main() {
 	)
 
 	e := echo.New()
+
+	e.Use(echo_middleware.CORSWithConfig(echo_middleware.CORSConfig{
+		AllowOrigins:     []string{cfg.Api.FrontendUrl},
+		AllowMethods:     []string{echo.GET, echo.POST, echo.PATCH, echo.DELETE, echo.OPTIONS},
+		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAuthorization, echo.HeaderAccept},
+		AllowCredentials: true,
+	}))
 
 	apiGroup := e.Group("api/v1")
 

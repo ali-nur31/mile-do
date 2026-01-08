@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   server:
-    build: .
+    build:
+      context: ./server
+      dockerfile: Dockerfile
     container_name: mile-do-server
     ports:
       - "8080:8080"
@@ -28,7 +30,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./db/migrations:/migrations
+      - ./server/db/migrations:/migrations
     command:
       - -dir=/migrations
       - postgres
