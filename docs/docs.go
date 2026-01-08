@@ -73,6 +73,11 @@ const docTemplate = `{
         },
         "/auth/logout": {
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "logout from user account",
                 "consumes": [
                     "application/json"

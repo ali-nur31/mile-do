@@ -30,7 +30,7 @@ services:
     volumes:
       - ./db/migrations:/migrations
     command:
-      - -dir=/db/migrations
+      - -dir=/migrations
       - postgres
       - "${GOOSE_DBSTRING}"
       - up
@@ -44,7 +44,7 @@ services:
     image: postgres:16-alpine
     container_name: mile-do-db
     ports:
-      - "5432:5432"
+      - "5435:5432"
     environment:
       POSTGRES_USER: ${DB_USERNAME:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
@@ -64,7 +64,7 @@ services:
     image: redis:8-alpine
     container_name: mile-do-redis
     ports:
-      - "6379:6379"
+      - "6378:6379"
     volumes:
       - redis_data:/data
     healthcheck:

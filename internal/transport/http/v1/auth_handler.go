@@ -118,6 +118,7 @@ func (h *AuthHandler) RefreshAccessToken(c echo.Context) error {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
+// @Security     BearerAuth
 // @Success      200  {object}  map[string]string "successful log out"
 // @Failure      401  {object}  map[string]string "Unauthorized"
 // @Failure      500  {object}  map[string]string "Internal Server Error"
