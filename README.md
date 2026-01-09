@@ -1,0 +1,130 @@
+# Mile-Do
+
+**Mile-Do** is a comprehensive task and goal management platform. This monorepo contains both the backend server and the frontend client (planned), orchestrated via Docker Compose.
+
+## 📂 Repository Structure
+
+```text
+mile-do/
+├── .env                         # Environment variables for Docker
+├── client                       # Frontend Application (coming soon)
+│   └── Dockerfile               # Dockerfile for frontend
+├── docker-compose.yaml          # Main orchestration file for the entire stack
+├── README.md
+└── server                       # Backend API (Go, PostgreSQL, Redis)
+    ├── cmd
+    │   └── server
+    │       └── main.go          # Main runnable file
+    ├── config
+    │   └── config.go            # Config vars loader
+    ├── db
+    │   ├── migrations           # Database migrations
+    │   └── queries              # Sqlc queries to database
+    ├── Dockerfile               # Dockerfile for server
+    ├── docs                     # Swagger
+    ├── internal
+    │   ├── db                   # Generated database queries
+    │   ├── domain               # Mapper for business logic
+    │   ├── jobs                 # Background jobs
+    │   ├── service              # Business logic
+    │   └── transport
+    │       └── http
+    │           ├── middleware   # Middlewares for http transport endpoints
+    │           └── v1           # Handlers
+    │               └── dto      # Data transfer objects
+    ├── pkg                      # External packages
+    │   ├── asynq_jobs           # Client for background jobs
+    │   ├── auth                 # Essentials for auth
+    │   ├── logger               # Logger initialization
+    │   ├── postgres             # Postgres client
+    │   └── redis_db             # Redis client
+    └── sqlc.yaml                # Sqlc config file
+```
+
+---
+
+## 🚀 Quick Start
+
+You can spin up the entire infrastructure (Database, Redis, Backend, Migrations) with a single command.
+
+### Prerequisites
+
+* [Docker](https://www.docker.com/products/docker-desktop/)
+* [Docker Compose](https://docs.docker.com/compose/install/)
+
+### Run the Project
+
+1. **Configure Environment**
+* Ensure you have a `.env` file in the root directory. You can copy the example from .env-example file in root directory
+
+2. **Start Services**
+```bash
+docker-compose up -d --build
+```
+
+* `-d`: Detached mode (runs in background).
+* `--build`: Forces a rebuild of images (useful after code changes).
+
+3. **Check Status**
+```bash
+docker-compose ps
+```
+
+4. **View Logs**
+```bash
+docker-compose logs -f container_name
+```
+
+5. **Stop Services**
+```bash
+docker-compose down
+```
+
+---
+
+## 📊 Services & Endpoints
+
+When running via Docker Compose, the following services and UIs are exposed:
+
+| Service | Internal Host | Address / Port                                    | Description |
+| --- | --- |---------------------------------------------------| --- |
+| **API Server** | `server` | `http://localhost:8080`                           | Main REST API |
+| **Swagger UI** | `server` | `http://localhost:8080/api/v1/swagger/index.html` | Interactive API Documentation |
+| **AsynqMon** | `server` | `http://localhost:8080/api/v1/asynq/`             | Background Task Dashboard (Queues, Retries) |
+| **PostgreSQL** | `postgres` | `localhost:5435`                                  | Database Connection |
+| **Redis** | `redis` | `localhost:6378`                                  | Task Queue Storage |
+
+---
+
+## 📝 Documentation & Monitoring
+
+### Swagger UI (API Docs)
+
+The backend auto-generates API documentation using Swagger.
+
+* **URL:** [http://localhost:8080/api/v1/swagger/index.html](http://localhost:8080/api/v1/swagger/index.html)
+* **Usage:** You can test endpoints directly from the browser. Authorize using the Bearer token returned from the Login endpoint.
+
+### Asynq Monitor (Task Dashboard)
+
+We use `asynqmon` to visualize background jobs (recurring tasks generation, email sending, etc.).
+
+* **URL:** [http://localhost:8080/api/v1/asynq/](http://localhost:8080/api/v1/asynq/) *(Check your specific route config)*
+* **Usage:** Monitor queues, view failed tasks, and manually retry jobs.
+
+---
+
+## 🐛 Troubleshooting Common Issues
+
+**1. "port is already allocated"**
+
+* Stop any local instances of Postgres or Redis running on your machine.
+* Or change the external ports in `docker-compose.yml` (e.g., `"5435:5432"`).
+
+**2. Database connection failed**
+
+* Wait a few seconds. Postgres takes time to initialize on the first run. The `migrator` and `server` containers are configured to wait for it, but initialization might take longer on slower machines.
+
+**3. Changes in code are not reflected**
+
+* Docker does not watch for file changes by default. You must run `docker-compose up -d --build` to recompile the Go binary.

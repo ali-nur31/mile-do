@@ -1,0 +1,1209 @@
+basePath: /api/v1
+definitions:
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.AuthUserResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.CreateGoalRequest:
+    properties:
+      category_type:
+        type: string
+      color:
+        type: string
+      title:
+        type: string
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.CreateTaskRequest:
+    properties:
+      goal_id:
+        type: integer
+      scheduled_date_time:
+        type: string
+      scheduled_end_date_time:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GetUserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GoalData:
+    properties:
+      category_type:
+        type: string
+      color:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_archived:
+        type: boolean
+      title:
+        type: string
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GoalResponse:
+    properties:
+      category_type:
+        type: string
+      color:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_archived:
+        type: boolean
+      title:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListGoalsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GoalData'
+        type: array
+      user_id:
+        type: integer
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListRecurringTasksTemplatesResponse:
+    properties:
+      recurring_tasks_template_data:
+        items:
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RecurringTasksTemplateData'
+        type: array
+      user_id:
+        type: integer
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListTasksResponse:
+    properties:
+      task_data:
+        items:
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskData'
+        type: array
+      user_id:
+        type: integer
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.LoginUserRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RecurringTasksTemplateData:
+    properties:
+      created_at:
+        type: string
+      duration_minutes:
+        type: integer
+      goal_id:
+        type: integer
+      has_time:
+        type: boolean
+      id:
+        type: integer
+      last_generated_date:
+        type: string
+      recurrence_rrule:
+        type: string
+      scheduled_datetime:
+        type: string
+      title:
+        type: string
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RecurringTasksTemplateResponse:
+    properties:
+      created_at:
+        type: string
+      duration_minutes:
+        type: integer
+      goal_id:
+        type: integer
+      has_time:
+        type: boolean
+      id:
+        type: integer
+      last_generated_date:
+        type: string
+      recurrence_rrule:
+        type: string
+      scheduled_datetime:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RefreshAccessTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RegisterUserRequest:
+    properties:
+      confirm_password:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskData:
+    properties:
+      created_at:
+        type: string
+      duration_minutes:
+        type: integer
+      goal_id:
+        type: integer
+      has_time:
+        type: boolean
+      id:
+        type: integer
+      is_done:
+        type: boolean
+      reschedule_count:
+        type: integer
+      scheduled_date:
+        type: string
+      scheduled_time:
+        type: string
+      title:
+        type: string
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskResponse:
+    properties:
+      created_at:
+        type: string
+      duration_minutes:
+        type: integer
+      goal_id:
+        type: integer
+      has_time:
+        type: boolean
+      id:
+        type: integer
+      is_done:
+        type: boolean
+      reschedule_count:
+        type: integer
+      scheduled_date:
+        type: string
+      scheduled_time:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateGoalRequest:
+    properties:
+      category_type:
+        type: string
+      color:
+        type: string
+      id:
+        type: integer
+      is_archived:
+        type: boolean
+      title:
+        type: string
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateRecurringTasksTemplateRequest:
+    properties:
+      goal_id:
+        type: integer
+      has_time:
+        type: boolean
+      recurrence_rrule:
+        type: string
+      scheduled_datetime:
+        type: string
+      scheduled_end_time:
+        type: string
+      title:
+        type: string
+    type: object
+  github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateTaskRequest:
+    properties:
+      goal_id:
+        type: integer
+      is_done:
+        type: boolean
+      scheduled_date_time:
+        type: string
+      scheduled_end_date_time:
+        type: string
+      title:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+  description: API for Mile-Do, simple clone of TickTick.
+  termsOfService: http://swagger.io/terms/
+  title: Mile-Do API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: login to existing user account
+      parameters:
+      - description: Account Info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.LoginUserRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.AuthUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: login user
+      tags:
+      - auth
+  /auth/logout:
+    delete:
+      consumes:
+      - application/json
+      description: logout from user account
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: successful log out
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: logout user
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: refresh access token by refresh_token
+      parameters:
+      - description: Refresh token
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RefreshAccessTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.AuthUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: refresh access token
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: create new user account
+      parameters:
+      - description: Account Info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RegisterUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.AuthUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: register new user
+      tags:
+      - auth
+  /goals/:
+    get:
+      consumes:
+      - application/json
+      description: get list of goals
+      parameters:
+      - description: get goals by type
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListGoalsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get goals
+      tags:
+      - goals
+    patch:
+      consumes:
+      - application/json
+      description: update existing goal
+      parameters:
+      - description: New Goal Info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateGoalRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GoalResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: update goal
+      tags:
+      - goals
+    post:
+      consumes:
+      - application/json
+      description: create new unique goal
+      parameters:
+      - description: Goal Info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.CreateGoalRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GoalResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: create new goal
+      tags:
+      - goals
+  /goals/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete goal by :id
+      parameters:
+      - description: Goal ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: goal has been removed
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: delete goal by :id
+      tags:
+      - goals
+    get:
+      consumes:
+      - application/json
+      description: get goal by :id
+      parameters:
+      - description: Goal ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GoalResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get goal by :id
+      tags:
+      - goals
+  /goals/{id}/tasks:
+    get:
+      consumes:
+      - application/json
+      description: get tasks by :goal_id
+      parameters:
+      - description: Goal ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListTasksResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get tasks by :goal_id
+      tags:
+      - tasks
+  /recurring-tasks-templates/:
+    get:
+      consumes:
+      - application/json
+      description: get recurring tasks templates
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListRecurringTasksTemplatesResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get recurring tasks templates
+      tags:
+      - recurring-tasks-templates
+    post:
+      consumes:
+      - application/json
+      description: create new recurring tasks template
+      parameters:
+      - description: Recurring Tasks Template Info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateRecurringTasksTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RecurringTasksTemplateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: create new recurring tasks template
+      tags:
+      - recurring-tasks-templates
+  /recurring-tasks-templates/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete recurring tasks template by :id
+      parameters:
+      - description: Recurring Tasks Template ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Recurring tasks template has been removed
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: delete recurring tasks template by :id
+      tags:
+      - recurring-tasks-templates
+    get:
+      consumes:
+      - application/json
+      description: get recurring tasks template by :id
+      parameters:
+      - description: Recurring Tasks Template ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RecurringTasksTemplateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get recurring tasks template by :id
+      tags:
+      - recurring-tasks-templates
+    patch:
+      consumes:
+      - application/json
+      description: update existing recurring tasks template by :id
+      parameters:
+      - description: Recurring Tasks Template ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: New Recurring Tasks Template Info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateRecurringTasksTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RecurringTasksTemplateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: update recurring tasks template by :id
+      tags:
+      - recurring-tasks-templates
+  /tasks/:
+    get:
+      consumes:
+      - application/json
+      description: get all tasks
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListTasksResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get tasks
+      tags:
+      - tasks
+    post:
+      consumes:
+      - application/json
+      description: create new task
+      parameters:
+      - description: Task Info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.CreateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: create new task
+      tags:
+      - tasks
+  /tasks/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete task by :id
+      parameters:
+      - description: Task ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Task has been removed
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: delete task by :id
+      tags:
+      - tasks
+    get:
+      consumes:
+      - application/json
+      description: get task by :id
+      parameters:
+      - description: Task ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get task by :id
+      tags:
+      - tasks
+    patch:
+      consumes:
+      - application/json
+      description: update existing task by :id
+      parameters:
+      - description: Task ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: New Task Info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: update task by :id
+      tags:
+      - tasks
+  /tasks/analyze:
+    get:
+      consumes:
+      - application/json
+      description: get count of completed tasks over total tasks for today
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get stats for today
+      tags:
+      - tasks
+  /tasks/inbox:
+    get:
+      consumes:
+      - application/json
+      description: get tasks without date
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListTasksResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get inbox tasks
+      tags:
+      - tasks
+  /tasks/period:
+    get:
+      consumes:
+      - application/json
+      description: get tasks by period
+      parameters:
+      - description: tasks after specific date
+        in: query
+        name: after_date
+        type: string
+      - description: tasks before specific date
+        in: query
+        name: before_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.ListTasksResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get tasks by period
+      tags:
+      - tasks
+  /users/me:
+    get:
+      consumes:
+      - application/json
+      description: get user account by bearer token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GetUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get user info
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
