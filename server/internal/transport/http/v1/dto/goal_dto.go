@@ -5,17 +5,17 @@ import (
 )
 
 type CreateGoalRequest struct {
-	Title        string `json:"title"`
-	Color        string `json:"color"`
-	CategoryType string `json:"category_type"`
+	Title        string `json:"title" validate:"required,min=3,max=256"`
+	Color        string `json:"color" validate:"omitempty,hexcolor"`
+	CategoryType string `json:"category_type" validate:"required,oneof=growth maintenance other"`
 }
 
 type UpdateGoalRequest struct {
-	ID           int64  `json:"id"`
-	Title        string `json:"title"`
-	Color        string `json:"color"`
-	CategoryType string `json:"category_type"`
-	IsArchived   bool   `json:"is_archived"`
+	ID           int64  `json:"id" validate:"required,gte=0"`
+	Title        string `json:"title" validate:"required,min=3,max=256"`
+	Color        string `json:"color" validate:"omitempty,hexcolor"`
+	CategoryType string `json:"category_type" validate:"required,oneof=growth maintenance other"`
+	IsArchived   bool   `json:"is_archived" validate:"required,oneof=true false"`
 }
 
 type GoalResponse struct {

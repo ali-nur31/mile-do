@@ -10,6 +10,7 @@ import (
 	"github.com/ali-nur31/mile-do/internal/domain"
 	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/ali-nur31/mile-do/internal/transport/http/v1/dto"
+	"github.com/ali-nur31/mile-do/pkg/validator"
 	"github.com/labstack/echo/v4"
 )
 
@@ -214,6 +215,10 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
+	if validateErrors := validator.ValidateStruct(request); validateErrors != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{"message": "validation failed", "details": validateErrors})
+	}
+
 	var scheduledDate, scheduledTime time.Time
 	var duration int32
 	var hasTime bool
@@ -273,6 +278,10 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 	var request dto.UpdateTaskRequest
 	if err = c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
+	}
+
+	if validateErrors := validator.ValidateStruct(request); validateErrors != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{"message": "validation failed", "details": validateErrors})
 	}
 
 	dbTask, err := h.service.GetTaskByID(c.Request().Context(), int64(taskId), userId)

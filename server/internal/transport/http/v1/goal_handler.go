@@ -8,6 +8,7 @@ import (
 	"github.com/ali-nur31/mile-do/internal/domain"
 	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/ali-nur31/mile-do/internal/transport/http/v1/dto"
+	"github.com/ali-nur31/mile-do/pkg/validator"
 	"github.com/labstack/echo/v4"
 )
 
@@ -108,6 +109,10 @@ func (h *GoalHandler) CreateGoal(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
+	if validateErrors := validator.ValidateStruct(request); validateErrors != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{"message": "validation failed", "details": validateErrors})
+	}
+
 	goal := domain.CreateGoalInput{
 		UserID:       userId,
 		Title:        request.Title,
@@ -146,6 +151,10 @@ func (h *GoalHandler) UpdateGoal(c echo.Context) error {
 	var request dto.UpdateGoalRequest
 	if err = c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
+	}
+
+	if validateErrors := validator.ValidateStruct(request); validateErrors != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{"message": "validation failed", "details": validateErrors})
 	}
 
 	outGoal, err := h.service.UpdateGoal(c.Request().Context(), domain.UpdateGoalInput{
