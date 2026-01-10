@@ -19,6 +19,8 @@ client/yarn-error.log*
 client/pnpm-debug.log*
 client/lerna-debug.log*
 
+client/.vite/
+
 # Diagnostic reports (https://nodejs.org/api/report.html)
 client/report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
