@@ -49,12 +49,12 @@ func (s *goalService) GetGoalByID(ctx context.Context, id int64, userId int32) (
 	return domain.ToGoalOutput(&goal), nil
 }
 
-func (s *goalService) CreateGoal(ctx context.Context, qtx *repo.Querier, input domain.CreateGoalInput) (*domain.GoalOutput, error) {
+func (s *goalService) CreateGoal(ctx context.Context, qtx repo.Querier, input domain.CreateGoalInput) (*domain.GoalOutput, error) {
 	if qtx == nil {
 		return s.createGoalInternal(ctx, s.repo, input)
 	}
 
-	return s.createGoalInternal(ctx, *qtx, input)
+	return s.createGoalInternal(ctx, qtx, input)
 }
 
 func (s *goalService) UpdateGoal(ctx context.Context, input domain.UpdateGoalInput) (*domain.GoalOutput, error) {

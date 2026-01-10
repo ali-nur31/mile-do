@@ -89,7 +89,7 @@ func main() {
 	userService := service.NewUserService(queries, passwordManager)
 	userHandler := v1.NewUserHandler(userService)
 
-	authService := service.NewAuthService(queries, pg.Pool, userService, jwtTokenManager, refreshTokenService, passwordManager)
+	authService := service.NewAuthService(queries, asynq.Client, pg.Pool, userService, jwtTokenManager, refreshTokenService, passwordManager)
 	authHandler := v1.NewAuthHandler(authService)
 
 	goalService := service.NewGoalService(queries)

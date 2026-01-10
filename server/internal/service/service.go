@@ -29,7 +29,7 @@ type AuthService interface {
 
 type authService struct {
 	repo                repo.Querier
-	asynq               asynq2.Client
+	asynq               *asynq2.Client
 	pool                *pgxpool.Pool
 	userService         UserService
 	tokenManager        AuthTokenManager
@@ -37,7 +37,7 @@ type authService struct {
 	passwordManager     AuthPasswordManager
 }
 
-func NewAuthService(repo repo.Querier, asynq asynq2.Client, pool *pgxpool.Pool, userService UserService, tokenManager AuthTokenManager, refreshTokenService RefreshTokenService, passwordManager AuthPasswordManager) AuthService {
+func NewAuthService(repo repo.Querier, asynq *asynq2.Client, pool *pgxpool.Pool, userService UserService, tokenManager AuthTokenManager, refreshTokenService RefreshTokenService, passwordManager AuthPasswordManager) AuthService {
 	return &authService{
 		repo:                repo,
 		asynq:               asynq,
@@ -86,7 +86,7 @@ func NewUserService(repo repo.Querier, passwordManager AuthPasswordManager) User
 type GoalService interface {
 	ListGoals(ctx context.Context, filter string, userId int32) ([]domain.GoalOutput, error)
 	GetGoalByID(ctx context.Context, id int64, userId int32) (*domain.GoalOutput, error)
-	CreateGoal(ctx context.Context, qtx *repo.Querier, input domain.CreateGoalInput) (*domain.GoalOutput, error)
+	CreateGoal(ctx context.Context, qtx repo.Querier, input domain.CreateGoalInput) (*domain.GoalOutput, error)
 	UpdateGoal(ctx context.Context, input domain.UpdateGoalInput) (*domain.GoalOutput, error)
 	DeleteGoalByID(ctx context.Context, id int64, userId int32) error
 }
