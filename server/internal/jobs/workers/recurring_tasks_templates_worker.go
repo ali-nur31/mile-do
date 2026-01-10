@@ -27,6 +27,7 @@ func (w *RecurringTasksTemplatesWorker) GenerateRecurringTasks(ctx context.Conte
 		return err
 	}
 
+	slog.Info("ended execution of recurring tasks generation job")
 	return nil
 }
 
@@ -47,6 +48,7 @@ func (w *RecurringTasksTemplatesWorker) GenerateRecurringTasksByTemplate(ctx con
 		return err
 	}
 
+	slog.Info("ended execution of recurring tasks generation by template job")
 	return nil
 }
 
@@ -67,5 +69,6 @@ func (w *RecurringTasksTemplatesWorker) DeleteRecurringTasksByTemplateID(ctx con
 		return err
 	}
 
+	slog.Info("ended execution of recurring tasks deletion by template id job")
 	return nil
 }

@@ -73,5 +73,6 @@ func (w *GoalsWorker) GenerateDefaultTasks(ctx context.Context, t *asynq.Task) e
 		slog.Error("couldn't commit transaction for default tasks generation job", "error", err)
 	}
 
+	slog.Info("ended execution of default tasks generation job")
 	return nil
 }
