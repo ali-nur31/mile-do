@@ -6,11 +6,12 @@ CREATE TABLE IF NOT EXISTS goals (
     id BIGSERIAL PRIMARY KEY,
     user_id INT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    title VARCHAR(255) UNIQUE NOT NULL,
+    title VARCHAR(255) NOT NULL,
     color VARCHAR(7),
     category_type goals_category_type NOT NULL DEFAULT 'growth',
     is_archived BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMP NOT NULL DEFAULT now()
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    UNIQUE (user_id, title)
 );
 -- +goose StatementEnd
 
