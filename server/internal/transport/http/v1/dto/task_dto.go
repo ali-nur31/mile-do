@@ -81,6 +81,13 @@ type ListTasksResponse struct {
 }
 
 func ToListTasksResponse(tasks []domain.TaskOutput) ListTasksResponse {
+	if len(tasks) == 0 {
+		return ListTasksResponse{
+			UserID:   0,
+			TaskData: []TaskData{},
+		}
+	}
+
 	taskData := make([]TaskData, len(tasks))
 
 	for index, task := range tasks {

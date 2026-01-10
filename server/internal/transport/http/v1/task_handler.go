@@ -289,10 +289,17 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "cannot find task with provided id", "error": err.Error()})
 	}
 
-	scheduledDate, scheduledTime, hasTime, duration, err := convertDateTimes(request.ScheduledDateTime, request.ScheduledEndDateTime)
-	if err != nil {
-		slog.Error("failed on updating task", "error", err)
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
+	scheduledDate := dbTask.ScheduledDate
+	scheduledTime := dbTask.ScheduledTime
+	hasTime := dbTask.HasTime
+	duration := dbTask.DurationMinutes
+
+	if request.ScheduledDateTime != "" {
+		scheduledDate, scheduledTime, hasTime, duration, err = convertDateTimes(request.ScheduledDateTime, request.ScheduledEndDateTime)
+		if err != nil {
+			slog.Error("failed on updating task", "error", err)
+			return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
+		}
 	}
 
 	outTask, err := h.service.UpdateTask(c.Request().Context(), *dbTask, domain.UpdateTaskInput{
@@ -307,6 +314,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 		DurationMinutes: duration,
 		RescheduleCount: dbTask.RescheduleCount,
 	})
+
 	if err != nil {
 		slog.Error("failed on updating task", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
@@ -404,7 +412,7 @@ func convertDateTimes(startDateTimeString, endDateTimeString string) (time.Time,
 		if err != nil {
 			endDateTime, err = time.Parse(time.DateOnly, endDateTimeString)
 			if err != nil {
-				return time.Time{}, time.Time{}, false, duration, fmt.Errorf("invalid start date time format: %v", err)
+				return time.Time{}, time.Time{}, false, duration, fmt.Errorf("invalid end date time format: %v", err)
 			}
 		}
 

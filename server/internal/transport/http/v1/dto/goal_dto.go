@@ -55,6 +55,13 @@ type ListGoalsResponse struct {
 }
 
 func ToListGoalsResponse(goals []domain.GoalOutput) ListGoalsResponse {
+	if len(goals) == 0 {
+		return ListGoalsResponse{
+			UserID: 0,
+			Data:   []GoalData{},
+		}
+	}
+
 	outGoalData := make([]GoalData, len(goals))
 
 	for index, goal := range goals {
