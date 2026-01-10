@@ -15,9 +15,7 @@ const (
 )
 
 func NewGenerateDefaultGoals(id int32) *asynq.Task {
-	payload := map[string]interface{}{"id": id}
-
-	encodedPayload, err := json.Marshal(payload)
+	encodedPayload, err := json.Marshal(id)
 	if err != nil {
 		slog.Error("couldn't convert map to bytes", "error", err)
 		return nil
@@ -41,9 +39,7 @@ func NewGenerateRecurringTasksByTemplateTask(template *RecurringTasksTemplateOut
 }
 
 func NewDeleteRecurringTasksByTemplateIDTask(id int64) *asynq.Task {
-	payload := map[string]interface{}{"id": id}
-
-	encodedPayload, err := json.Marshal(payload)
+	encodedPayload, err := json.Marshal(id)
 	if err != nil {
 		slog.Error("couldn't convert map to bytes", "error", err)
 		return nil
