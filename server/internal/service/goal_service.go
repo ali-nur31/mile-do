@@ -49,21 +49,12 @@ func (s *goalService) GetGoalByID(ctx context.Context, id int64, userId int32) (
 	return domain.ToGoalOutput(&goal), nil
 }
 
-func (s *goalService) CreateGoal(ctx context.Context, input domain.CreateGoalInput) (*domain.GoalOutput, error) {
-	goal, err := s.repo.CreateGoal(ctx, repo.CreateGoalParams{
-		UserID: input.UserID,
-		Title:  input.Title,
-		Color: pgtype.Text{
-			String: input.Color,
-			Valid:  true,
-		},
-		CategoryType: repo.GoalsCategoryType(input.CategoryType),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("couldn't create new goal: %w", err)
+func (s *goalService) CreateGoal(ctx context.Context, qtx *repo.Querier, input domain.CreateGoalInput) (*domain.GoalOutput, error) {
+	if qtx == nil {
+		return s.createGoalInternal(ctx, s.repo, input)
 	}
 
-	return domain.ToGoalOutput(&goal), nil
+	return s.createGoalInternal(ctx, *qtx, input)
 }
 
 func (s *goalService) UpdateGoal(ctx context.Context, input domain.UpdateGoalInput) (*domain.GoalOutput, error) {

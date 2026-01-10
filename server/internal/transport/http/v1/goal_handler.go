@@ -120,7 +120,7 @@ func (h *GoalHandler) CreateGoal(c echo.Context) error {
 		CategoryType: request.CategoryType,
 	}
 
-	outGoal, err := h.service.CreateGoal(c.Request().Context(), goal)
+	outGoal, err := h.service.CreateGoal(c.Request().Context(), nil, goal)
 	if err != nil {
 		slog.Error("failed on creating goal", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})

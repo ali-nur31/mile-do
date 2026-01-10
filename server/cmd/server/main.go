@@ -124,9 +124,10 @@ func main() {
 
 	router.InitRoutes(apiGroup)
 
+	goalsWorker := workers.NewGoalsWorker(goalService, pg.Pool)
 	recurringTasksTemplatesWorker := workers.NewRecurringTasksTemplatesWorker(taskService)
 
-	backgroundWorker := jobs.NewJobRouter(&cfg.Redis, recurringTasksTemplatesWorker)
+	backgroundWorker := jobs.NewJobRouter(&cfg.Redis, goalsWorker, recurringTasksTemplatesWorker)
 
 	go func() {
 		if err = backgroundWorker.Run(); err != nil {
