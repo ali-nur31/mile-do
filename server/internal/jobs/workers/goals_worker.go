@@ -13,14 +13,14 @@ import (
 )
 
 type GoalsWorker struct {
-	service service.GoalService
 	pool    *pgxpool.Pool
+	service service.GoalService
 }
 
-func NewGoalsWorker(service service.GoalService, pool *pgxpool.Pool) *GoalsWorker {
+func NewGoalsWorker(pool *pgxpool.Pool, service service.GoalService) *GoalsWorker {
 	return &GoalsWorker{
-		service: service,
 		pool:    pool,
+		service: service,
 	}
 }
 

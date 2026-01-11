@@ -11,7 +11,7 @@ import (
 	"github.com/teambition/rrule-go"
 )
 
-func (s *taskService) CreateTasksByTemplateInternal(ctx context.Context, template domain.RecurringTasksTemplateOutput, qtx *repo.Queries) error {
+func (s *taskService) CreateTasksByTemplateInternal(ctx context.Context, template domain.RecurringTasksTemplateOutput, qtx repo.Querier) error {
 	var err error
 
 	horizonDate := time.Now().UTC().AddDate(0, 3, 0)
@@ -68,15 +68,12 @@ func (s *taskService) CreateTasksByTemplateInternal(ctx context.Context, templat
 
 	newLastGeneratedDate := dates[len(dates)-1]
 
-	err = qtx.UpdateLastGeneratedDateInRecurringTasksTemplateByID(ctx, repo.UpdateLastGeneratedDateInRecurringTasksTemplateByIDParams{
-		ID: template.ID,
-		LastGeneratedDate: pgtype.Date{
-			Time:  newLastGeneratedDate,
-			Valid: true,
-		},
+	err = s.recurringTasksTemplateService.UpdateLastGeneratedDateInRecurringTasksTemplateByID(ctx, qtx, domain.UpdateLastGeneratedDateInRecurringTasksTemplateInput{
+		ID:                template.ID,
+		LastGeneratedDate: newLastGeneratedDate,
 	})
 	if err != nil {
-		return fmt.Errorf("couldn't update last_generated_date in recurring_template: %w", err)
+		return err
 	}
 
 	return nil

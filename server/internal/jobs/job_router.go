@@ -46,7 +46,7 @@ func (w *JobRouter) Run() error {
 
 	mux.HandleFunc(domain.TypeGenerateDefaultGoals, w.goalsWorker.GenerateDefaultTasks)
 
-	mux.HandleFunc(domain.TypeGenerateRecurringTasks, w.recurringTasksTemplatesWorker.GenerateRecurringTasks)
+	mux.HandleFunc(domain.TypeGenerateRecurringTasksDueForGeneration, w.recurringTasksTemplatesWorker.GenerateRecurringTasksDueForGeneration)
 	mux.HandleFunc(domain.TypeGenerateRecurringTasksByTemplate, w.recurringTasksTemplatesWorker.GenerateRecurringTasksByTemplate)
 	mux.HandleFunc(domain.TypeDeleteRecurringTasksByTemplateID, w.recurringTasksTemplatesWorker.DeleteRecurringTasksByTemplateID)
 

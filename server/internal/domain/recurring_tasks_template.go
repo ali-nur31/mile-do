@@ -61,6 +61,10 @@ func ToRecurringTasksTemplateOutput(template *repo.RecurringTasksTemplate) *Recu
 }
 
 func ToRecurringTasksTemplateOutputList(templates []repo.RecurringTasksTemplate) []RecurringTasksTemplateOutput {
+	if len(templates) == 0 {
+		return nil
+	}
+
 	output := make([]RecurringTasksTemplateOutput, len(templates))
 	for i, t := range templates {
 		output[i] = *ToRecurringTasksTemplateOutput(&t)

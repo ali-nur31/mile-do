@@ -25,7 +25,7 @@ func (s *authService) RegisterUser(ctx context.Context, user domain.UserInput) (
 		return nil, err
 	}
 
-	_, err = s.asynq.Enqueue(domain.NewGenerateDefaultGoals(int32(savedUser.ID)), asynq2.Queue("critical"))
+	_, err = s.asynq.Enqueue(domain.NewGenerateDefaultGoalsTask(int32(savedUser.ID)), asynq2.Queue("critical"))
 	if err != nil {
 		return nil, fmt.Errorf("couldn't enqueue generation of default tasks for new user: %w", err)
 	}

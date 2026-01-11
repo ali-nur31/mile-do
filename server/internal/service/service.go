@@ -107,8 +107,8 @@ type RecurringTasksTemplateService interface {
 	CreateRecurringTasksTemplate(ctx context.Context, input domain.CreateRecurringTasksTemplateInput) (*domain.RecurringTasksTemplateOutput, error)
 	UpdateRecurringTasksTemplateByID(ctx context.Context, dbTemplate domain.RecurringTasksTemplateOutput, updatingTemplate domain.UpdateRecurringTasksTemplateInput) (*domain.RecurringTasksTemplateOutput, error)
 	DeleteRecurringTasksTemplateByID(ctx context.Context, id int64, userId int32) error
-	ListRecurringTasksTemplatesDueForGeneration(ctx context.Context) ([]domain.RecurringTasksTemplateOutput, error)
-	UpdateLastGeneratedDateInRecurringTasksTemplateByID(ctx context.Context, updatingTemplate domain.UpdateLastGeneratedDateInRecurringTasksTemplateInput) (string, error)
+	ListRecurringTasksTemplatesDueForGeneration(ctx context.Context, qtx repo.Querier) ([]domain.RecurringTasksTemplateOutput, error)
+	UpdateLastGeneratedDateInRecurringTasksTemplateByID(ctx context.Context, qtx repo.Querier, updatingTemplate domain.UpdateLastGeneratedDateInRecurringTasksTemplateInput) error
 }
 
 type recurringTasksTemplateService struct {
@@ -134,8 +134,8 @@ type TaskService interface {
 	AnalyzeForToday(ctx context.Context, userId int32) (*domain.TodayProgressOutput, error)
 	DeleteTaskByID(ctx context.Context, id int64, userId int32) error
 	DeleteFutureTasksByRecurringTasksTemplateID(ctx context.Context, templateId int64) error
-	CreateTasksByRecurringTasksTemplates(ctx context.Context) error
-	CreateTasksByRecurringTasksTemplate(ctx context.Context, template domain.RecurringTasksTemplateOutput) error
+	CreateTasksByRecurringTasksTemplatesDueForGeneration(ctx context.Context, qtx repo.Querier) error
+	CreateTasksByRecurringTasksTemplate(ctx context.Context, qtx repo.Querier, template domain.RecurringTasksTemplateOutput) error
 }
 
 type taskService struct {

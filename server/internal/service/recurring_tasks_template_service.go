@@ -105,18 +105,11 @@ func (s *recurringTasksTemplateService) DeleteRecurringTasksTemplateByID(ctx con
 	return nil
 }
 
-func (s *recurringTasksTemplateService) ListRecurringTasksTemplatesDueForGeneration(ctx context.Context) ([]domain.RecurringTasksTemplateOutput, error) {
-	recurringTasksTemplates, err := s.repo.ListRecurringTasksTemplatesDueForGeneration(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("couldn't get recurring tasks templates due for generation: %w", err)
-	}
-
-	output := domain.ToRecurringTasksTemplateOutputList(recurringTasksTemplates)
-
-	return output, nil
+func (s *recurringTasksTemplateService) ListRecurringTasksTemplatesDueForGeneration(ctx context.Context, qtx repo.Querier) ([]domain.RecurringTasksTemplateOutput, error) {
+	return s.listRecurringTasksTemplatesDueForGenerationInternal(ctx, qtx)
 }
 
-func (s *recurringTasksTemplateService) UpdateLastGeneratedDateInRecurringTasksTemplateByID(ctx context.Context, updatingTemplate domain.UpdateLastGeneratedDateInRecurringTasksTemplateInput) (string, error) {
+func (s *recurringTasksTemplateService) UpdateLastGeneratedDateInRecurringTasksTemplateByID(ctx context.Context, qtx repo.Querier, updatingTemplate domain.UpdateLastGeneratedDateInRecurringTasksTemplateInput) error {
 	templateUpdatingParams := repo.UpdateLastGeneratedDateInRecurringTasksTemplateByIDParams{
 		ID: updatingTemplate.ID,
 		LastGeneratedDate: pgtype.Date{
@@ -125,10 +118,10 @@ func (s *recurringTasksTemplateService) UpdateLastGeneratedDateInRecurringTasksT
 		},
 	}
 
-	err := s.repo.UpdateLastGeneratedDateInRecurringTasksTemplateByID(ctx, templateUpdatingParams)
+	err := s.updateLastGeneratedDateInRecurringTasksTemplateInternal(ctx, qtx, templateUpdatingParams)
 	if err != nil {
-		return "", fmt.Errorf("couldn't update last generated date in recurring tasks template by id: %w", err)
+		return err
 	}
 
-	return updatingTemplate.LastGeneratedDate.String(), nil
+	return nil
 }
