@@ -10,6 +10,7 @@ import (
 	"github.com/ali-nur31/mile-do/internal/domain"
 	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/ali-nur31/mile-do/internal/transport/http/v1/dto"
+	"github.com/ali-nur31/mile-do/pkg/validator"
 	"github.com/labstack/echo/v4"
 )
 
@@ -106,6 +107,10 @@ func (h *RecurringTasksTemplateHandler) CreateRecurringTasksTemplate(c echo.Cont
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
+	if validateErrors := validator.ValidateStruct(request); validateErrors != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{"message": "validation failed", "details": validateErrors})
+	}
+
 	var duration time.Duration
 	var startDatetime time.Time
 	if request.ScheduledDatetime != "" || (request.ScheduledDatetime != "" && request.ScheduledEndTime != "") {
@@ -164,6 +169,10 @@ func (h *RecurringTasksTemplateHandler) UpdateRecurringTasksTemplateByID(c echo.
 	var request dto.UpdateRecurringTasksTemplateRequest
 	if err = c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
+	}
+
+	if validateErrors := validator.ValidateStruct(request); validateErrors != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{"message": "validation failed", "details": validateErrors})
 	}
 
 	dbTemplate, err := h.service.GetRecurringTasksTemplateByID(c.Request().Context(), int64(templateId), userId)

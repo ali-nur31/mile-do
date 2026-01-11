@@ -5,19 +5,19 @@ import (
 )
 
 type CreateTaskRequest struct {
-	UserID               int32  `json:"user_id"`
-	GoalID               int32  `json:"goal_id"`
-	Title                string `json:"title"`
-	ScheduledDateTime    string `json:"scheduled_date_time"`
-	ScheduledEndDateTime string `json:"scheduled_end_date_time"`
+	UserID               int32  `json:"user_id" validate:"required,gte=0"`
+	GoalID               int32  `json:"goal_id" validate:"required,gte=0"`
+	Title                string `json:"title" validate:"required,min=3,max=256"`
+	ScheduledDateTime    string `json:"scheduled_date_time" validate:"omitempty,min=10"`
+	ScheduledEndDateTime string `json:"scheduled_end_date_time" validate:"omitempty,min=10"`
 }
 
 type UpdateTaskRequest struct {
-	GoalID               int32  `json:"goal_id"`
-	Title                string `json:"title"`
-	IsDone               bool   `json:"is_done"`
-	ScheduledDateTime    string `json:"scheduled_date_time"`
-	ScheduledEndDateTime string `json:"scheduled_end_date_time"`
+	GoalID               int32  `json:"goal_id" validate:"required,gte=0"`
+	Title                string `json:"title" validate:"required,min=3,max=256"`
+	IsDone               bool   `json:"is_done" validate:"required,oneof=true false"`
+	ScheduledDateTime    string `json:"scheduled_date_time" validate:"required,min=10"`
+	ScheduledEndDateTime string `json:"scheduled_end_date_time" validate:"omitempty,min=10"`
 }
 
 type CountCompletedTasksForTodayResponse struct {
@@ -81,7 +81,6 @@ type ListTasksResponse struct {
 }
 
 func ToListTasksResponse(tasks []domain.TaskOutput) ListTasksResponse {
-	// FIX: Handle empty list to prevent panic
 	if len(tasks) == 0 {
 		return ListTasksResponse{
 			UserID:   0,
@@ -90,6 +89,7 @@ func ToListTasksResponse(tasks []domain.TaskOutput) ListTasksResponse {
 	}
 
 	taskData := make([]TaskData, len(tasks))
+
 	for index, task := range tasks {
 		taskData[index] = TaskData{
 			ID:              task.ID,
