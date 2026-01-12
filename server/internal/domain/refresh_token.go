@@ -1,9 +1,10 @@
 package domain
 
 import (
+	"context"
 	"time"
 
-	repo "github.com/ali-nur31/mile-do/internal/db"
+	"github.com/ali-nur31/mile-do/internal/repository/db"
 )
 
 type CreateRefreshTokenInput struct {
@@ -28,4 +29,10 @@ func ToRefreshTokenOutput(token *repo.RefreshToken) *RefreshTokenOutput {
 		ExpiresAt: token.ExpiresAt.Time,
 		CreatedAt: token.CreatedAt.Time,
 	}
+}
+
+type RefreshTokenService interface {
+	GetRefreshTokenByUserID(ctx context.Context, qtx repo.Querier, userId int32) (*RefreshTokenOutput, error)
+	CreateRefreshToken(ctx context.Context, input CreateRefreshTokenInput) error
+	DeleteRefreshTokenByUserID(ctx context.Context, userId int32) error
 }

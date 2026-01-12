@@ -4,9 +4,21 @@ import (
 	"context"
 	"fmt"
 
-	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/domain"
+	"github.com/ali-nur31/mile-do/internal/repository/db"
 )
+
+type userService struct {
+	repo            repo.Querier
+	passwordManager domain.AuthPasswordManager
+}
+
+func NewUserService(repo repo.Querier, passwordManager domain.AuthPasswordManager) domain.UserService {
+	return &userService{
+		repo:            repo,
+		passwordManager: passwordManager,
+	}
+}
 
 func (s *userService) GetUserByEmail(ctx context.Context, email string) (*domain.UserOutput, error) {
 	user, err := s.repo.GetUserByEmail(ctx, email)

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/domain"
+	repo "github.com/ali-nur31/mile-do/internal/repository/db"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/teambition/rrule-go"
 )

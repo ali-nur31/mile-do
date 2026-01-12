@@ -5,11 +5,23 @@ import (
 	"fmt"
 	"time"
 
-	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/domain"
+	repo "github.com/ali-nur31/mile-do/internal/repository/db"
 	asynq2 "github.com/hibiken/asynq"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type recurringTasksTemplateService struct {
+	repo  repo.Querier
+	asynq *asynq2.Client
+}
+
+func NewRecurringTasksTemplateService(repo repo.Querier, asynq *asynq2.Client) domain.RecurringTasksTemplateService {
+	return &recurringTasksTemplateService{
+		repo:  repo,
+		asynq: asynq,
+	}
+}
 
 func (s *recurringTasksTemplateService) ListRecurringTasksTemplates(ctx context.Context, userId int32) ([]domain.RecurringTasksTemplateOutput, error) {
 	recurringTasksTemplates, err := s.repo.ListRecurringTasksTemplates(ctx, userId)

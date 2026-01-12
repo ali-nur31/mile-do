@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/domain"
+	repo "github.com/ali-nur31/mile-do/internal/repository/db"
 )
 
 func (s *recurringTasksTemplateService) listRecurringTasksTemplatesDueForGenerationInternal(ctx context.Context, qtx repo.Querier) ([]domain.RecurringTasksTemplateOutput, error) {

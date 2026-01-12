@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/domain"
+	"github.com/ali-nur31/mile-do/internal/repository/db"
 	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/hibiken/asynq"
 	"github.com/jackc/pgx/v5/pgxpool"

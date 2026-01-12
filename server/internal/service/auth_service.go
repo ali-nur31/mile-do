@@ -4,10 +4,33 @@ import (
 	"context"
 	"fmt"
 
-	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/domain"
+	"github.com/ali-nur31/mile-do/internal/repository/db"
 	asynq2 "github.com/hibiken/asynq"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+type authService struct {
+	repo                repo.Querier
+	asynq               *asynq2.Client
+	pool                *pgxpool.Pool
+	userService         domain.UserService
+	tokenManager        domain.AuthTokenManager
+	refreshTokenService RefreshTokenService
+	passwordManager     domain.AuthPasswordManager
+}
+
+func NewAuthService(repo repo.Querier, asynq *asynq2.Client, pool *pgxpool.Pool, userService domain.UserService, tokenManager domain.AuthTokenManager, refreshTokenService RefreshTokenService, passwordManager domain.AuthPasswordManager) domain.AuthService {
+	return &authService{
+		repo:                repo,
+		asynq:               asynq,
+		pool:                pool,
+		userService:         userService,
+		tokenManager:        tokenManager,
+		refreshTokenService: refreshTokenService,
+		passwordManager:     passwordManager,
+	}
+}
 
 func (s *authService) RegisterUser(ctx context.Context, user domain.UserInput) (*domain.AuthOutput, error) {
 	tx, err := s.pool.Begin(ctx)

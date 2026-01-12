@@ -10,9 +10,9 @@ import (
 
 	"github.com/ali-nur31/mile-do/config"
 	_ "github.com/ali-nur31/mile-do/docs"
-	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/jobs"
 	"github.com/ali-nur31/mile-do/internal/jobs/workers"
+	"github.com/ali-nur31/mile-do/internal/repository/db"
 	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/ali-nur31/mile-do/internal/transport/http/middleware"
 	v1 "github.com/ali-nur31/mile-do/internal/transport/http/v1"

@@ -5,10 +5,25 @@ import (
 	"fmt"
 	"log/slog"
 
-	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/domain"
+	repo "github.com/ali-nur31/mile-do/internal/repository/db"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+type taskService struct {
+	repo                          repo.Querier
+	pool                          *pgxpool.Pool
+	recurringTasksTemplateService domain.RecurringTasksTemplateService
+}
+
+func NewTaskService(repo repo.Querier, pool *pgxpool.Pool, recurringTasksTemplateService domain.RecurringTasksTemplateService) domain.TaskService {
+	return &taskService{
+		repo:                          repo,
+		pool:                          pool,
+		recurringTasksTemplateService: recurringTasksTemplateService,
+	}
+}
 
 func (s *taskService) ListTasksByGoalID(ctx context.Context, userId int32, goalId int32) ([]domain.TaskOutput, error) {
 	tasks, err := s.repo.ListTasksByGoalID(ctx, repo.ListTasksByGoalIDParams{
