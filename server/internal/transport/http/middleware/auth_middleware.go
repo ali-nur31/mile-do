@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/ali-nur31/mile-do/internal/domain"
-	"github.com/ali-nur31/mile-do/pkg/auth"
 	"github.com/labstack/echo/v4"
 )
 
@@ -53,7 +52,7 @@ func (m *AuthMiddleware) TokenCheckMiddleware() echo.MiddlewareFunc {
 			if err != nil {
 				slog.Error("couldn't verify token", "error", err)
 				return c.JSON(http.StatusUnauthorized, map[string]string{"message": "invalid token", "error": err.Error()})
-			} else if errors.Is(err, auth.TokenExpiredError) {
+			} else if errors.Is(err, domain.TokenExpiredError) {
 				return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
 			}
 

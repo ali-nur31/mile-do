@@ -35,7 +35,7 @@ func NewAuthService(repo repo.Querier, authCacheRepo domain.AuthCacheRepo, asynq
 	}
 }
 
-func (s *authService) RegisterUser(ctx context.Context, user domain.UserInput) (*domain.AuthOutput, error) {
+func (s *authService) RegisterUser(ctx context.Context, user domain.AuthInput) (*domain.AuthOutput, error) {
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
@@ -68,7 +68,7 @@ func (s *authService) RegisterUser(ctx context.Context, user domain.UserInput) (
 	return domain.ToAuthOutput(tokensData), nil
 }
 
-func (s *authService) LoginUser(ctx context.Context, user domain.UserInput) (*domain.AuthOutput, error) {
+func (s *authService) LoginUser(ctx context.Context, user domain.AuthInput) (*domain.AuthOutput, error) {
 	dbUser, err := s.userService.GetUserByEmail(ctx, user.Email)
 	if err != nil {
 		return nil, err

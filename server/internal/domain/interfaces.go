@@ -5,12 +5,11 @@ import (
 	"time"
 
 	repo "github.com/ali-nur31/mile-do/internal/repository/db"
-	"github.com/ali-nur31/mile-do/pkg/auth"
 )
 
 type AuthTokenManager interface {
-	CreateTokens(id int64) (*auth.TokensData, error)
-	VerifyToken(tokenString, tokenType string) (*auth.Claims, error)
+	CreateTokens(id int64) (*TokensData, error)
+	VerifyToken(tokenString, tokenType string) (*Claims, error)
 }
 
 type AuthPasswordManager interface {
@@ -19,8 +18,8 @@ type AuthPasswordManager interface {
 }
 
 type AuthService interface {
-	RegisterUser(ctx context.Context, user UserInput) (*AuthOutput, error)
-	LoginUser(ctx context.Context, user UserInput) (*AuthOutput, error)
+	RegisterUser(ctx context.Context, user AuthInput) (*AuthOutput, error)
+	LoginUser(ctx context.Context, user AuthInput) (*AuthOutput, error)
 	LogoutUser(ctx context.Context, userId int32, accessToken string, expiresAt time.Time) error
 	RefreshTokens(ctx context.Context, refreshToken string) (*AuthOutput, error)
 }
@@ -34,7 +33,7 @@ type RefreshTokenService interface {
 type UserService interface {
 	GetUserByEmail(ctx context.Context, email string) (*UserOutput, error)
 	GetUserByID(ctx context.Context, id int64) (*UserOutput, error)
-	CreateUser(ctx context.Context, qtx repo.Querier, user UserInput) (*UserOutput, error)
+	CreateUser(ctx context.Context, qtx repo.Querier, user AuthInput) (*UserOutput, error)
 }
 
 type GoalService interface {

@@ -8,7 +8,7 @@ import (
 	repo "github.com/ali-nur31/mile-do/internal/repository/db"
 )
 
-func (s *userService) createUserInternal(ctx context.Context, qtx repo.Querier, user domain.UserInput) (*domain.UserOutput, error) {
+func (s *userService) createUserInternal(ctx context.Context, qtx repo.Querier, user domain.AuthInput) (*domain.UserOutput, error) {
 	passwordHash, err := s.passwordManager.HashPassword(user.Password)
 	if err != nil {
 		return nil, fmt.Errorf("failed when hashing password: %w", err)

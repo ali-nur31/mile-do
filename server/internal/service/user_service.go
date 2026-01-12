@@ -38,6 +38,6 @@ func (s *userService) GetUserByID(ctx context.Context, id int64) (*domain.UserOu
 	return domain.ToUserOutput(&user), nil
 }
 
-func (s *userService) CreateUser(ctx context.Context, qtx repo.Querier, user domain.UserInput) (*domain.UserOutput, error) {
+func (s *userService) CreateUser(ctx context.Context, qtx repo.Querier, user domain.AuthInput) (*domain.UserOutput, error) {
 	return s.createUserInternal(ctx, qtx, user)
 }

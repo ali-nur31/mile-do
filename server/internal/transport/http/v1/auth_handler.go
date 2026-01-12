@@ -7,7 +7,6 @@ import (
 
 	"github.com/ali-nur31/mile-do/internal/domain"
 	"github.com/ali-nur31/mile-do/internal/transport/http/v1/dto"
-	"github.com/ali-nur31/mile-do/pkg/auth"
 	"github.com/ali-nur31/mile-do/pkg/validator"
 	"github.com/labstack/echo/v4"
 )
@@ -48,7 +47,7 @@ func (h *AuthHandler) RegisterUser(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": "passwords do not match"})
 	}
 
-	output, err := h.authService.RegisterUser(c.Request().Context(), domain.UserInput{
+	output, err := h.authService.RegisterUser(c.Request().Context(), domain.AuthInput{
 		Email:    request.Email,
 		Password: request.Password,
 	})
@@ -82,7 +81,7 @@ func (h *AuthHandler) LoginUser(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{"message": "validation failed", "details": validateErrors})
 	}
 
-	output, err := h.authService.LoginUser(c.Request().Context(), domain.UserInput{
+	output, err := h.authService.LoginUser(c.Request().Context(), domain.AuthInput{
 		Email:    request.Email,
 		Password: request.Password,
 	})
@@ -153,9 +152,9 @@ func (h *AuthHandler) LogoutUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"message": "successful log out"})
 }
 
-func GetCurrentClaimsFromCtx(c echo.Context) (*auth.Claims, error) {
+func GetCurrentClaimsFromCtx(c echo.Context) (*domain.Claims, error) {
 	switch t := c.Get("claims").(type) {
-	case *auth.Claims:
+	case *domain.Claims:
 		return t, nil
 	default:
 		slog.Error("userId in context is not an integer", "value", t)

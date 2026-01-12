@@ -4,25 +4,7 @@ import (
 	"time"
 
 	"github.com/ali-nur31/mile-do/internal/repository/db"
-	"github.com/ali-nur31/mile-do/pkg/auth"
 )
-
-type UserInput struct {
-	Email    string
-	Password string
-}
-
-type AuthOutput struct {
-	AccessToken  string
-	RefreshToken string
-}
-
-func ToAuthOutput(t *auth.TokensData) *AuthOutput {
-	return &AuthOutput{
-		AccessToken:  t.AccessToken,
-		RefreshToken: t.RefreshToken,
-	}
-}
 
 type UserOutput struct {
 	ID           int64
