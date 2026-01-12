@@ -8,17 +8,16 @@ import (
 	"time"
 
 	"github.com/ali-nur31/mile-do/internal/domain"
-	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/ali-nur31/mile-do/internal/transport/http/v1/dto"
 	"github.com/ali-nur31/mile-do/pkg/validator"
 	"github.com/labstack/echo/v4"
 )
 
 type TaskHandler struct {
-	service service.TaskService
+	service domain.TaskService
 }
 
-func NewTaskHandler(service service.TaskService) *TaskHandler {
+func NewTaskHandler(service domain.TaskService) *TaskHandler {
 	return &TaskHandler{
 		service: service,
 	}
@@ -43,12 +42,12 @@ func (h *TaskHandler) GetTasksByGoalID(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	tasks, err := h.service.ListTasksByGoalID(c.Request().Context(), userId, int32(goalId))
+	tasks, err := h.service.ListTasksByGoalID(c.Request().Context(), int32(claims.ID), int32(goalId))
 	if err != nil {
 		slog.Error("failed on getting tasks by goal id", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
@@ -69,12 +68,12 @@ func (h *TaskHandler) GetTasksByGoalID(c echo.Context) error {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/inbox [get]
 func (h *TaskHandler) GetInboxTasks(c echo.Context) error {
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	tasks, err := h.service.ListInboxTasks(c.Request().Context(), userId)
+	tasks, err := h.service.ListInboxTasks(c.Request().Context(), int32(claims.ID))
 	if err != nil {
 		slog.Error("failed on getting inbox tasks", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
@@ -114,13 +113,13 @@ func (h *TaskHandler) GetTasksByPeriod(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request, before_date must be in YYYY-MM-DD format", "error": err.Error()})
 	}
 
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	tasks, err := h.service.ListTasksByPeriod(c.Request().Context(), domain.GetTasksByPeriodInput{
-		UserID:     userId,
+		UserID:     int32(claims.ID),
 		AfterDate:  afterDate,
 		BeforeDate: beforeDate,
 	})
@@ -144,12 +143,12 @@ func (h *TaskHandler) GetTasksByPeriod(c echo.Context) error {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/ [get]
 func (h *TaskHandler) GetTasks(c echo.Context) error {
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	tasks, err := h.service.ListTasks(c.Request().Context(), userId)
+	tasks, err := h.service.ListTasks(c.Request().Context(), int32(claims.ID))
 	if err != nil {
 		slog.Error("failed on getting all tasks", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
@@ -177,12 +176,12 @@ func (h *TaskHandler) GetTaskByID(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	task, err := h.service.GetTaskByID(c.Request().Context(), int64(id), userId)
+	task, err := h.service.GetTaskByID(c.Request().Context(), int64(id), int32(claims.ID))
 	if err != nil {
 		slog.Error("failed on getting task by id", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
@@ -205,7 +204,7 @@ func (h *TaskHandler) GetTaskByID(c echo.Context) error {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/ [post]
 func (h *TaskHandler) CreateTask(c echo.Context) error {
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -231,7 +230,7 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 	}
 
 	task := domain.CreateTaskInput{
-		UserID:          userId,
+		UserID:          int32(claims.ID),
 		GoalID:          request.GoalID,
 		Title:           request.Title,
 		ScheduledDate:   scheduledDate,
@@ -265,7 +264,7 @@ func (h *TaskHandler) CreateTask(c echo.Context) error {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /tasks/{id} [patch]
 func (h *TaskHandler) UpdateTask(c echo.Context) error {
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -284,7 +283,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{"message": "validation failed", "details": validateErrors})
 	}
 
-	dbTask, err := h.service.GetTaskByID(c.Request().Context(), int64(taskId), userId)
+	dbTask, err := h.service.GetTaskByID(c.Request().Context(), int64(taskId), int32(claims.ID))
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "cannot find task with provided id", "error": err.Error()})
 	}
@@ -304,7 +303,7 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 
 	outTask, err := h.service.UpdateTask(c.Request().Context(), *dbTask, domain.UpdateTaskInput{
 		ID:              int64(taskId),
-		UserID:          userId,
+		UserID:          int32(claims.ID),
 		GoalID:          request.GoalID,
 		Title:           request.Title,
 		IsDone:          request.IsDone,
@@ -335,12 +334,12 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Router       /tasks/analyze [get]
 func (h *TaskHandler) AnalyzeForToday(c echo.Context) error {
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	stats, err := h.service.AnalyzeForToday(c.Request().Context(), userId)
+	stats, err := h.service.AnalyzeForToday(c.Request().Context(), int32(claims.ID))
 	if err != nil {
 		slog.Error("failed on getting tasks analysis for today", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
@@ -369,12 +368,12 @@ func (h *TaskHandler) DeleteTaskByID(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	err = h.service.DeleteTaskByID(c.Request().Context(), int64(id), userId)
+	err = h.service.DeleteTaskByID(c.Request().Context(), int64(id), int32(claims.ID))
 	if err != nil {
 		slog.Error("failed on deleting task by id", "error", err)
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "task not found", "error": err.Error()})

@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"context"
 	"time"
 
 	"github.com/ali-nur31/mile-do/internal/repository/db"
@@ -80,19 +79,4 @@ func ToTaskOutputList(tasks []repo.Task) []TaskOutput {
 
 func microsecondsToTime(msec int64) time.Time {
 	return time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC).Add(time.Duration(msec) * time.Microsecond)
-}
-
-type TaskService interface {
-	ListTasksByGoalID(ctx context.Context, userId int32, goalId int32) ([]TaskOutput, error)
-	ListInboxTasks(ctx context.Context, userId int32) ([]TaskOutput, error)
-	ListTasksByPeriod(ctx context.Context, period GetTasksByPeriodInput) ([]TaskOutput, error)
-	ListTasks(ctx context.Context, userId int32) ([]TaskOutput, error)
-	GetTaskByID(ctx context.Context, id int64, userId int32) (*TaskOutput, error)
-	CreateTask(ctx context.Context, input CreateTaskInput) (*TaskOutput, error)
-	UpdateTask(ctx context.Context, dbTask TaskOutput, updatingTask UpdateTaskInput) (*TaskOutput, error)
-	AnalyzeForToday(ctx context.Context, userId int32) (*TodayProgressOutput, error)
-	DeleteTaskByID(ctx context.Context, id int64, userId int32) error
-	DeleteFutureTasksByRecurringTasksTemplateID(ctx context.Context, templateId int64) error
-	CreateTasksByRecurringTasksTemplatesDueForGeneration(ctx context.Context, qtx repo.Querier) error
-	CreateTasksByRecurringTasksTemplate(ctx context.Context, qtx repo.Querier, template domain.RecurringTasksTemplateOutput) error
 }

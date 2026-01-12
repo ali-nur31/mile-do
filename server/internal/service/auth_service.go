@@ -3,26 +3,29 @@ package service
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/ali-nur31/mile-do/internal/domain"
 	"github.com/ali-nur31/mile-do/internal/repository/db"
-	asynq2 "github.com/hibiken/asynq"
+	"github.com/hibiken/asynq"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type authService struct {
 	repo                repo.Querier
-	asynq               *asynq2.Client
+	authCacheRepo       domain.AuthCacheRepo
+	asynq               *asynq.Client
 	pool                *pgxpool.Pool
 	userService         domain.UserService
 	tokenManager        domain.AuthTokenManager
-	refreshTokenService RefreshTokenService
+	refreshTokenService domain.RefreshTokenService
 	passwordManager     domain.AuthPasswordManager
 }
 
-func NewAuthService(repo repo.Querier, asynq *asynq2.Client, pool *pgxpool.Pool, userService domain.UserService, tokenManager domain.AuthTokenManager, refreshTokenService RefreshTokenService, passwordManager domain.AuthPasswordManager) domain.AuthService {
+func NewAuthService(repo repo.Querier, authCacheRepo domain.AuthCacheRepo, asynq *asynq.Client, pool *pgxpool.Pool, userService domain.UserService, tokenManager domain.AuthTokenManager, refreshTokenService domain.RefreshTokenService, passwordManager domain.AuthPasswordManager) domain.AuthService {
 	return &authService{
 		repo:                repo,
+		authCacheRepo:       authCacheRepo,
 		asynq:               asynq,
 		pool:                pool,
 		userService:         userService,
@@ -48,7 +51,7 @@ func (s *authService) RegisterUser(ctx context.Context, user domain.UserInput) (
 		return nil, err
 	}
 
-	_, err = s.asynq.Enqueue(domain.NewGenerateDefaultGoalsTask(int32(savedUser.ID)), asynq2.Queue("critical"))
+	_, err = s.asynq.Enqueue(domain.NewGenerateDefaultGoalsTask(int32(savedUser.ID)), asynq.Queue("critical"))
 	if err != nil {
 		return nil, fmt.Errorf("couldn't enqueue generation of default tasks for new user: %w", err)
 	}
@@ -84,8 +87,13 @@ func (s *authService) LoginUser(ctx context.Context, user domain.UserInput) (*do
 	return domain.ToAuthOutput(tokensData), nil
 }
 
-func (s *authService) LogoutUser(ctx context.Context, userId int32) error {
-	err := s.refreshTokenService.DeleteRefreshTokenByUserID(ctx, userId)
+func (s *authService) LogoutUser(ctx context.Context, userId int32, accessToken string, expiresAt time.Time) error {
+	err := s.authCacheRepo.BlockToken(ctx, accessToken, time.Now().Sub(expiresAt))
+	if err != nil {
+		return fmt.Errorf("couldn't block access token: %w", err)
+	}
+
+	err = s.refreshTokenService.DeleteRefreshTokenByUserID(ctx, userId)
 	if err != nil {
 		return err
 	}

@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"context"
 	"time"
 
 	"github.com/ali-nur31/mile-do/internal/repository/db"
@@ -51,12 +50,4 @@ func ToGoalOutputList(goals []repo.Goal) []GoalOutput {
 		output[i] = *ToGoalOutput(&g)
 	}
 	return output
-}
-
-type GoalService interface {
-	ListGoals(ctx context.Context, filter string, userId int32) ([]GoalOutput, error)
-	GetGoalByID(ctx context.Context, id int64, userId int32) (*GoalOutput, error)
-	CreateGoal(ctx context.Context, qtx repo.Querier, input CreateGoalInput) (*GoalOutput, error)
-	UpdateGoal(ctx context.Context, input UpdateGoalInput) (*GoalOutput, error)
-	DeleteGoalByID(ctx context.Context, id int64, userId int32) error
 }

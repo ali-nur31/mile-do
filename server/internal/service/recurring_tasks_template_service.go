@@ -7,16 +7,16 @@ import (
 
 	"github.com/ali-nur31/mile-do/internal/domain"
 	repo "github.com/ali-nur31/mile-do/internal/repository/db"
-	asynq2 "github.com/hibiken/asynq"
+	"github.com/hibiken/asynq"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type recurringTasksTemplateService struct {
 	repo  repo.Querier
-	asynq *asynq2.Client
+	asynq *asynq.Client
 }
 
-func NewRecurringTasksTemplateService(repo repo.Querier, asynq *asynq2.Client) domain.RecurringTasksTemplateService {
+func NewRecurringTasksTemplateService(repo repo.Querier, asynq *asynq.Client) domain.RecurringTasksTemplateService {
 	return &recurringTasksTemplateService{
 		repo:  repo,
 		asynq: asynq,
@@ -63,7 +63,7 @@ func (s *recurringTasksTemplateService) CreateRecurringTasksTemplate(ctx context
 
 	outTemplate := domain.ToRecurringTasksTemplateOutput(&template)
 
-	_, err = s.asynq.Enqueue(domain.NewGenerateRecurringTasksByTemplateTask(outTemplate), asynq2.Queue("critical"))
+	_, err = s.asynq.Enqueue(domain.NewGenerateRecurringTasksByTemplateTask(outTemplate), asynq.Queue("critical"))
 	if err != nil {
 		return nil, fmt.Errorf("couldn't enqueue generation of recurring tasks by template task: %w", err)
 	}
@@ -92,12 +92,12 @@ func (s *recurringTasksTemplateService) UpdateRecurringTasksTemplateByID(ctx con
 
 	outTemplate := domain.ToRecurringTasksTemplateOutput(&template)
 
-	_, err = s.asynq.Enqueue(domain.NewDeleteRecurringTasksByTemplateIDTask(dbTemplate.ID), asynq2.Queue("critical"))
+	_, err = s.asynq.Enqueue(domain.NewDeleteRecurringTasksByTemplateIDTask(dbTemplate.ID), asynq.Queue("critical"))
 	if err != nil {
 		return nil, fmt.Errorf("couldn't enqueue deletion of recurring tasks by template id task: %w", err)
 	}
 
-	_, err = s.asynq.Enqueue(domain.NewGenerateRecurringTasksByTemplateTask(outTemplate), asynq2.Queue("critical"), asynq2.ProcessIn(1*time.Second))
+	_, err = s.asynq.Enqueue(domain.NewGenerateRecurringTasksByTemplateTask(outTemplate), asynq.Queue("critical"), asynq.ProcessIn(1*time.Second))
 	if err != nil {
 		return nil, fmt.Errorf("couldn't enqueue generation of recurring tasks by template task: %w", err)
 	}

@@ -8,17 +8,16 @@ import (
 
 	"github.com/ali-nur31/mile-do/internal/domain"
 	"github.com/ali-nur31/mile-do/internal/repository/db"
-	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/hibiken/asynq"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type RecurringTasksTemplatesWorker struct {
 	pool    *pgxpool.Pool
-	service service.TaskService
+	service domain.TaskService
 }
 
-func NewRecurringTasksTemplatesWorker(pool *pgxpool.Pool, service service.TaskService) *RecurringTasksTemplatesWorker {
+func NewRecurringTasksTemplatesWorker(pool *pgxpool.Pool, service domain.TaskService) *RecurringTasksTemplatesWorker {
 	return &RecurringTasksTemplatesWorker{
 		pool:    pool,
 		service: service,

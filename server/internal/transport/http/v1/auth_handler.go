@@ -6,17 +6,17 @@ import (
 	"net/http"
 
 	"github.com/ali-nur31/mile-do/internal/domain"
-	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/ali-nur31/mile-do/internal/transport/http/v1/dto"
+	"github.com/ali-nur31/mile-do/pkg/auth"
 	"github.com/ali-nur31/mile-do/pkg/validator"
 	"github.com/labstack/echo/v4"
 )
 
 type AuthHandler struct {
-	authService service.AuthService
+	authService domain.AuthService
 }
 
-func NewAuthHandler(authService service.AuthService) *AuthHandler {
+func NewAuthHandler(authService domain.AuthService) *AuthHandler {
 	return &AuthHandler{
 		authService: authService,
 	}
@@ -137,12 +137,14 @@ func (h *AuthHandler) RefreshAccessToken(c echo.Context) error {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /auth/logout [delete]
 func (h *AuthHandler) LogoutUser(c echo.Context) error {
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	err = h.authService.LogoutUser(c.Request().Context(), userId)
+	accessToken := c.Get("accessToken")
+
+	err = h.authService.LogoutUser(c.Request().Context(), int32(claims.ID), fmt.Sprint(accessToken), claims.ExpiresAt.Time)
 	if err != nil {
 		slog.Error("failed on logout", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
@@ -151,12 +153,12 @@ func (h *AuthHandler) LogoutUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"message": "successful log out"})
 }
 
-func GetCurrentUserIdFromCtx(c echo.Context) (int32, error) {
-	switch t := c.Get("userId").(type) {
-	case int64:
-		return int32(t), nil
+func GetCurrentClaimsFromCtx(c echo.Context) (*auth.Claims, error) {
+	switch t := c.Get("claims").(type) {
+	case *auth.Claims:
+		return t, nil
 	default:
 		slog.Error("userId in context is not an integer", "value", t)
-		return -1, fmt.Errorf("failed to convert userId to integer")
+		return nil, fmt.Errorf("failed to convert userId to integer")
 	}
 }
