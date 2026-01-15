@@ -21,7 +21,17 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <App />
-        <Toaster position="bottom-left" richColors closeButton />
+        <Toaster 
+          position="bottom-left"
+          richColors 
+          closeButton 
+          expand={true}
+          visibleToasts={3}
+          toastOptions={{
+            className: 'font-sans',
+            style: { border: 'none' } 
+          }}
+        />
       </BrowserRouter>
     </QueryClientProvider>
   </React.StrictMode>,

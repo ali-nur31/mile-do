@@ -3,10 +3,11 @@ import { useStore } from '../../store/useUIStore';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { tasksApi } from '../../api/tasks';
 import { goalsApi } from '../../api/goals';
-import { Trash2, Edit2, CheckSquare } from 'lucide-react';
-import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../../api/axios';
+import { Trash2, Edit2, CheckSquare } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { showToast } from '../../utils/toast';
+import type { Task } from '../../types';
 
 export const ContextMenu = () => {
   const { contextMenu, closeContextMenu, selectTask } = useStore();
@@ -27,26 +28,22 @@ export const ContextMenu = () => {
     mutationFn: (id: number) => tasksApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      toast.custom(() => (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/50 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 w-full">
-          <Trash2 size={18} />
-          <span className="font-medium text-sm">Task permanently deleted</span>
-        </div>
-      ), { duration: 3000 });
+      showToast('delete', 'Task Deleted', 'Permanently removed.');
       closeContextMenu();
     }
   });
 
   const deleteList = useMutation({
-    mutationFn: (id: number) => goalsApi.delete(id),
+    mutationFn: async (id: number) => {
+      const res = await api.get<{ task_data: Task[] }>(`/goals/${id}/tasks`);
+      const tasks = res.data.task_data || [];
+      await Promise.all(tasks.map(t => tasksApi.delete(t.id)));
+      return goalsApi.delete(id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['goals'] });
-      toast.custom(() => (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/50 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 w-full">
-          <Trash2 size={18} />
-          <span className="font-medium text-sm">List permanently deleted</span>
-        </div>
-      ), { duration: 3000 });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      showToast('delete', 'List Deleted', 'List and its tasks removed.');
       closeContextMenu();
     }
   });

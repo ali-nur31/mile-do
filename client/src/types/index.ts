@@ -55,10 +55,9 @@ export interface ListTasksResponse {
 }
 
 export interface CreateTaskRequest {
-  goal_id: number;
   title: string;
+  goal_id: number;
   scheduled_date_time?: string;
-  scheduled_end_date_time?: string;
 }
 
 export interface UpdateTaskRequest {
@@ -66,4 +65,11 @@ export interface UpdateTaskRequest {
   title?: string;
   is_done?: boolean;
   scheduled_date_time?: string;
+}
+
+export interface UpdateTaskPayload {
+  goal_id: number;
+  title: string;
+  is_done: boolean;
+  scheduled_date_time: string;
 }
