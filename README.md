@@ -37,7 +37,8 @@ mile-do/
     │   ├── auth                 # Essentials for auth
     │   ├── logger               # Logger initialization
     │   ├── postgres             # Postgres client
-    │   └── redis_db             # Redis client
+    │   ├── redis_db             # Redis client
+    │   └── validator            # Fields validator for http dtos
     └── sqlc.yaml                # Sqlc config file
 ```
 

@@ -8,6 +8,7 @@ import (
 	"github.com/ali-nur31/mile-do/internal/domain"
 	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/ali-nur31/mile-do/internal/transport/http/v1/dto"
+	"github.com/ali-nur31/mile-do/pkg/validator"
 	"github.com/labstack/echo/v4"
 )
 
@@ -37,6 +38,10 @@ func (h *AuthHandler) RegisterUser(c echo.Context) error {
 
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
+	}
+
+	if validateErrors := validator.ValidateStruct(request); validateErrors != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{"message": "validation failed", "details": validateErrors})
 	}
 
 	if request.Password != request.ConfirmPassword {
@@ -73,6 +78,10 @@ func (h *AuthHandler) LoginUser(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
+	if validateErrors := validator.ValidateStruct(request); validateErrors != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{"message": "validation failed", "details": validateErrors})
+	}
+
 	output, err := h.authService.LoginUser(c.Request().Context(), domain.UserInput{
 		Email:    request.Email,
 		Password: request.Password,
@@ -101,6 +110,10 @@ func (h *AuthHandler) RefreshAccessToken(c echo.Context) error {
 
 	if err := c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
+	}
+
+	if validateErrors := validator.ValidateStruct(request); validateErrors != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{"message": "validation failed", "details": validateErrors})
 	}
 
 	output, err := h.authService.RefreshTokens(c.Request().Context(), request.RefreshToken)

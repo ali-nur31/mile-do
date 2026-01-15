@@ -5,12 +5,12 @@ import (
 )
 
 type UpdateRecurringTasksTemplateRequest struct {
-	GoalID            int32  `json:"goal_id"`
-	Title             string `json:"title"`
-	ScheduledDatetime string `json:"scheduled_datetime"`
-	ScheduledEndTime  string `json:"scheduled_end_time"`
-	HasTime           bool   `json:"has_time"`
-	RecurrenceRrule   string `json:"recurrence_rrule"`
+	GoalID            int32  `json:"goal_id" validate:"required,gte=0"`
+	Title             string `json:"title" validate:"required,min=3,max=256"`
+	ScheduledDatetime string `json:"scheduled_datetime" validate:"required"`
+	ScheduledEndTime  string `json:"scheduled_end_time" validate:"omitempty"`
+	HasTime           bool   `json:"has_time" validate:"required,oneof=true false"`
+	RecurrenceRrule   string `json:"recurrence_rrule" validate:"required,min=3"`
 }
 
 type RecurringTasksTemplateResponse struct {
