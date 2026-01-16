@@ -32,17 +32,19 @@ type authService struct {
 	asynq               *asynq2.Client
 	pool                *pgxpool.Pool
 	userService         UserService
+	goalService         GoalService
 	tokenManager        AuthTokenManager
 	refreshTokenService RefreshTokenService
 	passwordManager     AuthPasswordManager
 }
 
-func NewAuthService(repo repo.Querier, asynq *asynq2.Client, pool *pgxpool.Pool, userService UserService, tokenManager AuthTokenManager, refreshTokenService RefreshTokenService, passwordManager AuthPasswordManager) AuthService {
+func NewAuthService(repo repo.Querier, asynq *asynq2.Client, pool *pgxpool.Pool, userService UserService, goalService GoalService, tokenManager AuthTokenManager, refreshTokenService RefreshTokenService, passwordManager AuthPasswordManager) AuthService {
 	return &authService{
 		repo:                repo,
 		asynq:               asynq,
 		pool:                pool,
 		userService:         userService,
+		goalService:         goalService,
 		tokenManager:        tokenManager,
 		refreshTokenService: refreshTokenService,
 		passwordManager:     passwordManager,

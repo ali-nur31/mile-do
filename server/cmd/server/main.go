@@ -89,11 +89,11 @@ func main() {
 	userService := service.NewUserService(queries, passwordManager)
 	userHandler := v1.NewUserHandler(userService)
 
-	authService := service.NewAuthService(queries, asynq.Client, pg.Pool, userService, jwtTokenManager, refreshTokenService, passwordManager)
-	authHandler := v1.NewAuthHandler(authService)
-
 	goalService := service.NewGoalService(queries)
 	goalHandler := v1.NewGoalHandler(goalService)
+
+	authService := service.NewAuthService(queries, asynq.Client, pg.Pool, userService, goalService, jwtTokenManager, refreshTokenService, passwordManager)
+	authHandler := v1.NewAuthHandler(authService)
 
 	recurringTasksTemplateService := service.NewRecurringTasksTemplateService(queries, asynq.Client)
 	recurringTasksTemplateHandler := v1.NewRecurringTasksTemplateHandler(recurringTasksTemplateService)
@@ -124,10 +124,9 @@ func main() {
 
 	router.InitRoutes(apiGroup)
 
-	goalsWorker := workers.NewGoalsWorker(goalService, pg.Pool)
 	recurringTasksTemplatesWorker := workers.NewRecurringTasksTemplatesWorker(taskService)
 
-	backgroundWorker := jobs.NewJobRouter(&cfg.Redis, goalsWorker, recurringTasksTemplatesWorker)
+	backgroundWorker := jobs.NewJobRouter(&cfg.Redis, recurringTasksTemplatesWorker)
 
 	go func() {
 		if err = backgroundWorker.Run(); err != nil {

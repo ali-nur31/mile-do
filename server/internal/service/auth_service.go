@@ -6,7 +6,6 @@ import (
 
 	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/domain"
-	asynq2 "github.com/hibiken/asynq"
 )
 
 func (s *authService) RegisterUser(ctx context.Context, user domain.UserInput) (*domain.AuthOutput, error) {
@@ -25,9 +24,26 @@ func (s *authService) RegisterUser(ctx context.Context, user domain.UserInput) (
 		return nil, err
 	}
 
-	_, err = s.asynq.Enqueue(domain.NewGenerateDefaultGoals(int32(savedUser.ID)), asynq2.Queue("critical"))
-	if err != nil {
-		return nil, fmt.Errorf("couldn't enqueue generation of default tasks for new user: %w", err)
+	defaultGoals := []domain.CreateGoalInput{
+		{
+			UserID:       int32(savedUser.ID),
+			Title:        "Routine",
+			Color:        "#73260A",
+			CategoryType: "maintenance",
+		},
+		{
+			UserID:       int32(savedUser.ID),
+			Title:        "Other",
+			Color:        "#0096ff",
+			CategoryType: "other",
+		},
+	}
+
+	for _, input := range defaultGoals {
+		_, err = s.goalService.CreateGoal(ctx, qtx, input)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	tokensData, err := s.generateNewTokensInternal(ctx, qtx, savedUser.ID)
