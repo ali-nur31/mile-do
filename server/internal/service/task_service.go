@@ -5,10 +5,25 @@ import (
 	"fmt"
 	"log/slog"
 
-	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/domain"
+	repo "github.com/ali-nur31/mile-do/internal/repository/db"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+type taskService struct {
+	repo                          repo.Querier
+	pool                          *pgxpool.Pool
+	recurringTasksTemplateService domain.RecurringTasksTemplateService
+}
+
+func NewTaskService(repo repo.Querier, pool *pgxpool.Pool, recurringTasksTemplateService domain.RecurringTasksTemplateService) domain.TaskService {
+	return &taskService{
+		repo:                          repo,
+		pool:                          pool,
+		recurringTasksTemplateService: recurringTasksTemplateService,
+	}
+}
 
 func (s *taskService) ListTasksByGoalID(ctx context.Context, userId int32, goalId int32) ([]domain.TaskOutput, error) {
 	tasks, err := s.repo.ListTasksByGoalID(ctx, repo.ListTasksByGoalIDParams{
@@ -167,10 +182,14 @@ func (s *taskService) DeleteFutureTasksByRecurringTasksTemplateID(ctx context.Co
 	return nil
 }
 
-func (s *taskService) CreateTasksByRecurringTasksTemplates(ctx context.Context) error {
-	templates, err := s.repo.ListRecurringTasksTemplatesDueForGeneration(ctx)
+func (s *taskService) CreateTasksByRecurringTasksTemplatesDueForGeneration(ctx context.Context, qtx repo.Querier) error {
+	templates, err := s.recurringTasksTemplateService.ListRecurringTasksTemplatesDueForGeneration(ctx, qtx)
 	if err != nil {
 		return err
+	}
+
+	if templates == nil {
+		return nil
 	}
 
 	for _, template := range templates {
@@ -179,15 +198,15 @@ func (s *taskService) CreateTasksByRecurringTasksTemplates(ctx context.Context) 
 			UserID:            template.UserID,
 			GoalID:            template.GoalID,
 			Title:             template.Title,
-			ScheduledDatetime: template.ScheduledDatetime.Time,
+			ScheduledDatetime: template.ScheduledDatetime,
 			HasTime:           template.HasTime,
 			DurationMinutes:   template.DurationMinutes,
 			RecurrenceRrule:   template.RecurrenceRrule,
-			LastGeneratedDate: template.LastGeneratedDate.Time,
-			CreatedAt:         template.CreatedAt.Time,
+			LastGeneratedDate: template.LastGeneratedDate,
+			CreatedAt:         template.CreatedAt,
 		}
 
-		err = s.CreateTasksByRecurringTasksTemplate(ctx, outTemplate)
+		err = s.CreateTasksByRecurringTasksTemplate(ctx, qtx, outTemplate)
 		if err != nil {
 			slog.Error("failed to process template", "template_id", template.ID, "error", err)
 			continue
@@ -197,21 +216,10 @@ func (s *taskService) CreateTasksByRecurringTasksTemplates(ctx context.Context) 
 	return nil
 }
 
-func (s *taskService) CreateTasksByRecurringTasksTemplate(ctx context.Context, template domain.RecurringTasksTemplateOutput) error {
-	tx, err := s.pool.Begin(ctx)
+func (s *taskService) CreateTasksByRecurringTasksTemplate(ctx context.Context, qtx repo.Querier, template domain.RecurringTasksTemplateOutput) error {
+	err := s.CreateTasksByTemplateInternal(ctx, template, qtx)
 	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
-	}
-	defer func() {
-		_ = tx.Rollback(context.Background())
-	}()
-
-	qtx := repo.New(tx)
-
-	err = s.CreateTasksByTemplateInternal(ctx, template, qtx)
-
-	if err = tx.Commit(ctx); err != nil {
-		return fmt.Errorf("couldn't commit transaction for create tasks by recurring tasks template: %w", err)
+		return err
 	}
 
 	return nil

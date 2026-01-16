@@ -4,16 +4,16 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/ali-nur31/mile-do/internal/service"
+	"github.com/ali-nur31/mile-do/internal/domain"
 	"github.com/ali-nur31/mile-do/internal/transport/http/v1/dto"
 	"github.com/labstack/echo/v4"
 )
 
 type UserHandler struct {
-	userService service.UserService
+	userService domain.UserService
 }
 
-func NewUserHandler(userService service.UserService) *UserHandler {
+func NewUserHandler(userService domain.UserService) *UserHandler {
 	return &UserHandler{
 		userService: userService,
 	}
@@ -32,12 +32,12 @@ func NewUserHandler(userService service.UserService) *UserHandler {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /users/me [get]
 func (h *UserHandler) GetUser(c echo.Context) error {
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	user, err := h.userService.GetUserByID(c.Request().Context(), int64(userId))
+	user, err := h.userService.GetUserByID(c.Request().Context(), claims.ID)
 	if err != nil {
 		slog.Error("failed on getting user by id", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})

@@ -8,13 +8,13 @@ import (
 )
 
 const (
-	TypeGenerateDefaultGoals             = "generate:default:goals"
-	TypeGenerateRecurringTasks           = "generate:recurring:tasks"
-	TypeGenerateRecurringTasksByTemplate = "generate:recurring:tasks:by:template"
-	TypeDeleteRecurringTasksByTemplateID = "delete:recurring:tasks:by:template:id"
+	TypeGenerateDefaultGoals                   = "generate:default:goals"
+	TypeGenerateRecurringTasksDueForGeneration = "generate:recurring:tasks:due:for:generation"
+	TypeGenerateRecurringTasksByTemplate       = "generate:recurring:tasks:by:template"
+	TypeDeleteRecurringTasksByTemplateID       = "delete:recurring:tasks:by:template:id"
 )
 
-func NewGenerateDefaultGoals(id int32) *asynq.Task {
+func NewGenerateDefaultGoalsTask(id int32) *asynq.Task {
 	encodedPayload, err := json.Marshal(id)
 	if err != nil {
 		slog.Error("couldn't convert map to bytes", "error", err)
@@ -24,8 +24,8 @@ func NewGenerateDefaultGoals(id int32) *asynq.Task {
 	return asynq.NewTask(TypeGenerateDefaultGoals, encodedPayload)
 }
 
-func NewGenerateRecurringTasksTask() *asynq.Task {
-	return asynq.NewTask(TypeGenerateRecurringTasks, []byte{})
+func NewGenerateRecurringTasksDueForGenerationTask() *asynq.Task {
+	return asynq.NewTask(TypeGenerateRecurringTasksDueForGeneration, []byte{})
 }
 
 func NewGenerateRecurringTasksByTemplateTask(template *RecurringTasksTemplateOutput) *asynq.Task {

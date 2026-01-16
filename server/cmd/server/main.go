@@ -10,9 +10,9 @@ import (
 
 	"github.com/ali-nur31/mile-do/config"
 	_ "github.com/ali-nur31/mile-do/docs"
-	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/jobs"
 	"github.com/ali-nur31/mile-do/internal/jobs/workers"
+	"github.com/ali-nur31/mile-do/internal/repository/db"
 	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/ali-nur31/mile-do/internal/transport/http/middleware"
 	v1 "github.com/ali-nur31/mile-do/internal/transport/http/v1"
@@ -24,6 +24,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
+	"github.com/robfig/cron/v3"
 )
 
 // @title           Mile-Do API
@@ -124,8 +125,17 @@ func main() {
 
 	router.InitRoutes(apiGroup)
 
-	goalsWorker := workers.NewGoalsWorker(goalService, pg.Pool)
-	recurringTasksTemplatesWorker := workers.NewRecurringTasksTemplatesWorker(taskService)
+	c := cron.New()
+
+	scheduler := service.NewScheduler(c, asynq.Client)
+
+	scheduler.InitSchedules()
+
+	c.Start()
+	slog.Info("Cron scheduler started")
+
+	goalsWorker := workers.NewGoalsWorker(pg.Pool, goalService)
+	recurringTasksTemplatesWorker := workers.NewRecurringTasksTemplatesWorker(pg.Pool, taskService)
 
 	backgroundWorker := jobs.NewJobRouter(&cfg.Redis, goalsWorker, recurringTasksTemplatesWorker)
 
@@ -149,6 +159,10 @@ func main() {
 
 	<-quit
 	slog.Info("Received shutdown signal. shutting down...")
+
+	ctxCron := c.Stop()
+	<-ctxCron.Done()
+	slog.Info("Cron scheduler stopped")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

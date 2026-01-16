@@ -8,17 +8,16 @@ import (
 	"time"
 
 	"github.com/ali-nur31/mile-do/internal/domain"
-	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/ali-nur31/mile-do/internal/transport/http/v1/dto"
 	"github.com/ali-nur31/mile-do/pkg/validator"
 	"github.com/labstack/echo/v4"
 )
 
 type RecurringTasksTemplateHandler struct {
-	service service.RecurringTasksTemplateService
+	service domain.RecurringTasksTemplateService
 }
 
-func NewRecurringTasksTemplateHandler(service service.RecurringTasksTemplateService) *RecurringTasksTemplateHandler {
+func NewRecurringTasksTemplateHandler(service domain.RecurringTasksTemplateService) *RecurringTasksTemplateHandler {
 	return &RecurringTasksTemplateHandler{
 		service: service,
 	}
@@ -36,12 +35,12 @@ func NewRecurringTasksTemplateHandler(service service.RecurringTasksTemplateServ
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /recurring-tasks-templates/ [get]
 func (h *RecurringTasksTemplateHandler) GetRecurringTasksTemplates(c echo.Context) error {
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	templates, err := h.service.ListRecurringTasksTemplates(c.Request().Context(), userId)
+	templates, err := h.service.ListRecurringTasksTemplates(c.Request().Context(), int32(claims.ID))
 	if err != nil {
 		slog.Error("failed on getting recurring tasks templates", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
@@ -69,12 +68,12 @@ func (h *RecurringTasksTemplateHandler) GetRecurringTasksTemplateByID(c echo.Con
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	template, err := h.service.GetRecurringTasksTemplateByID(c.Request().Context(), int64(id), userId)
+	template, err := h.service.GetRecurringTasksTemplateByID(c.Request().Context(), int64(id), int32(claims.ID))
 	if err != nil {
 		slog.Error("failed on getting recurring tasks template by id", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
@@ -97,7 +96,7 @@ func (h *RecurringTasksTemplateHandler) GetRecurringTasksTemplateByID(c echo.Con
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /recurring-tasks-templates/ [post]
 func (h *RecurringTasksTemplateHandler) CreateRecurringTasksTemplate(c echo.Context) error {
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -122,7 +121,7 @@ func (h *RecurringTasksTemplateHandler) CreateRecurringTasksTemplate(c echo.Cont
 	}
 
 	template := domain.CreateRecurringTasksTemplateInput{
-		UserID:            userId,
+		UserID:            int32(claims.ID),
 		GoalID:            request.GoalID,
 		Title:             request.Title,
 		ScheduledDatetime: startDatetime,
@@ -156,7 +155,7 @@ func (h *RecurringTasksTemplateHandler) CreateRecurringTasksTemplate(c echo.Cont
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /recurring-tasks-templates/{id} [patch]
 func (h *RecurringTasksTemplateHandler) UpdateRecurringTasksTemplateByID(c echo.Context) error {
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -175,7 +174,7 @@ func (h *RecurringTasksTemplateHandler) UpdateRecurringTasksTemplateByID(c echo.
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{"message": "validation failed", "details": validateErrors})
 	}
 
-	dbTemplate, err := h.service.GetRecurringTasksTemplateByID(c.Request().Context(), int64(templateId), userId)
+	dbTemplate, err := h.service.GetRecurringTasksTemplateByID(c.Request().Context(), int64(templateId), int32(claims.ID))
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "cannot find recurring tasks template with provided id", "error": err.Error()})
 	}
@@ -188,7 +187,7 @@ func (h *RecurringTasksTemplateHandler) UpdateRecurringTasksTemplateByID(c echo.
 
 	outTemplate, err := h.service.UpdateRecurringTasksTemplateByID(c.Request().Context(), *dbTemplate, domain.UpdateRecurringTasksTemplateInput{
 		ID:                int64(templateId),
-		UserID:            userId,
+		UserID:            int32(claims.ID),
 		GoalID:            request.GoalID,
 		Title:             request.Title,
 		ScheduledDatetime: startDatetime,
@@ -224,12 +223,12 @@ func (h *RecurringTasksTemplateHandler) DeleteRecurringTasksTemplateByID(c echo.
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	err = h.service.DeleteRecurringTasksTemplateByID(c.Request().Context(), int64(id), userId)
+	err = h.service.DeleteRecurringTasksTemplateByID(c.Request().Context(), int64(id), int32(claims.ID))
 	if err != nil {
 		slog.Error("failed on deleting recurring tasks template by id", "error", err)
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "recurring tasks template not found", "error": err.Error()})

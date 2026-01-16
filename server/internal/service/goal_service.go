@@ -4,10 +4,20 @@ import (
 	"context"
 	"fmt"
 
-	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/domain"
+	repo "github.com/ali-nur31/mile-do/internal/repository/db"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type goalService struct {
+	repo repo.Querier
+}
+
+func NewGoalService(repo repo.Querier) domain.GoalService {
+	return &goalService{
+		repo: repo,
+	}
+}
 
 func (s *goalService) ListGoals(ctx context.Context, filter string, userId int32) ([]domain.GoalOutput, error) {
 	var goals []repo.Goal

@@ -5,22 +5,21 @@ import (
 	"encoding/json"
 	"log/slog"
 
-	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/domain"
-	"github.com/ali-nur31/mile-do/internal/service"
+	"github.com/ali-nur31/mile-do/internal/repository/db"
 	"github.com/hibiken/asynq"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type GoalsWorker struct {
-	service service.GoalService
 	pool    *pgxpool.Pool
+	service domain.GoalService
 }
 
-func NewGoalsWorker(service service.GoalService, pool *pgxpool.Pool) *GoalsWorker {
+func NewGoalsWorker(pool *pgxpool.Pool, service domain.GoalService) *GoalsWorker {
 	return &GoalsWorker{
-		service: service,
 		pool:    pool,
+		service: service,
 	}
 }
 

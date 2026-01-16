@@ -1,30 +1,16 @@
 package auth
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/ali-nur31/mile-do/config"
+	"github.com/ali-nur31/mile-do/internal/domain"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var TokenExpiredError = errors.New("token has expired")
-
 type JwtManager struct {
 	jwt *config.Jwt
-}
-
-type Claims struct {
-	ID int64 `json:"id"`
-	jwt.RegisteredClaims
-}
-
-type TokensData struct {
-	AccessToken     string
-	AccessTokenExp  time.Time
-	RefreshToken    string
-	RefreshTokenExp time.Time
 }
 
 func NewJwtManager(jwt *config.Jwt) (*JwtManager, error) {
@@ -33,8 +19,8 @@ func NewJwtManager(jwt *config.Jwt) (*JwtManager, error) {
 	}, nil
 }
 
-func (m *JwtManager) CreateTokens(id int64) (*TokensData, error) {
-	accessClaims := Claims{
+func (m *JwtManager) CreateTokens(id int64) (*domain.TokensData, error) {
+	accessClaims := domain.Claims{
 		ID: id,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * time.Duration(m.jwt.AccessExpMins))),
@@ -42,7 +28,7 @@ func (m *JwtManager) CreateTokens(id int64) (*TokensData, error) {
 		},
 	}
 
-	refreshClaims := Claims{
+	refreshClaims := domain.Claims{
 		ID: id,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * time.Duration(m.jwt.RefreshExpDays))),
@@ -70,7 +56,7 @@ func (m *JwtManager) CreateTokens(id int64) (*TokensData, error) {
 		return nil, fmt.Errorf("couldn't sign refresh token: %w", err)
 	}
 
-	return &TokensData{
+	return &domain.TokensData{
 		AccessToken:     accessTokenString,
 		AccessTokenExp:  accessClaims.ExpiresAt.Time,
 		RefreshToken:    refreshTokenString,
@@ -78,7 +64,7 @@ func (m *JwtManager) CreateTokens(id int64) (*TokensData, error) {
 	}, nil
 }
 
-func (m *JwtManager) VerifyToken(tokenString, tokenType string) (*Claims, error) {
+func (m *JwtManager) VerifyToken(tokenString, tokenType string) (*domain.Claims, error) {
 	var secretKey string
 	if tokenType == "access" {
 		secretKey = m.jwt.AccessKey
@@ -88,7 +74,7 @@ func (m *JwtManager) VerifyToken(tokenString, tokenType string) (*Claims, error)
 		return nil, fmt.Errorf("invalid tokenType param: %v", tokenType)
 	}
 
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &domain.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -98,10 +84,10 @@ func (m *JwtManager) VerifyToken(tokenString, tokenType string) (*Claims, error)
 
 	if err != nil {
 		return nil, fmt.Errorf("couldn't parse %v token: %w", tokenType, err)
-	} else if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+	} else if claims, ok := token.Claims.(*domain.Claims); ok && token.Valid {
 		return claims, nil
 	} else if claims.ExpiresAt.Time.Before(time.Now()) {
-		return nil, TokenExpiredError
+		return nil, domain.TokenExpiredError
 	}
 
 	return nil, fmt.Errorf("invalid %v token claims", tokenType)

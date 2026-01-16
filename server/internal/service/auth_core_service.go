@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	repo "github.com/ali-nur31/mile-do/internal/db"
+	repo "github.com/ali-nur31/mile-do/internal/repository/db"
 	"github.com/ali-nur31/mile-do/pkg/auth"
 	"github.com/jackc/pgx/v5/pgtype"
 )
