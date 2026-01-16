@@ -9,13 +9,11 @@ import (
 
 type JobRouter struct {
 	server                        *asynq.Server
-	goalsWorker                   *workers.GoalsWorker
 	recurringTasksTemplatesWorker *workers.RecurringTasksTemplatesWorker
 }
 
 func NewJobRouter(
 	cfg *config.Redis,
-	goalsWorker *workers.GoalsWorker,
 	recurringTasksTemplatesWorker *workers.RecurringTasksTemplatesWorker,
 ) *JobRouter {
 	server := asynq.NewServer(
@@ -36,15 +34,12 @@ func NewJobRouter(
 
 	return &JobRouter{
 		server:                        server,
-		goalsWorker:                   goalsWorker,
 		recurringTasksTemplatesWorker: recurringTasksTemplatesWorker,
 	}
 }
 
 func (w *JobRouter) Run() error {
 	mux := asynq.NewServeMux()
-
-	mux.HandleFunc(domain.TypeGenerateDefaultGoals, w.goalsWorker.GenerateDefaultTasks)
 
 	mux.HandleFunc(domain.TypeGenerateRecurringTasksDueForGeneration, w.recurringTasksTemplatesWorker.GenerateRecurringTasksDueForGeneration)
 	mux.HandleFunc(domain.TypeGenerateRecurringTasksByTemplate, w.recurringTasksTemplatesWorker.GenerateRecurringTasksByTemplate)

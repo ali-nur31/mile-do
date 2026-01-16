@@ -4,9 +4,11 @@ import { AppLayout } from './components/layout/AppLayout';
 import { Dashboard } from './pages/Dashboard';
 import { Today } from './pages/Today';
 import { Goals } from './pages/Goals';
-import { GoalDetails } from './pages/GoalDetails';
+import { CalendarPage } from './pages/CalendarPage';
 import { Login } from './pages/Login';
+import { AllTasks } from './pages/AllTasks';
 import { useStore } from './store/useUIStore';
+import { GoalDetails } from './pages/GoalDetails';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useStore();
@@ -36,8 +38,10 @@ function App() {
       }>
         <Route index element={<Dashboard />} />
         <Route path="today" element={<Today />} />
+        <Route path="calendar" element={<CalendarPage />} />
         <Route path="goals" element={<Goals />} />
         <Route path="goals/:id" element={<GoalDetails />} />
+        <Route path="all" element={<AllTasks />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

@@ -1,43 +1,54 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/axios';
-import type { ListTasksResponse, CreateTaskRequest, UpdateTaskRequest } from '../types';
+import type { ListTasksResponse, UpdateTaskRequest, CreateTaskRequest } from '../types';
 import { TaskItem } from '../features/tasks/TaskItem';
 import { Loader2, Plus, Calendar } from 'lucide-react';
+import { useTasks } from '../hooks/useTasks';
+import { getTodayStr, combineToBackend } from '../utils/date';
+import { showToast } from '../utils/toast';
 
 export const Today = () => {
   const [inputValue, setInputValue] = useState('');
   const queryClient = useQueryClient();
-
-  const getTodayStr = () => new Date().toISOString().split('T')[0];
+  const { createTask } = useTasks();
 
   const { data, isLoading } = useQuery({
     queryKey: ['tasks', 'today'],
     queryFn: async () => {
       const todayStr = getTodayStr();
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const tomorrowStr = `${year}-${month}-${day}`;
 
       const res = await api.get<ListTasksResponse>(`/tasks/period?after_date=${todayStr}&before_date=${tomorrowStr}`);
       return res.data;
     }
   });
 
-  const createTask = useMutation({
-    mutationFn: async (title: string) => {
-      const payload: CreateTaskRequest = {
-        title,
-        goal_id: 0,
-        scheduled_date_time: getTodayStr(), 
-      };
-      return api.post('/tasks/', payload);
-    },
-    onSuccess: () => {
-      setInputValue('');
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-    }
-  });
+  const handleCreate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputValue.trim()) return;
+
+    const today = getTodayStr();
+    const scheduledDateTime = combineToBackend(today, "09:00");
+    
+    const payload: CreateTaskRequest = {
+      title: inputValue.trim(),
+      goal_id: 0,
+      scheduled_date_time: scheduledDateTime
+    };
+    
+    createTask.mutate(payload, {
+      onSuccess: () => {
+        setInputValue('');
+        showToast('success', 'Task added for today');
+      }
+    });
+  };
 
   const toggleTask = useMutation({
     mutationFn: async ({ id, isDone }: { id: number; isDone: boolean }) => {
@@ -46,12 +57,6 @@ export const Today = () => {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] })
   });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputValue.trim()) return;
-    createTask.mutate(inputValue);
-  };
 
   const tasks = data?.task_data || [];
   const todoTasks = tasks.filter(t => !t.is_done);
@@ -66,7 +71,7 @@ export const Today = () => {
         <span className="text-zinc-400 dark:text-zinc-500 font-normal text-lg">{new Date().toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })}</span>
       </header>
 
-      <form onSubmit={handleSubmit} className="mb-6">
+      <form onSubmit={handleCreate} className="mb-6">
         <div className="relative group shadow-sm rounded-lg bg-zinc-50 dark:bg-zinc-900 focus-within:bg-white dark:focus-within:bg-zinc-950 focus-within:ring-2 focus-within:ring-blue-100 dark:focus-within:ring-blue-900 transition-all border border-transparent focus-within:border-blue-200 dark:focus-within:border-blue-800">
           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-500 dark:text-blue-400">
             <Plus size={20} />

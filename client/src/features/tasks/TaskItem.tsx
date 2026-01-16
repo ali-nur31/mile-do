@@ -3,6 +3,7 @@ import type { Task } from '../../types';
 import { Check, Calendar, MoreVertical } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useStore } from '../../store/useUIStore';
+import { extractTimeFromBackend } from '../../utils/date';
 
 interface TaskItemProps {
   task: Task;
@@ -22,10 +23,16 @@ export const TaskItem = memo(({ task, onToggle }: TaskItemProps) => {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     const isTomorrow = date.toDateString() === tomorrow.toDateString();
+    const baseDate = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
     if (isToday) return 'Today';
     if (isTomorrow) return 'Tomorrow';
-    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+    const timeStr = extractTimeFromBackend(task.scheduled_time);
+    if (timeStr && timeStr !== "00:00") {
+      return `${baseDate} • ${timeStr}`;
+    }
+    return baseDate;
   };
 
   const dateLabel = dateObj ? getDateLabel(dateObj) : '';
@@ -65,7 +72,7 @@ export const TaskItem = memo(({ task, onToggle }: TaskItemProps) => {
       
       <div className="flex-1 min-w-0 flex flex-col">
         <span className={`text-[15px] leading-snug transition-all ${task.is_done ? 'text-zinc-400 dark:text-zinc-600 line-through' : 'text-zinc-800 dark:text-zinc-100 font-medium'}`}>
-          {task.title}
+          {task.title || "Untitled Task"}
         </span>
         
         {isDateValid && (

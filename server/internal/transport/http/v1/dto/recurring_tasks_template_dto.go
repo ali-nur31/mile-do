@@ -9,7 +9,7 @@ type UpdateRecurringTasksTemplateRequest struct {
 	Title             string `json:"title" validate:"required,min=3,max=256"`
 	ScheduledDatetime string `json:"scheduled_datetime" validate:"required"`
 	ScheduledEndTime  string `json:"scheduled_end_time" validate:"omitempty"`
-	HasTime           bool   `json:"has_time" validate:"required,oneof=true false"`
+	HasTime           bool   `json:"has_time" validate:"required"`
 	RecurrenceRrule   string `json:"recurrence_rrule" validate:"required,min=3"`
 }
 

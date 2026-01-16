@@ -1,15 +1,21 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Navigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/axios';
 import { goalsApi } from '../api/goals';
 import type { Task, CreateTaskRequest, UpdateTaskRequest } from '../types';
 import { TaskItem } from '../features/tasks/TaskItem';
 import { Loader2, Plus, Hash } from 'lucide-react';
+import { showToast } from '../utils/toast';
 
 export const GoalDetails = () => {
   const { id } = useParams<{ id: string }>();
-  const goalId = parseInt(id || '0');
+  const goalId = id ? parseInt(id, 10) : 0;
+  
+  if (!goalId || isNaN(goalId)) {
+      return <Navigate to="/goals" replace />;
+  }
+
   const queryClient = useQueryClient();
   const [inputValue, setInputValue] = useState('');
 
@@ -30,17 +36,16 @@ export const GoalDetails = () => {
 
   const createTask = useMutation({
     mutationFn: async (title: string) => {
-      const today = new Date().toISOString().split('T')[0];
       const payload: CreateTaskRequest = {
-        title,
+        title: title.trim(),
         goal_id: goalId,
-        scheduled_date_time: today 
       };
       return api.post('/tasks/', payload);
     },
     onSuccess: () => {
       setInputValue('');
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      showToast('success', 'Task added to list');
     }
   });
 
@@ -57,59 +62,77 @@ export const GoalDetails = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
-    createTask.mutate(inputValue);
+    createTask.mutate(inputValue); 
   };
 
   if (isGoalLoading || isTasksLoading) {
-    return <div className="flex justify-center h-64 items-center text-zinc-400"><Loader2 className="animate-spin" /></div>;
+    return (
+      <div className="flex justify-center h-64 items-center text-zinc-400">
+        <Loader2 className="animate-spin" size={24} />
+      </div>
+    );
   }
 
   const activeTasks = tasks?.filter(t => !t.is_done) || [];
   const completedTasks = tasks?.filter(t => t.is_done) || [];
 
   return (
-    <div>
-      <header className="mb-6 flex items-center gap-3">
-        <div className="p-2 bg-zinc-100 dark:bg-zinc-900 rounded-lg text-zinc-500 dark:text-zinc-400">
-           <Hash size={24} style={{ color: goal?.color }} />
-        </div>
-        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{goal?.title}</h1>
-      </header>
-
-      <form onSubmit={handleSubmit} className="mb-6">
-        <div className="relative group shadow-sm rounded-lg bg-zinc-50 dark:bg-zinc-900 focus-within:bg-white dark:focus-within:bg-zinc-950 focus-within:ring-2 focus-within:ring-blue-100 dark:focus-within:ring-blue-900 transition-all border border-transparent focus-within:border-blue-200 dark:focus-within:border-blue-800">
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-500 dark:text-blue-400">
-            <Plus size={20} />
+    <div className="max-w-3xl mx-auto">
+      <header className="mb-6 pb-6 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center border border-zinc-100 dark:border-zinc-800 shadow-sm text-zinc-500 dark:text-zinc-400">
+            <Hash size={24} style={{ color: goal?.color }} />
           </div>
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder={`Add to ${goal?.title}...`}
-            className="w-full pl-10 pr-4 py-3 bg-transparent border-none outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-600 text-[15px] text-zinc-900 dark:text-zinc-100"
-          />
+          <div>
+            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{goal?.title}</h1>
+            <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wide mt-1">
+              {activeTasks.length} tasks remaining
+            </p>
+          </div>
         </div>
+      </header>
+      <form onSubmit={handleSubmit} className="mb-8 relative group">
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 group-focus-within:text-blue-500 dark:group-focus-within:text-blue-400 transition-colors">
+          <Plus size={20} />
+        </div>
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder={`Add a task to ${goal?.title}...`}
+          className="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm outline-none 
+                     focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-500 dark:focus:border-blue-700 transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-600 text-zinc-900 dark:text-zinc-100"
+        />
       </form>
 
-      <div className="flex flex-col gap-8">
+      <div className="space-y-8">
         <div className="flex flex-col gap-2">
           {activeTasks.map((task) => (
-            <TaskItem key={task.id} task={task} onToggle={(id, isDone) => toggleTask.mutate({ id, isDone })} />
+            <TaskItem 
+              key={task.id} 
+              task={task} 
+              onToggle={(id, isDone) => toggleTask.mutate({ id, isDone })} 
+            />
           ))}
           {activeTasks.length === 0 && completedTasks.length === 0 && (
-            <div className="text-center py-10 text-zinc-400 dark:text-zinc-600 text-sm">Empty list</div>
+            <div className="text-zinc-400 dark:text-zinc-600 text-center py-10 text-sm italic">
+              This list is empty. Add a task above.
+            </div>
           )}
         </div>
 
         {completedTasks.length > 0 && (
           <div>
-            <div className="flex items-center gap-2 mb-3 px-2">
-               <span className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 bg-zinc-100 dark:bg-zinc-900 px-2 py-0.5 rounded">Completed</span>
-               <div className="h-[1px] flex-1 bg-zinc-100 dark:bg-zinc-800"></div>
-            </div>
-            <div className="opacity-60 flex flex-col gap-2">
+            <h2 className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3 px-1">
+              Completed
+            </h2>
+            <div className="flex flex-col gap-2 opacity-60 hover:opacity-100 transition-opacity">
               {completedTasks.map((task) => (
-                <TaskItem key={task.id} task={task} onToggle={(id, isDone) => toggleTask.mutate({ id, isDone })} />
+                <TaskItem 
+                  key={task.id} 
+                  task={task} 
+                  onToggle={(id, isDone) => toggleTask.mutate({ id, isDone })} 
+                />
               ))}
             </div>
           </div>

@@ -13,6 +13,7 @@ import (
 	"github.com/ali-nur31/mile-do/internal/jobs"
 	"github.com/ali-nur31/mile-do/internal/jobs/workers"
 	"github.com/ali-nur31/mile-do/internal/repository/db"
+	redis2 "github.com/ali-nur31/mile-do/internal/repository/redis"
 	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/ali-nur31/mile-do/internal/transport/http/middleware"
 	v1 "github.com/ali-nur31/mile-do/internal/transport/http/v1"
@@ -64,7 +65,7 @@ func main() {
 
 	queries := repo.New(pg.Pool)
 
-	_, err = redis_db.InitializeRedisConnection(ctx, &cfg.Redis)
+	redisClient, err := redis_db.InitializeRedisConnection(ctx, &cfg.Redis)
 	if err != nil {
 		os.Exit(1)
 	}
@@ -76,6 +77,8 @@ func main() {
 
 	defer asynq.Client.Close()
 
+	redisRepo := redis2.NewAuthRedisRepo(redisClient.Rdb)
+
 	passwordManager := auth.NewBcryptPasswordManager()
 
 	jwtTokenManager, err := auth.NewJwtManager(&cfg.Jwt)
@@ -85,16 +88,16 @@ func main() {
 
 	refreshTokenService := service.NewRefreshTokenService(queries)
 
-	authMiddleware := middleware.NewAuthMiddleware(jwtTokenManager, refreshTokenService)
+	authMiddleware := middleware.NewAuthMiddleware(redisRepo, jwtTokenManager, refreshTokenService)
 
 	userService := service.NewUserService(queries, passwordManager)
 	userHandler := v1.NewUserHandler(userService)
 
-	authService := service.NewAuthService(queries, asynq.Client, pg.Pool, userService, jwtTokenManager, refreshTokenService, passwordManager)
-	authHandler := v1.NewAuthHandler(authService)
-
 	goalService := service.NewGoalService(queries)
 	goalHandler := v1.NewGoalHandler(goalService)
+
+	authService := service.NewAuthService(queries, redisRepo, asynq.Client, pg.Pool, userService, goalService, jwtTokenManager, refreshTokenService, passwordManager)
+	authHandler := v1.NewAuthHandler(authService)
 
 	recurringTasksTemplateService := service.NewRecurringTasksTemplateService(queries, asynq.Client)
 	recurringTasksTemplateHandler := v1.NewRecurringTasksTemplateHandler(recurringTasksTemplateService)
@@ -134,10 +137,9 @@ func main() {
 	c.Start()
 	slog.Info("Cron scheduler started")
 
-	goalsWorker := workers.NewGoalsWorker(pg.Pool, goalService)
 	recurringTasksTemplatesWorker := workers.NewRecurringTasksTemplatesWorker(pg.Pool, taskService)
 
-	backgroundWorker := jobs.NewJobRouter(&cfg.Redis, goalsWorker, recurringTasksTemplatesWorker)
+	backgroundWorker := jobs.NewJobRouter(&cfg.Redis, recurringTasksTemplatesWorker)
 
 	go func() {
 		if err = backgroundWorker.Run(); err != nil {

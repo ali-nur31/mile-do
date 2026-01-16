@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Inbox, CalendarDays, Target, Hash, X, Plus, MoreVertical } from 'lucide-react';
+import { Inbox, CalendarDays, Target, Hash, X, Plus, MoreVertical, Layers, List } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useStore } from '../../store/useUIStore';
 import { useGoals } from '../../hooks/useGoals';
@@ -7,7 +7,9 @@ import { useGoals } from '../../hooks/useGoals';
 const navItems = [
   { icon: Inbox, label: 'Inbox', path: '/' },
   { icon: CalendarDays, label: 'Today', path: '/today' },
-  { icon: Target, label: 'Goals Overview', path: '/goals' },
+  { icon: Layers, label: 'All Tasks', path: '/all' },
+  { icon: Target, label: 'Calendar', path: '/calendar' },
+  { icon: List, label: 'Lists', path: '/goals' },
 ];
 
 export const Sidebar = () => {
@@ -49,7 +51,7 @@ export const Sidebar = () => {
         <div className="px-3">
           <div className="flex items-center justify-between px-3 mb-2 group">
             <h3 className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
-              Lists
+              My Lists
             </h3>
             <button 
               onClick={() => navigate('/goals')}
@@ -60,7 +62,7 @@ export const Sidebar = () => {
           </div>
           
           <div className="space-y-0.5">
-            {goals?.map((goal) => (
+            {goals?.filter(g => !g.is_archived).map((goal) => (
               <NavLink
                 key={goal.id}
                 to={`/goals/${goal.id}`}
@@ -87,7 +89,7 @@ export const Sidebar = () => {
                 </button>
               </NavLink>
             ))}
-            {goals?.length === 0 && (
+            {goals?.filter(g => !g.is_archived).length === 0 && (
               <div className="px-3 py-2 text-sm text-zinc-400 dark:text-zinc-600 italic">No lists yet</div>
             )}
           </div>

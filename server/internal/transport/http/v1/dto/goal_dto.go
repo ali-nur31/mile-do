@@ -15,7 +15,7 @@ type UpdateGoalRequest struct {
 	Title        string `json:"title" validate:"required,min=3,max=256"`
 	Color        string `json:"color" validate:"omitempty,hexcolor"`
 	CategoryType string `json:"category_type" validate:"required,oneof=growth maintenance other"`
-	IsArchived   bool   `json:"is_archived" validate:"required,oneof=true false"`
+	IsArchived   bool   `json:"is_archived" validate:"required"`
 }
 
 type GoalResponse struct {

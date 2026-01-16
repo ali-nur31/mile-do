@@ -1,9 +1,12 @@
 import { api } from './axios';
 import type { CreateGoalRequest, ListGoalsResponse, Goal, Task } from '../types';
 
-export interface UpdateGoalRequest extends Partial<CreateGoalRequest> {
+export interface UpdateGoalRequest {
   id: number;
-  is_archived?: boolean;
+  title: string;
+  color: string;
+  category_type: string;
+  is_archived: boolean;
 }
 
 export const goalsApi = {
@@ -27,8 +30,16 @@ export const goalsApi = {
     return response.data;
   },
 
-  update: async (data: UpdateGoalRequest) => {
-    const response = await api.patch('/goals/', data);
+  update: async (id: number, current: Goal, updates: Partial<UpdateGoalRequest>) => {
+    const payload: UpdateGoalRequest = {
+      id: id,
+      title: updates.title ?? current.title,
+      color: updates.color ?? current.color,
+      category_type: updates.category_type ?? current.category_type,
+      is_archived: updates.is_archived ?? current.is_archived
+    };
+    
+    const response = await api.patch('/goals/', payload);
     return response.data;
   },
 
