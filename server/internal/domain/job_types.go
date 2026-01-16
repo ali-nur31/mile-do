@@ -13,7 +13,7 @@ const (
 	TypeDeleteRecurringTasksByTemplateID       = "delete:recurring:tasks:by:template:id"
 )
 
-func NewGenerateRecurringTasksTask() *asynq.Task {
+func NewGenerateRecurringTasksDueForGenerationTask() *asynq.Task {
 	return asynq.NewTask(TypeGenerateRecurringTasksDueForGeneration, []byte{})
 }
 
