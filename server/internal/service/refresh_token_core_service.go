@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/domain"
+	"github.com/ali-nur31/mile-do/internal/repository/db"
 )
 
 func (s *refreshTokenService) getRefreshTokenByUserIDInternal(ctx context.Context, qtx repo.Querier, userId int32) (*domain.RefreshTokenOutput, error) {

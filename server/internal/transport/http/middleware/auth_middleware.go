@@ -6,22 +6,19 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ali-nur31/mile-do/internal/service"
-	"github.com/ali-nur31/mile-do/pkg/auth"
+	"github.com/ali-nur31/mile-do/internal/domain"
 	"github.com/labstack/echo/v4"
 )
 
-type AuthTokenManager interface {
-	VerifyToken(tokenString, tokenType string) (*auth.Claims, error)
-}
-
 type AuthMiddleware struct {
-	tokenManager        AuthTokenManager
-	refreshTokenService service.RefreshTokenService
+	authCacheRepo       domain.AuthCacheRepo
+	tokenManager        domain.AuthTokenManager
+	refreshTokenService domain.RefreshTokenService
 }
 
-func NewAuthMiddleware(tokenManager AuthTokenManager, refreshTokenService service.RefreshTokenService) *AuthMiddleware {
+func NewAuthMiddleware(authCacheRepo domain.AuthCacheRepo, tokenManager domain.AuthTokenManager, refreshTokenService domain.RefreshTokenService) *AuthMiddleware {
 	return &AuthMiddleware{
+		authCacheRepo:       authCacheRepo,
 		tokenManager:        tokenManager,
 		refreshTokenService: refreshTokenService,
 	}
@@ -42,15 +39,25 @@ func (m *AuthMiddleware) TokenCheckMiddleware() echo.MiddlewareFunc {
 
 			tokenString := parts[1]
 
+			isBlocked, err := m.authCacheRepo.IsTokenBlocked(c.Request().Context(), tokenString)
+			if err != nil {
+				slog.Error("couldn't check if token is blocked", "error", err)
+				return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
+			}
+			if isBlocked {
+				return c.JSON(http.StatusUnauthorized, map[string]string{"message": "unauthorized"})
+			}
+
 			claims, err := m.tokenManager.VerifyToken(tokenString, "access")
 			if err != nil {
 				slog.Error("couldn't verify token", "error", err)
 				return c.JSON(http.StatusUnauthorized, map[string]string{"message": "invalid token", "error": err.Error()})
-			} else if errors.Is(err, auth.TokenExpiredError) {
+			} else if errors.Is(err, domain.TokenExpiredError) {
 				return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
 			}
 
-			c.Set("userId", claims.ID)
+			c.Set("claims", claims)
+			c.Set("accessToken", tokenString)
 
 			return next(c)
 		}

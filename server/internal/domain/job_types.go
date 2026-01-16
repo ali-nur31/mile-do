@@ -8,13 +8,13 @@ import (
 )
 
 const (
-	TypeGenerateRecurringTasks           = "generate:recurring:tasks"
-	TypeGenerateRecurringTasksByTemplate = "generate:recurring:tasks:by:template"
-	TypeDeleteRecurringTasksByTemplateID = "delete:recurring:tasks:by:template:id"
+	TypeGenerateRecurringTasksDueForGeneration = "generate:recurring:tasks:due:for:generation"
+	TypeGenerateRecurringTasksByTemplate       = "generate:recurring:tasks:by:template"
+	TypeDeleteRecurringTasksByTemplateID       = "delete:recurring:tasks:by:template:id"
 )
 
 func NewGenerateRecurringTasksTask() *asynq.Task {
-	return asynq.NewTask(TypeGenerateRecurringTasks, []byte{})
+	return asynq.NewTask(TypeGenerateRecurringTasksDueForGeneration, []byte{})
 }
 
 func NewGenerateRecurringTasksByTemplateTask(template *RecurringTasksTemplateOutput) *asynq.Task {

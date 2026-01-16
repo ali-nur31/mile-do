@@ -3,12 +3,39 @@ package service
 import (
 	"context"
 	"fmt"
+	"time"
 
-	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/domain"
+	"github.com/ali-nur31/mile-do/internal/repository/db"
+	"github.com/hibiken/asynq"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func (s *authService) RegisterUser(ctx context.Context, user domain.UserInput) (*domain.AuthOutput, error) {
+type authService struct {
+	repo                repo.Querier
+	authCacheRepo       domain.AuthCacheRepo
+	asynq               *asynq.Client
+	pool                *pgxpool.Pool
+	userService         domain.UserService
+	tokenManager        domain.AuthTokenManager
+	refreshTokenService domain.RefreshTokenService
+	passwordManager     domain.AuthPasswordManager
+}
+
+func NewAuthService(repo repo.Querier, authCacheRepo domain.AuthCacheRepo, asynq *asynq.Client, pool *pgxpool.Pool, userService domain.UserService, tokenManager domain.AuthTokenManager, refreshTokenService domain.RefreshTokenService, passwordManager domain.AuthPasswordManager) domain.AuthService {
+	return &authService{
+		repo:                repo,
+		authCacheRepo:       authCacheRepo,
+		asynq:               asynq,
+		pool:                pool,
+		userService:         userService,
+		tokenManager:        tokenManager,
+		refreshTokenService: refreshTokenService,
+		passwordManager:     passwordManager,
+	}
+}
+
+func (s *authService) RegisterUser(ctx context.Context, user domain.AuthInput) (*domain.AuthOutput, error) {
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
@@ -58,7 +85,7 @@ func (s *authService) RegisterUser(ctx context.Context, user domain.UserInput) (
 	return domain.ToAuthOutput(tokensData), nil
 }
 
-func (s *authService) LoginUser(ctx context.Context, user domain.UserInput) (*domain.AuthOutput, error) {
+func (s *authService) LoginUser(ctx context.Context, user domain.AuthInput) (*domain.AuthOutput, error) {
 	dbUser, err := s.userService.GetUserByEmail(ctx, user.Email)
 	if err != nil {
 		return nil, err
@@ -77,8 +104,13 @@ func (s *authService) LoginUser(ctx context.Context, user domain.UserInput) (*do
 	return domain.ToAuthOutput(tokensData), nil
 }
 
-func (s *authService) LogoutUser(ctx context.Context, userId int32) error {
-	err := s.refreshTokenService.DeleteRefreshTokenByUserID(ctx, userId)
+func (s *authService) LogoutUser(ctx context.Context, userId int32, accessToken string, expiresAt time.Time) error {
+	err := s.authCacheRepo.BlockToken(ctx, accessToken, time.Now().Sub(expiresAt))
+	if err != nil {
+		return fmt.Errorf("couldn't block access token: %w", err)
+	}
+
+	err = s.refreshTokenService.DeleteRefreshTokenByUserID(ctx, userId)
 	if err != nil {
 		return err
 	}
