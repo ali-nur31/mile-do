@@ -12,11 +12,11 @@ type CreateTaskRequest struct {
 }
 
 type UpdateTaskRequest struct {
-	GoalID               *int32  `json:"goal_id" validate:"omitempty,gte=0"`
-	Title                *string `json:"title" validate:"omitempty,min=3,max=256"`
-	IsDone               *bool   `json:"is_done" validate:"omitempty"`
-	ScheduledDateTime    *string `json:"scheduled_date_time" validate:"omitempty,min=10"`
-	ScheduledEndDateTime *string `json:"scheduled_end_date_time" validate:"omitempty,min=10"`
+	GoalID               int32  `json:"goal_id" validate:"required,gte=0"`
+	Title                string `json:"title" validate:"required,min=3,max=256"`
+	IsDone               bool   `json:"is_done" validate:"required"`
+	ScheduledDateTime    string `json:"scheduled_date_time" validate:"required,min=10"`
+	ScheduledEndDateTime string `json:"scheduled_end_date_time" validate:"omitempty,min=10"`
 }
 
 type CountCompletedTasksForTodayResponse struct {

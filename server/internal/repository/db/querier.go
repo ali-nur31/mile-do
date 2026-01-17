@@ -37,6 +37,7 @@ type Querier interface {
 	ListTasksByDateRange(ctx context.Context, arg ListTasksByDateRangeParams) ([]Task, error)
 	ListTasksByGoalID(ctx context.Context, arg ListTasksByGoalIDParams) ([]Task, error)
 	UpdateGoalByID(ctx context.Context, arg UpdateGoalByIDParams) (Goal, error)
+	UpdateIsDoneInTaskByID(ctx context.Context, arg UpdateIsDoneInTaskByIDParams) (Task, error)
 	UpdateLastGeneratedDateInRecurringTasksTemplateByID(ctx context.Context, arg UpdateLastGeneratedDateInRecurringTasksTemplateByIDParams) error
 	UpdateRecurringTasksTemplateByID(ctx context.Context, arg UpdateRecurringTasksTemplateByIDParams) (RecurringTasksTemplate, error)
 	UpdateTaskByID(ctx context.Context, arg UpdateTaskByIDParams) (Task, error)

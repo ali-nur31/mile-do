@@ -302,6 +302,39 @@ func (q *Queries) ListTasksByGoalID(ctx context.Context, arg ListTasksByGoalIDPa
 	return items, nil
 }
 
+const updateIsDoneInTaskByID = `-- name: UpdateIsDoneInTaskByID :one
+UPDATE tasks
+SET is_done = $3
+WHERE id = $1 AND user_id = $2
+RETURNING id, user_id, goal_id, recurring_template_id, title, is_done, scheduled_date, has_time, scheduled_time, duration_minutes, reschedule_count, created_at
+`
+
+type UpdateIsDoneInTaskByIDParams struct {
+	ID     int64 `json:"id"`
+	UserID int32 `json:"user_id"`
+	IsDone bool  `json:"is_done"`
+}
+
+func (q *Queries) UpdateIsDoneInTaskByID(ctx context.Context, arg UpdateIsDoneInTaskByIDParams) (Task, error) {
+	row := q.db.QueryRow(ctx, updateIsDoneInTaskByID, arg.ID, arg.UserID, arg.IsDone)
+	var i Task
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.GoalID,
+		&i.RecurringTemplateID,
+		&i.Title,
+		&i.IsDone,
+		&i.ScheduledDate,
+		&i.HasTime,
+		&i.ScheduledTime,
+		&i.DurationMinutes,
+		&i.RescheduleCount,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const updateTaskByID = `-- name: UpdateTaskByID :one
 UPDATE tasks
 SET

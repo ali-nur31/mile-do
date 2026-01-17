@@ -97,6 +97,7 @@ func (r Router) InitRoutes(api *echo.Group) {
 		tasks.GET("/:id", r.taskHandler.GetTaskByID)
 		tasks.POST("/", r.taskHandler.CreateTask)
 		tasks.PATCH("/:id", r.taskHandler.UpdateTask)
+		tasks.PATCH("/:id/complete", r.taskHandler.CompleteTask)
 		tasks.DELETE("/:id", r.taskHandler.DeleteTaskByID)
 	}
 }

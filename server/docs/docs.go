@@ -531,8 +531,8 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1425,6 +1425,80 @@ const docTemplate = `{
                 }
             }
         },
+        "/tasks/{id}/complete": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "complete existing task by :id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "complete task by :id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Task ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/users/me": {
             "get": {
                 "security": [
@@ -1495,35 +1569,52 @@ const docTemplate = `{
         },
         "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.CreateGoalRequest": {
             "type": "object",
+            "required": [
+                "category_type",
+                "title"
+            ],
             "properties": {
                 "category_type": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "growth",
+                        "maintenance",
+                        "other"
+                    ]
                 },
                 "color": {
                     "type": "string"
                 },
                 "title": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 256,
+                    "minLength": 3
                 }
             }
         },
         "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.CreateTaskRequest": {
             "type": "object",
+            "required": [
+                "goal_id",
+                "title"
+            ],
             "properties": {
                 "goal_id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 0
                 },
                 "scheduled_date_time": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 10
                 },
                 "scheduled_end_date_time": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 10
                 },
                 "title": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "integer"
+                    "type": "string",
+                    "maxLength": 256,
+                    "minLength": 3
                 }
             }
         },
@@ -1631,12 +1722,18 @@ const docTemplate = `{
         },
         "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.LoginUserRequest": {
             "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
             "properties": {
                 "email": {
                     "type": "string"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 8
                 }
             }
         },
@@ -1709,23 +1806,36 @@ const docTemplate = `{
         },
         "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RefreshAccessTokenRequest": {
             "type": "object",
+            "required": [
+                "refresh_token"
+            ],
             "properties": {
                 "refresh_token": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 32
                 }
             }
         },
         "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RegisterUserRequest": {
             "type": "object",
+            "required": [
+                "confirm_password",
+                "email",
+                "password"
+            ],
             "properties": {
                 "confirm_password": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 8
                 },
                 "email": {
                     "type": "string"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 8
                 }
             }
         },
@@ -1804,35 +1914,58 @@ const docTemplate = `{
         },
         "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateGoalRequest": {
             "type": "object",
+            "required": [
+                "category_type",
+                "id",
+                "is_archived",
+                "title"
+            ],
             "properties": {
                 "category_type": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "growth",
+                        "maintenance",
+                        "other"
+                    ]
                 },
                 "color": {
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 0
                 },
                 "is_archived": {
                     "type": "boolean"
                 },
                 "title": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 256,
+                    "minLength": 3
                 }
             }
         },
         "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateRecurringTasksTemplateRequest": {
             "type": "object",
+            "required": [
+                "goal_id",
+                "has_time",
+                "recurrence_rrule",
+                "scheduled_datetime",
+                "title"
+            ],
             "properties": {
                 "goal_id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 0
                 },
                 "has_time": {
                     "type": "boolean"
                 },
                 "recurrence_rrule": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 3
                 },
                 "scheduled_datetime": {
                     "type": "string"
@@ -1841,27 +1974,40 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "title": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 256,
+                    "minLength": 3
                 }
             }
         },
         "github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateTaskRequest": {
             "type": "object",
+            "required": [
+                "goal_id",
+                "is_done",
+                "scheduled_date_time",
+                "title"
+            ],
             "properties": {
                 "goal_id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 0
                 },
                 "is_done": {
                     "type": "boolean"
                 },
                 "scheduled_date_time": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 10
                 },
                 "scheduled_end_date_time": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 10
                 },
                 "title": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 256,
+                    "minLength": 3
                 }
             }
         }

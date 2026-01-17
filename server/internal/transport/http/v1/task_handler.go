@@ -290,34 +290,15 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 	}
 
 	// Default to existing values
-	goalID := dbTask.GoalID
-	if request.GoalID != nil {
-		goalID = *request.GoalID
-	}
-
-	title := dbTask.Title
-	if request.Title != nil {
-		title = *request.Title
-	}
-
-	isDone := dbTask.IsDone
-	if request.IsDone != nil {
-		isDone = *request.IsDone
-	}
-
 	scheduledDate := dbTask.ScheduledDate
 	scheduledTime := dbTask.ScheduledTime
 	hasTime := dbTask.HasTime
 	duration := dbTask.DurationMinutes
 
 	// Only process date/time if provided
-	if request.ScheduledDateTime != nil && *request.ScheduledDateTime != "" {
-		scheduledEndDateTime := ""
-		if request.ScheduledEndDateTime != nil {
-			scheduledEndDateTime = *request.ScheduledEndDateTime
-		}
-
-		scheduledDate, scheduledTime, hasTime, duration, err = convertDateTimes(*request.ScheduledDateTime, scheduledEndDateTime)
+	if request.ScheduledDateTime != "" {
+		scheduledEndDateTime := request.ScheduledEndDateTime
+		scheduledDate, scheduledTime, hasTime, duration, err = convertDateTimes(request.ScheduledDateTime, scheduledEndDateTime)
 		if err != nil {
 			slog.Error("failed on updating task", "error", err)
 			return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
@@ -327,9 +308,9 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 	outTask, err := h.service.UpdateTask(c.Request().Context(), *dbTask, domain.UpdateTaskInput{
 		ID:              int64(taskId),
 		UserID:          int32(claims.ID),
-		GoalID:          goalID,
-		Title:           title,
-		IsDone:          isDone,
+		GoalID:          request.GoalID,
+		Title:           request.Title,
+		IsDone:          request.IsDone,
 		ScheduledDate:   scheduledDate,
 		ScheduledTime:   scheduledTime,
 		HasTime:         hasTime,
@@ -339,6 +320,45 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 
 	if err != nil {
 		slog.Error("failed on updating task", "error", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, dto.ToTaskResponse(outTask))
+}
+
+// CompleteTask godoc
+// @Summary      complete task by :id
+// @Description  complete existing task by :id
+// @Tags         tasks
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int64 true "Task ID"
+// @Success      200  {object}  dto.TaskResponse
+// @Failure      401  {object}  map[string]string "Unauthorized"
+// @Failure      404  {object}  map[string]string "Not Found"
+// @Failure      400  {object}  map[string]string "Bad Request"
+// @Failure      500  {object}  map[string]string "Internal Server Error"
+// @Router       /tasks/{id}/complete [patch]
+func (h *TaskHandler) CompleteTask(c echo.Context) error {
+	claims, err := GetCurrentClaimsFromCtx(c)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
+	}
+
+	taskId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
+	}
+
+	_, err = h.service.GetTaskByID(c.Request().Context(), int64(taskId), int32(claims.ID))
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"message": "cannot find task with provided id", "error": err.Error()})
+	}
+
+	outTask, err := h.service.CompleteTask(c.Request().Context(), int32(claims.ID), int64(taskId))
+	if err != nil {
+		slog.Error("failed on completing task", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
