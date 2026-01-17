@@ -322,6 +322,45 @@ func (h *TaskHandler) UpdateTask(c echo.Context) error {
 	return c.JSON(http.StatusOK, dto.ToTaskResponse(outTask))
 }
 
+// CompleteTask godoc
+// @Summary      complete task by :id
+// @Description  complete existing task by :id
+// @Tags         tasks
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int64 true "Task ID"
+// @Success      200  {object}  dto.TaskResponse
+// @Failure      401  {object}  map[string]string "Unauthorized"
+// @Failure      404  {object}  map[string]string "Not Found"
+// @Failure      400  {object}  map[string]string "Bad Request"
+// @Failure      500  {object}  map[string]string "Internal Server Error"
+// @Router       /tasks/{id}/complete [patch]
+func (h *TaskHandler) CompleteTask(c echo.Context) error {
+	claims, err := GetCurrentClaimsFromCtx(c)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
+	}
+
+	taskId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
+	}
+
+	_, err = h.service.GetTaskByID(c.Request().Context(), int64(taskId), int32(claims.ID))
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"message": "cannot find task with provided id", "error": err.Error()})
+	}
+
+	outTask, err := h.service.CompleteTask(c.Request().Context(), int32(claims.ID), int64(taskId))
+	if err != nil {
+		slog.Error("failed on completing task", "error", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, dto.ToTaskResponse(outTask))
+}
+
 // AnalyzeForToday godoc
 // @Summary      get stats for today
 // @Description  get count of completed tasks over total tasks for today

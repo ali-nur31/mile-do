@@ -62,6 +62,7 @@ type TaskService interface {
 	GetTaskByID(ctx context.Context, id int64, userId int32) (*TaskOutput, error)
 	CreateTask(ctx context.Context, input CreateTaskInput) (*TaskOutput, error)
 	UpdateTask(ctx context.Context, dbTask TaskOutput, updatingTask UpdateTaskInput) (*TaskOutput, error)
+	CompleteTask(ctx context.Context, userId int32, taskId int64) (*TaskOutput, error)
 	AnalyzeForToday(ctx context.Context, userId int32) (*TodayProgressOutput, error)
 	DeleteTaskByID(ctx context.Context, id int64, userId int32) error
 	DeleteFutureTasksByRecurringTasksTemplateID(ctx context.Context, templateId int64) error
