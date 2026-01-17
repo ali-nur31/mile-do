@@ -4,19 +4,19 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/ali-nur31/mile-do/internal/domain"
-	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/ali-nur31/mile-do/internal/transport/http/v1/dto"
 	"github.com/ali-nur31/mile-do/pkg/validator"
 	"github.com/labstack/echo/v4"
 )
 
 type GoalHandler struct {
-	service service.GoalService
+	service domain.GoalService
 }
 
-func NewGoalHandler(service service.GoalService) *GoalHandler {
+func NewGoalHandler(service domain.GoalService) *GoalHandler {
 	return &GoalHandler{
 		service: service,
 	}
@@ -37,12 +37,12 @@ func NewGoalHandler(service service.GoalService) *GoalHandler {
 func (h *GoalHandler) GetGoals(c echo.Context) error {
 	param := c.QueryParam("type")
 
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	goals, err := h.service.ListGoals(c.Request().Context(), param, userId)
+	goals, err := h.service.ListGoals(c.Request().Context(), param, int32(claims.ID))
 	if err != nil {
 		slog.Error("failed on getting goals", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
@@ -71,12 +71,12 @@ func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	goal, err := h.service.GetGoalByID(c.Request().Context(), int64(id), userId)
+	goal, err := h.service.GetGoalByID(c.Request().Context(), int64(id), int32(claims.ID))
 	if err != nil {
 		slog.Error("failed on getting goal by id", "error", err)
 		return c.JSON(http.StatusNotFound, map[string]string{"message": "not found", "error": err.Error()})
@@ -99,7 +99,7 @@ func (h *GoalHandler) GetGoalByID(c echo.Context) error {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /goals/ [post]
 func (h *GoalHandler) CreateGoal(c echo.Context) error {
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -114,7 +114,7 @@ func (h *GoalHandler) CreateGoal(c echo.Context) error {
 	}
 
 	goal := domain.CreateGoalInput{
-		UserID:       userId,
+		UserID:       int32(claims.ID),
 		Title:        request.Title,
 		Color:        request.Color,
 		CategoryType: request.CategoryType,
@@ -143,7 +143,7 @@ func (h *GoalHandler) CreateGoal(c echo.Context) error {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /goals/ [patch]
 func (h *GoalHandler) UpdateGoal(c echo.Context) error {
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
@@ -159,7 +159,7 @@ func (h *GoalHandler) UpdateGoal(c echo.Context) error {
 
 	outGoal, err := h.service.UpdateGoal(c.Request().Context(), domain.UpdateGoalInput{
 		ID:           request.ID,
-		UserID:       userId,
+		UserID:       int32(claims.ID),
 		Title:        request.Title,
 		Color:        request.Color,
 		CategoryType: request.CategoryType,
@@ -183,7 +183,7 @@ func (h *GoalHandler) UpdateGoal(c echo.Context) error {
 // @Param        id path int64 true "Goal ID"
 // @Success      201  {string}  map[string]string "goal has been removed"
 // @Failure      401  {object}  map[string]string "Unauthorized"
-// @Failure      404  {object}  map[string]string "Not Found"
+// @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Failure      400  {object}  map[string]string "Bad Request"
 // @Router       /goals/{id} [delete]
 func (h *GoalHandler) DeleteGoalByID(c echo.Context) error {
@@ -192,15 +192,25 @@ func (h *GoalHandler) DeleteGoalByID(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": err.Error()})
 	}
 
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	err = h.service.DeleteGoalByID(c.Request().Context(), int64(id), userId)
+	goal, err := h.service.GetGoalByID(c.Request().Context(), int64(id), int32(claims.ID))
+	if err != nil {
+		slog.Error("failed on getting goal by id for deletion", "error", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
+	}
+
+	if strings.EqualFold(goal.Title, "routine") || strings.EqualFold(goal.Title, "other") {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": "cannot delete default tasks"})
+	}
+
+	err = h.service.DeleteGoalByID(c.Request().Context(), int64(id), int32(claims.ID))
 	if err != nil {
 		slog.Error("failed on deleting goal by id", "error", err)
-		return c.JSON(http.StatusNotFound, map[string]string{"message": "goal not found", "error": err.Error()})
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{"message": "goal has been removed"})

@@ -5,11 +5,23 @@ import (
 	"fmt"
 	"time"
 
-	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/domain"
-	asynq2 "github.com/hibiken/asynq"
+	repo "github.com/ali-nur31/mile-do/internal/repository/db"
+	"github.com/hibiken/asynq"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type recurringTasksTemplateService struct {
+	repo  repo.Querier
+	asynq *asynq.Client
+}
+
+func NewRecurringTasksTemplateService(repo repo.Querier, asynq *asynq.Client) domain.RecurringTasksTemplateService {
+	return &recurringTasksTemplateService{
+		repo:  repo,
+		asynq: asynq,
+	}
+}
 
 func (s *recurringTasksTemplateService) ListRecurringTasksTemplates(ctx context.Context, userId int32) ([]domain.RecurringTasksTemplateOutput, error) {
 	recurringTasksTemplates, err := s.repo.ListRecurringTasksTemplates(ctx, userId)
@@ -51,7 +63,7 @@ func (s *recurringTasksTemplateService) CreateRecurringTasksTemplate(ctx context
 
 	outTemplate := domain.ToRecurringTasksTemplateOutput(&template)
 
-	_, err = s.asynq.Enqueue(domain.NewGenerateRecurringTasksByTemplateTask(outTemplate), asynq2.Queue("critical"))
+	_, err = s.asynq.Enqueue(domain.NewGenerateRecurringTasksByTemplateTask(outTemplate), asynq.Queue("critical"))
 	if err != nil {
 		return nil, fmt.Errorf("couldn't enqueue generation of recurring tasks by template task: %w", err)
 	}
@@ -80,12 +92,12 @@ func (s *recurringTasksTemplateService) UpdateRecurringTasksTemplateByID(ctx con
 
 	outTemplate := domain.ToRecurringTasksTemplateOutput(&template)
 
-	_, err = s.asynq.Enqueue(domain.NewDeleteRecurringTasksByTemplateIDTask(dbTemplate.ID), asynq2.Queue("critical"))
+	_, err = s.asynq.Enqueue(domain.NewDeleteRecurringTasksByTemplateIDTask(dbTemplate.ID), asynq.Queue("critical"))
 	if err != nil {
 		return nil, fmt.Errorf("couldn't enqueue deletion of recurring tasks by template id task: %w", err)
 	}
 
-	_, err = s.asynq.Enqueue(domain.NewGenerateRecurringTasksByTemplateTask(outTemplate), asynq2.Queue("critical"), asynq2.ProcessIn(1*time.Second))
+	_, err = s.asynq.Enqueue(domain.NewGenerateRecurringTasksByTemplateTask(outTemplate), asynq.Queue("critical"), asynq.ProcessIn(1*time.Second))
 	if err != nil {
 		return nil, fmt.Errorf("couldn't enqueue generation of recurring tasks by template task: %w", err)
 	}
@@ -105,18 +117,11 @@ func (s *recurringTasksTemplateService) DeleteRecurringTasksTemplateByID(ctx con
 	return nil
 }
 
-func (s *recurringTasksTemplateService) ListRecurringTasksTemplatesDueForGeneration(ctx context.Context) ([]domain.RecurringTasksTemplateOutput, error) {
-	recurringTasksTemplates, err := s.repo.ListRecurringTasksTemplatesDueForGeneration(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("couldn't get recurring tasks templates due for generation: %w", err)
-	}
-
-	output := domain.ToRecurringTasksTemplateOutputList(recurringTasksTemplates)
-
-	return output, nil
+func (s *recurringTasksTemplateService) ListRecurringTasksTemplatesDueForGeneration(ctx context.Context, qtx repo.Querier) ([]domain.RecurringTasksTemplateOutput, error) {
+	return s.listRecurringTasksTemplatesDueForGenerationInternal(ctx, qtx)
 }
 
-func (s *recurringTasksTemplateService) UpdateLastGeneratedDateInRecurringTasksTemplateByID(ctx context.Context, updatingTemplate domain.UpdateLastGeneratedDateInRecurringTasksTemplateInput) (string, error) {
+func (s *recurringTasksTemplateService) UpdateLastGeneratedDateInRecurringTasksTemplateByID(ctx context.Context, qtx repo.Querier, updatingTemplate domain.UpdateLastGeneratedDateInRecurringTasksTemplateInput) error {
 	templateUpdatingParams := repo.UpdateLastGeneratedDateInRecurringTasksTemplateByIDParams{
 		ID: updatingTemplate.ID,
 		LastGeneratedDate: pgtype.Date{
@@ -125,10 +130,10 @@ func (s *recurringTasksTemplateService) UpdateLastGeneratedDateInRecurringTasksT
 		},
 	}
 
-	err := s.repo.UpdateLastGeneratedDateInRecurringTasksTemplateByID(ctx, templateUpdatingParams)
+	err := s.updateLastGeneratedDateInRecurringTasksTemplateInternal(ctx, qtx, templateUpdatingParams)
 	if err != nil {
-		return "", fmt.Errorf("couldn't update last generated date in recurring tasks template by id: %w", err)
+		return err
 	}
 
-	return updatingTemplate.LastGeneratedDate.String(), nil
+	return nil
 }

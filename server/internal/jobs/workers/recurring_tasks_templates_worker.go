@@ -3,28 +3,48 @@ package workers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 
 	"github.com/ali-nur31/mile-do/internal/domain"
-	"github.com/ali-nur31/mile-do/internal/service"
+	"github.com/ali-nur31/mile-do/internal/repository/db"
 	"github.com/hibiken/asynq"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type RecurringTasksTemplatesWorker struct {
-	service service.TaskService
+	pool    *pgxpool.Pool
+	service domain.TaskService
 }
 
-func NewRecurringTasksTemplatesWorker(service service.TaskService) *RecurringTasksTemplatesWorker {
-	return &RecurringTasksTemplatesWorker{service: service}
+func NewRecurringTasksTemplatesWorker(pool *pgxpool.Pool, service domain.TaskService) *RecurringTasksTemplatesWorker {
+	return &RecurringTasksTemplatesWorker{
+		pool:    pool,
+		service: service,
+	}
 }
 
-func (w *RecurringTasksTemplatesWorker) GenerateRecurringTasks(ctx context.Context, t *asynq.Task) error {
+func (w *RecurringTasksTemplatesWorker) GenerateRecurringTasksDueForGeneration(ctx context.Context, t *asynq.Task) error {
 	slog.Info("executing recurring tasks generation job")
 
-	err := w.service.CreateTasksByRecurringTasksTemplates(ctx)
+	tx, err := w.pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer func() {
+		_ = tx.Rollback(context.Background())
+	}()
+
+	qtx := repo.New(tx)
+
+	err = w.service.CreateTasksByRecurringTasksTemplatesDueForGeneration(ctx, qtx)
 	if err != nil {
 		slog.Error("failed to execute recurring tasks generation job", "error", err)
 		return err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return fmt.Errorf("couldn't commit transaction for generate recurring tasks: %w", err)
 	}
 
 	slog.Info("ended execution of recurring tasks generation job")
@@ -42,10 +62,24 @@ func (w *RecurringTasksTemplatesWorker) GenerateRecurringTasksByTemplate(ctx con
 		return err
 	}
 
-	err = w.service.CreateTasksByRecurringTasksTemplate(ctx, template)
+	tx, err := w.pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer func() {
+		_ = tx.Rollback(context.Background())
+	}()
+
+	qtx := repo.New(tx)
+
+	err = w.service.CreateTasksByRecurringTasksTemplate(ctx, qtx, template)
 	if err != nil {
 		slog.Error("failed to execute recurring tasks generation by template job", "error", err)
 		return err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return fmt.Errorf("couldn't commit transaction for generate recurring tasks by template: %w", err)
 	}
 
 	slog.Info("ended execution of recurring tasks generation by template job")

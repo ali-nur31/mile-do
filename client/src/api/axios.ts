@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const api = axios.create({
-  baseURL: 'http://localhost:8080/api/v1',
+  baseURL: '/api/v1',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -18,11 +18,17 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const isAuthEndpoint = error.config?.url?.includes('/auth/login') ||
+      error.config?.url?.includes('/auth/register');
+
+    if (error.response?.status === 401 && !isAuthEndpoint) {
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       window.dispatchEvent(new Event('auth:logout'));
+      window.location.href = '/login';
+      return Promise.reject(error);
     }
+
     return Promise.reject(error);
   }
 );

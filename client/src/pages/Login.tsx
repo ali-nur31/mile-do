@@ -13,7 +13,7 @@ export const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  
+
   const { setAuthenticated, theme } = useStore();
 
   useEffect(() => {
@@ -49,8 +49,23 @@ export const Login = () => {
         handleAuthSuccess(data);
       }
     } catch (err: any) {
-      console.error(err);
-      setError(err.response?.data?.message || 'Authentication failed. Please try again.');
+      const errorData = err.response?.data;
+
+      if (errorData?.message === 'validation failed') {
+        const details = errorData?.details;
+        if (details && Array.isArray(details) && details.length > 0) {
+          const fieldErrors = details.map((d: any) => d.message || d.field).join(', ');
+          setError(`Please check your input: ${fieldErrors}`);
+        } else {
+          setError('Please check your input and try again');
+        }
+      } else if (errorData?.error) {
+        setError(errorData.error);
+      } else if (errorData?.message) {
+        setError(errorData.message);
+      } else {
+        setError('Authentication failed. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -65,7 +80,7 @@ export const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 px-4 transition-colors duration-200">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
@@ -90,32 +105,32 @@ export const Login = () => {
               </div>
             )}
 
-            <Input 
-              label="Email" 
-              type="email" 
+            <Input
+              label="Email"
+              type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@example.com"
-              required 
+              required
             />
-            
-            <Input 
-              label="Password" 
-              type="password" 
+
+            <Input
+              label="Password"
+              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              required 
+              required
             />
 
             {!isLogin && (
-              <Input 
-                label="Confirm Password" 
-                type="password" 
+              <Input
+                label="Confirm Password"
+                type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                required 
+                required
               />
             )}
 
@@ -129,7 +144,7 @@ export const Login = () => {
           <div className="px-8 py-4 bg-zinc-50 dark:bg-zinc-900/50 border-t border-zinc-100 dark:border-zinc-800 text-center transition-colors duration-200">
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
               {isLogin ? "Don't have an account? " : "Already have an account? "}
-              <button 
+              <button
                 onClick={() => { setIsLogin(!isLogin); setError(''); }}
                 className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
               >
@@ -138,7 +153,7 @@ export const Login = () => {
             </p>
           </div>
         </div>
-        
+
         <p className="text-center text-xs text-zinc-400 dark:text-zinc-600 mt-8">
           © 2026 Mile-Do.
         </p>

@@ -4,19 +4,19 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/ali-nur31/mile-do/internal/domain"
-	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/ali-nur31/mile-do/internal/transport/http/v1/dto"
 	"github.com/ali-nur31/mile-do/pkg/validator"
 	"github.com/labstack/echo/v4"
 )
 
 type AuthHandler struct {
-	authService service.AuthService
+	authService domain.AuthService
 }
 
-func NewAuthHandler(authService service.AuthService) *AuthHandler {
+func NewAuthHandler(authService domain.AuthService) *AuthHandler {
 	return &AuthHandler{
 		authService: authService,
 	}
@@ -48,13 +48,18 @@ func (h *AuthHandler) RegisterUser(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request", "error": "passwords do not match"})
 	}
 
-	output, err := h.authService.RegisterUser(c.Request().Context(), domain.UserInput{
+	output, err := h.authService.RegisterUser(c.Request().Context(), domain.AuthInput{
 		Email:    request.Email,
 		Password: request.Password,
 	})
 	if err != nil {
 		slog.Error("failed on register", "error", err)
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
+		if strings.Contains(err.Error(), "duplicate key") ||
+			strings.Contains(err.Error(), "idx_users_email") ||
+			strings.Contains(err.Error(), "users_email_key") {
+			return c.JSON(http.StatusBadRequest, map[string]string{"message": "Account already exists", "error": "An account with this email already exists"})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Unable to create account", "error": "Please try again later"})
 	}
 
 	return c.JSON(http.StatusCreated, dto.ToAuthUserResponse(output))
@@ -82,13 +87,18 @@ func (h *AuthHandler) LoginUser(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{"message": "validation failed", "details": validateErrors})
 	}
 
-	output, err := h.authService.LoginUser(c.Request().Context(), domain.UserInput{
+	output, err := h.authService.LoginUser(c.Request().Context(), domain.AuthInput{
 		Email:    request.Email,
 		Password: request.Password,
 	})
 	if err != nil {
 		slog.Error("failed on login", "error", err)
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
+		if strings.Contains(err.Error(), "password is incorrect") ||
+			strings.Contains(err.Error(), "no rows in result set") ||
+			strings.Contains(err.Error(), "couldn't get user by email") {
+			return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Invalid credentials", "error": "Invalid email or password"})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Unable to sign in", "error": "Please try again later"})
 	}
 
 	return c.JSON(http.StatusAccepted, dto.ToAuthUserResponse(output))
@@ -137,12 +147,14 @@ func (h *AuthHandler) RefreshAccessToken(c echo.Context) error {
 // @Failure      500  {object}  map[string]string "Internal Server Error"
 // @Router       /auth/logout [delete]
 func (h *AuthHandler) LogoutUser(c echo.Context) error {
-	userId, err := GetCurrentUserIdFromCtx(c)
+	claims, err := GetCurrentClaimsFromCtx(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
 	}
 
-	err = h.authService.LogoutUser(c.Request().Context(), userId)
+	accessToken := c.Get("accessToken")
+
+	err = h.authService.LogoutUser(c.Request().Context(), int32(claims.ID), fmt.Sprint(accessToken), claims.ExpiresAt.Time)
 	if err != nil {
 		slog.Error("failed on logout", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
@@ -151,12 +163,12 @@ func (h *AuthHandler) LogoutUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"message": "successful log out"})
 }
 
-func GetCurrentUserIdFromCtx(c echo.Context) (int32, error) {
-	switch t := c.Get("userId").(type) {
-	case int64:
-		return int32(t), nil
+func GetCurrentClaimsFromCtx(c echo.Context) (*domain.Claims, error) {
+	switch t := c.Get("claims").(type) {
+	case *domain.Claims:
+		return t, nil
 	default:
 		slog.Error("userId in context is not an integer", "value", t)
-		return -1, fmt.Errorf("failed to convert userId to integer")
+		return nil, fmt.Errorf("failed to convert userId to integer")
 	}
 }

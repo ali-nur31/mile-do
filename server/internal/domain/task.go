@@ -3,7 +3,7 @@ package domain
 import (
 	"time"
 
-	repo "github.com/ali-nur31/mile-do/internal/db"
+	"github.com/ali-nur31/mile-do/internal/repository/db"
 )
 
 type GetTasksByPeriodInput struct {

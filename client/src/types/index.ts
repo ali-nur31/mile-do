@@ -58,6 +58,8 @@ export interface CreateTaskRequest {
   title: string;
   goal_id: number;
   scheduled_date_time?: string;
+  scheduled_end_date_time?: string;
+  duration_minutes?: number;
 }
 
 export interface UpdateTaskRequest {
@@ -65,11 +67,13 @@ export interface UpdateTaskRequest {
   title?: string;
   is_done?: boolean;
   scheduled_date_time?: string;
+  duration_minutes?: number;
 }
 
 export interface UpdateTaskPayload {
-  goal_id: number;
-  title: string;
-  is_done: boolean;
-  scheduled_date_time: string;
+  Title: string;
+  GoalID: number;
+  IsDone: boolean;
+  ScheduledDateTime: string;
+  DurationMinutes: number;
 }

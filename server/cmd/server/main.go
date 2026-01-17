@@ -10,9 +10,10 @@ import (
 
 	"github.com/ali-nur31/mile-do/config"
 	_ "github.com/ali-nur31/mile-do/docs"
-	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/jobs"
 	"github.com/ali-nur31/mile-do/internal/jobs/workers"
+	"github.com/ali-nur31/mile-do/internal/repository/db"
+	redis2 "github.com/ali-nur31/mile-do/internal/repository/redis"
 	"github.com/ali-nur31/mile-do/internal/service"
 	"github.com/ali-nur31/mile-do/internal/transport/http/middleware"
 	v1 "github.com/ali-nur31/mile-do/internal/transport/http/v1"
@@ -24,6 +25,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
+	"github.com/robfig/cron/v3"
 )
 
 // @title           Mile-Do API
@@ -63,7 +65,7 @@ func main() {
 
 	queries := repo.New(pg.Pool)
 
-	_, err = redis_db.InitializeRedisConnection(ctx, &cfg.Redis)
+	redisClient, err := redis_db.InitializeRedisConnection(ctx, &cfg.Redis)
 	if err != nil {
 		os.Exit(1)
 	}
@@ -75,6 +77,8 @@ func main() {
 
 	defer asynq.Client.Close()
 
+	redisRepo := redis2.NewAuthRedisRepo(redisClient.Rdb)
+
 	passwordManager := auth.NewBcryptPasswordManager()
 
 	jwtTokenManager, err := auth.NewJwtManager(&cfg.Jwt)
@@ -84,16 +88,16 @@ func main() {
 
 	refreshTokenService := service.NewRefreshTokenService(queries)
 
-	authMiddleware := middleware.NewAuthMiddleware(jwtTokenManager, refreshTokenService)
+	authMiddleware := middleware.NewAuthMiddleware(redisRepo, jwtTokenManager, refreshTokenService)
 
 	userService := service.NewUserService(queries, passwordManager)
 	userHandler := v1.NewUserHandler(userService)
 
-	authService := service.NewAuthService(queries, asynq.Client, pg.Pool, userService, jwtTokenManager, refreshTokenService, passwordManager)
-	authHandler := v1.NewAuthHandler(authService)
-
 	goalService := service.NewGoalService(queries)
 	goalHandler := v1.NewGoalHandler(goalService)
+
+	authService := service.NewAuthService(queries, redisRepo, asynq.Client, pg.Pool, userService, goalService, jwtTokenManager, refreshTokenService, passwordManager)
+	authHandler := v1.NewAuthHandler(authService)
 
 	recurringTasksTemplateService := service.NewRecurringTasksTemplateService(queries, asynq.Client)
 	recurringTasksTemplateHandler := v1.NewRecurringTasksTemplateHandler(recurringTasksTemplateService)
@@ -124,10 +128,18 @@ func main() {
 
 	router.InitRoutes(apiGroup)
 
-	goalsWorker := workers.NewGoalsWorker(goalService, pg.Pool)
-	recurringTasksTemplatesWorker := workers.NewRecurringTasksTemplatesWorker(taskService)
+	c := cron.New()
 
-	backgroundWorker := jobs.NewJobRouter(&cfg.Redis, goalsWorker, recurringTasksTemplatesWorker)
+	scheduler := service.NewScheduler(c, asynq.Client)
+
+	scheduler.InitSchedules()
+
+	c.Start()
+	slog.Info("Cron scheduler started")
+
+	recurringTasksTemplatesWorker := workers.NewRecurringTasksTemplatesWorker(pg.Pool, taskService)
+
+	backgroundWorker := jobs.NewJobRouter(&cfg.Redis, recurringTasksTemplatesWorker)
 
 	go func() {
 		if err = backgroundWorker.Run(); err != nil {
@@ -149,6 +161,10 @@ func main() {
 
 	<-quit
 	slog.Info("Received shutdown signal. shutting down...")
+
+	ctxCron := c.Stop()
+	<-ctxCron.Done()
+	slog.Info("Cron scheduler stopped")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

@@ -11,9 +11,9 @@ import { showToast } from '../utils/toast';
 export const GoalDetails = () => {
   const { id } = useParams<{ id: string }>();
   const goalId = id ? parseInt(id, 10) : 0;
-  
+
   if (!goalId || isNaN(goalId)) {
-      return <Navigate to="/goals" replace />;
+    return <Navigate to="/goals" replace />;
   }
 
   const queryClient = useQueryClient();
@@ -62,7 +62,13 @@ export const GoalDetails = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
-    createTask.mutate(inputValue); 
+
+    if (inputValue.trim().length < 3) {
+      showToast('delete', 'Task title too short (min 3 chars)');
+      return;
+    }
+
+    createTask.mutate(inputValue);
   };
 
   if (isGoalLoading || isTasksLoading) {
@@ -108,10 +114,10 @@ export const GoalDetails = () => {
       <div className="space-y-8">
         <div className="flex flex-col gap-2">
           {activeTasks.map((task) => (
-            <TaskItem 
-              key={task.id} 
-              task={task} 
-              onToggle={(id, isDone) => toggleTask.mutate({ id, isDone })} 
+            <TaskItem
+              key={task.id}
+              task={task}
+              onToggle={(id, isDone) => toggleTask.mutate({ id, isDone })}
             />
           ))}
           {activeTasks.length === 0 && completedTasks.length === 0 && (
@@ -128,10 +134,10 @@ export const GoalDetails = () => {
             </h2>
             <div className="flex flex-col gap-2 opacity-60 hover:opacity-100 transition-opacity">
               {completedTasks.map((task) => (
-                <TaskItem 
-                  key={task.id} 
-                  task={task} 
-                  onToggle={(id, isDone) => toggleTask.mutate({ id, isDone })} 
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  onToggle={(id, isDone) => toggleTask.mutate({ id, isDone })}
                 />
               ))}
             </div>

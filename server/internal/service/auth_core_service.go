@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	repo "github.com/ali-nur31/mile-do/internal/db"
-	"github.com/ali-nur31/mile-do/pkg/auth"
+	"github.com/ali-nur31/mile-do/internal/domain"
+	repo "github.com/ali-nur31/mile-do/internal/repository/db"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func (s *authService) generateNewTokensInternal(ctx context.Context, qtx repo.Querier, userId int64) (*auth.TokensData, error) {
+func (s *authService) generateNewTokensInternal(ctx context.Context, qtx repo.Querier, userId int64) (*domain.TokensData, error) {
 	tokensData, err := s.tokenManager.CreateTokens(userId)
 	if err != nil {
 		return nil, err

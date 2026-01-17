@@ -4,10 +4,20 @@ import (
 	"context"
 	"fmt"
 
-	repo "github.com/ali-nur31/mile-do/internal/db"
 	"github.com/ali-nur31/mile-do/internal/domain"
+	repo "github.com/ali-nur31/mile-do/internal/repository/db"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type refreshTokenService struct {
+	repo repo.Querier
+}
+
+func NewRefreshTokenService(repo repo.Querier) domain.RefreshTokenService {
+	return &refreshTokenService{
+		repo: repo,
+	}
+}
 
 func (s *refreshTokenService) GetRefreshTokenByUserID(ctx context.Context, qtx repo.Querier, userId int32) (*domain.RefreshTokenOutput, error) {
 	return s.getRefreshTokenByUserIDInternal(ctx, qtx, userId)
