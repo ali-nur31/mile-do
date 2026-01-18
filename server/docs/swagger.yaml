@@ -10,24 +10,39 @@ definitions:
   github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.CreateGoalRequest:
     properties:
       category_type:
+        enum:
+        - growth
+        - maintenance
+        - other
         type: string
       color:
         type: string
       title:
+        maxLength: 256
+        minLength: 3
         type: string
+    required:
+    - category_type
+    - title
     type: object
   github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.CreateTaskRequest:
     properties:
       goal_id:
+        minimum: 0
         type: integer
       scheduled_date_time:
+        minLength: 10
         type: string
       scheduled_end_date_time:
+        minLength: 10
         type: string
       title:
+        maxLength: 256
+        minLength: 3
         type: string
-      user_id:
-        type: integer
+    required:
+    - goal_id
+    - title
     type: object
   github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.GetUserResponse:
     properties:
@@ -100,7 +115,12 @@ definitions:
       email:
         type: string
       password:
+        maxLength: 72
+        minLength: 8
         type: string
+    required:
+    - email
+    - password
     type: object
   github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RecurringTasksTemplateData:
     properties:
@@ -149,16 +169,27 @@ definitions:
   github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RefreshAccessTokenRequest:
     properties:
       refresh_token:
+        minLength: 32
         type: string
+    required:
+    - refresh_token
     type: object
   github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.RegisterUserRequest:
     properties:
       confirm_password:
+        maxLength: 72
+        minLength: 8
         type: string
       email:
         type: string
       password:
+        maxLength: 72
+        minLength: 8
         type: string
+    required:
+    - confirm_password
+    - email
+    - password
     type: object
   github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskData:
     properties:
@@ -211,43 +242,75 @@ definitions:
   github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateGoalRequest:
     properties:
       category_type:
+        enum:
+        - growth
+        - maintenance
+        - other
         type: string
       color:
         type: string
       id:
+        minimum: 0
         type: integer
       is_archived:
         type: boolean
       title:
+        maxLength: 256
+        minLength: 3
         type: string
+    required:
+    - category_type
+    - id
+    - is_archived
+    - title
     type: object
   github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateRecurringTasksTemplateRequest:
     properties:
       goal_id:
+        minimum: 0
         type: integer
       has_time:
         type: boolean
       recurrence_rrule:
+        minLength: 3
         type: string
       scheduled_datetime:
         type: string
       scheduled_end_time:
         type: string
       title:
+        maxLength: 256
+        minLength: 3
         type: string
+    required:
+    - goal_id
+    - has_time
+    - recurrence_rrule
+    - scheduled_datetime
+    - title
     type: object
   github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.UpdateTaskRequest:
     properties:
       goal_id:
+        minimum: 0
         type: integer
       is_done:
         type: boolean
       scheduled_date_time:
+        minLength: 10
         type: string
       scheduled_end_date_time:
+        minLength: 10
         type: string
       title:
+        maxLength: 256
+        minLength: 3
         type: string
+    required:
+    - goal_id
+    - is_done
+    - scheduled_date_time
+    - title
     type: object
 host: localhost:8080
 info:
@@ -539,8 +602,8 @@ paths:
             additionalProperties:
               type: string
             type: object
-        "404":
-          description: Not Found
+        "500":
+          description: Internal Server Error
           schema:
             additionalProperties:
               type: string
@@ -1061,6 +1124,54 @@ paths:
       security:
       - BearerAuth: []
       summary: update task by :id
+      tags:
+      - tasks
+  /tasks/{id}/complete:
+    patch:
+      consumes:
+      - application/json
+      description: complete existing task by :id
+      parameters:
+      - description: Task ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ali-nur31_mile-do_internal_transport_http_v1_dto.TaskResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: complete task by :id
       tags:
       - tasks
   /tasks/analyze:

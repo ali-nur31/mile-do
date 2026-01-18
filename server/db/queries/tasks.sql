@@ -52,6 +52,12 @@ SET
 WHERE id = $1 AND user_id = $2
 RETURNING *;
 
+-- name: UpdateIsDoneInTaskByID :one
+UPDATE tasks
+SET is_done = $3
+WHERE id = $1 AND user_id = $2
+RETURNING *;
+
 -- name: DeleteTaskByID :exec
 DELETE FROM tasks
 WHERE id = $1 AND user_id = $2;

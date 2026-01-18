@@ -146,6 +146,22 @@ func (s *taskService) UpdateTask(ctx context.Context, dbTask domain.TaskOutput, 
 	return domain.ToTaskOutput(&task), nil
 }
 
+func (s *taskService) CompleteTask(ctx context.Context, userId int32, taskId int64) (*domain.TaskOutput, error) {
+
+	taskUpdatingParams := repo.UpdateIsDoneInTaskByIDParams{
+		ID:     taskId,
+		UserID: userId,
+		IsDone: true,
+	}
+
+	task, err := s.repo.UpdateIsDoneInTaskByID(ctx, taskUpdatingParams)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't complete task: %w", err)
+	}
+
+	return domain.ToTaskOutput(&task), nil
+}
+
 func (s *taskService) AnalyzeForToday(ctx context.Context, userId int32) (*domain.TodayProgressOutput, error) {
 	stats, err := s.repo.CountCompletedTasksForToday(ctx, userId)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/ali-nur31/mile-do/internal/domain"
 	"github.com/ali-nur31/mile-do/internal/transport/http/v1/dto"
@@ -53,7 +54,12 @@ func (h *AuthHandler) RegisterUser(c echo.Context) error {
 	})
 	if err != nil {
 		slog.Error("failed on register", "error", err)
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
+		if strings.Contains(err.Error(), "duplicate key") ||
+			strings.Contains(err.Error(), "idx_users_email") ||
+			strings.Contains(err.Error(), "users_email_key") {
+			return c.JSON(http.StatusBadRequest, map[string]string{"message": "Account already exists", "error": "An account with this email already exists"})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Unable to create account", "error": "Please try again later"})
 	}
 
 	return c.JSON(http.StatusCreated, dto.ToAuthUserResponse(output))
@@ -87,7 +93,12 @@ func (h *AuthHandler) LoginUser(c echo.Context) error {
 	})
 	if err != nil {
 		slog.Error("failed on login", "error", err)
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error", "error": err.Error()})
+		if strings.Contains(err.Error(), "password is incorrect") ||
+			strings.Contains(err.Error(), "no rows in result set") ||
+			strings.Contains(err.Error(), "couldn't get user by email") {
+			return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Invalid credentials", "error": "Invalid email or password"})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Unable to sign in", "error": "Please try again later"})
 	}
 
 	return c.JSON(http.StatusAccepted, dto.ToAuthUserResponse(output))

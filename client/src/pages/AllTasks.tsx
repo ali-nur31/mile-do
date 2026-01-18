@@ -61,7 +61,7 @@ export const AllTasks = () => {
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">All Tasks</h1>
           </div>
           {allTasks.length > 0 && (
-            <button 
+            <button
               onClick={() => setIsDeleteModalOpen(true)}
               className="text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-2 rounded-lg transition-colors flex items-center gap-2 font-medium"
             >
@@ -84,36 +84,36 @@ export const AllTasks = () => {
 
       <div className="space-y-10">
         {scheduledTasks.length > 0 && (
-          <section>
+          <div>
             <h2 className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3 px-1">Scheduled</h2>
             <div className="flex flex-col gap-2">
               {scheduledTasks.map((task) => (
                 <TaskItem key={task.id} task={task} onToggle={(id, isDone) => toggleTask.mutate({ id, isDone })} />
               ))}
             </div>
-          </section>
+          </div>
         )}
 
         {backlogTasks.length > 0 && (
-          <section>
+          <div>
             <h2 className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3 px-1">Backlog</h2>
             <div className="flex flex-col gap-2">
               {backlogTasks.map((task) => (
                 <TaskItem key={task.id} task={task} onToggle={(id, isDone) => toggleTask.mutate({ id, isDone })} />
               ))}
             </div>
-          </section>
+          </div>
         )}
 
         {completedTasks.length > 0 && (
-          <section>
+          <div>
             <h2 className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3 px-1">Completed</h2>
             <div className="flex flex-col gap-2 opacity-60">
               {completedTasks.map((task) => (
                 <TaskItem key={task.id} task={task} onToggle={(id, isDone) => toggleTask.mutate({ id, isDone })} />
               ))}
             </div>
-          </section>
+          </div>
         )}
       </div>
 
