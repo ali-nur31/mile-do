@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/axios';
 import { goalsApi } from '../api/goals';
+import { tasksApi } from '../api/tasks';
 import type { CreateTaskRequest, UpdateTaskRequest, ListTasksResponse, Goal } from '../types';
 import { extractDateStr, extractTimeStr, combineToBackend, getLocalISOString } from '../utils/date';
 import { showToast } from '../utils/toast';
@@ -81,6 +82,7 @@ export const useTasks = () => {
       }
 
       const { duration_minutes, ...payloadToSend } = finalPayload;
+      (payloadToSend as any).duration_minutes = duration_minutes;
 
       const response = await api.post('/tasks/', payloadToSend);
       return response.data;
@@ -148,11 +150,13 @@ export const useTasks = () => {
       const goalIdValue = data.goal_id ?? currentTask.goal_id;
       const titleValue = data.title ?? currentTask.title;
       const isDoneValue = data.is_done ?? currentTask.is_done;
+
       const payload: any = {
         goal_id: goalIdValue,
         title: titleValue,
         is_done: isDoneValue,
-        scheduled_date_time: scheduledDateTime
+        scheduled_date_time: scheduledDateTime,
+        duration_minutes: duration
       };
 
       if (scheduledEndDateTime) {
@@ -167,6 +171,18 @@ export const useTasks = () => {
     onError: (err: any) => {
       const msg = err.message || err.response?.data?.message || 'Failed to update task';
       showToast('delete', msg);
+    }
+  });
+
+  const completeTask = useMutation({
+    mutationFn: async (id: number) => {
+      return tasksApi.complete(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
+    onError: () => {
+      showToast('delete', 'Failed to complete task');
     }
   });
 
@@ -188,6 +204,7 @@ export const useTasks = () => {
     isLoading,
     createTask,
     updateTask,
+    completeTask,
     deleteTask
   };
 };
