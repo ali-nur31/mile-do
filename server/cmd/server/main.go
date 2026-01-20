@@ -150,7 +150,7 @@ func main() {
 
 	go func() {
 		port := cfg.Api.Port
-		if err = e.Start(port); err != nil {
+		if err = e.Start(port); err != nil && err != http.ErrServerClosed {
 			slog.Error("failed to start server", "error", err)
 			os.Exit(1)
 		}
