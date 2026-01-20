@@ -20,7 +20,7 @@ COPY --from=builder /server/server .
 
 COPY --from=builder /go/bin/goose /bin/goose
 
-COPY db/migrations /migrations
+COPY /server/db/migrations /migrations
 
 EXPOSE 8080
 
