@@ -1,0 +1,58 @@
+version: "1"
+
+services:
+  - type: web
+    name: mile-do-server
+    runtime: docker
+    rootDir: server
+    plan: free
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: DB_HOST
+        fromDatabase:
+          name: mile-do-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: mile-do-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: mile-do-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: mile-do-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: mile-do-db
+          property: password
+      - key: REDIS_ADDR
+        fromService:
+          type: redis
+          name: mile-do-redis
+          property: hostAndPort
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mile-do-db
+          property: connectionString
+    # Ideally, run migrations here as a start command or pre-deploy command
+    # if your server image has the migration tool installed.
+
+  # 2. Managed Redis
+  - type: redis
+    name: mile-do-redis
+    region: frankfurt # Choose a region close to you
+    plan: free # or starter
+    ipAllowList: [] # Empty means only internal services can connect
+
+databases:
+  # 3. Managed PostgreSQL
+  - name: mile-do-db
+    databaseName: mile_do_db
+    user: postgres
+    plan: free # or starter
+    region: frankfurt
+    ipAllowList: [] # Secure by default
