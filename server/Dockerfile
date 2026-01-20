@@ -24,4 +24,4 @@ COPY /db/migrations /migrations
 
 EXPOSE 8080
 
-CMD ["/bin/sh", "-c", "goose -dir /migrations postgres \"$DATABASE_URL\" up && ./server"]
+CMD ["/bin/sh", "-c", "goose -dir /migrations up && ./server"]
